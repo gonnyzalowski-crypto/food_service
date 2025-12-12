@@ -425,7 +425,7 @@ if ($requestPath === '/setup-database') {
             $insertStmt = $setupPdo->prepare("INSERT INTO products (sku, name, slug, description, category_id, unit_price, image_url, is_active, is_featured) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)");
             
             foreach ($products as $i => $p) {
-                $sku = 'STR-' . str_pad($i + 1, 4, '0', STR_PAD_LEFT);
+                $sku = 'STR-' . str_pad((string)($i + 1), 4, '0', STR_PAD_LEFT);
                 $slug = $p[1];
                 $imageUrl = '/images/' . $slug . '/1.jpg';
                 // Check for different extensions
