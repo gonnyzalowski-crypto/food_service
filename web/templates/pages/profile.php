@@ -26,23 +26,23 @@ $pageSubtitle = $lang === 'de' ? 'Langjährige Erfahrung, technische Kompetenz u
     <div class="container">
         <div class="sectors-gallery">
             <a href="/business-sectors/pipelines-plants" class="sector-thumb">
-                <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400" alt="Pipelines & Plants">
+                <img src="https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=400" alt="Pipelines & Plants">
                 <span><?= $lang === 'de' ? 'Pipelines & Anlagen' : 'Pipelines & Plants' ?></span>
             </a>
             <a href="/business-sectors/mechanical-engineering" class="sector-thumb">
-                <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400" alt="Mechanical Engineering">
+                <img src="https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400" alt="Mechanical Engineering">
                 <span><?= $lang === 'de' ? 'Maschinenbau' : 'Mechanical Engineering' ?></span>
             </a>
             <a href="/business-sectors/electrical-engineering" class="sector-thumb">
-                <img src="https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=400" alt="Electrical Engineering">
+                <img src="https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400" alt="Electrical Engineering">
                 <span><?= $lang === 'de' ? 'Elektrotechnik' : 'Electrical Engineering' ?></span>
             </a>
             <a href="/business-sectors/civil-engineering" class="sector-thumb">
-                <img src="https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400" alt="Civil Engineering">
+                <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400" alt="Civil Engineering">
                 <span><?= $lang === 'de' ? 'Hoch- & Tiefbau' : 'Civil & Structural Engineering' ?></span>
             </a>
             <a href="/business-sectors/raw-materials" class="sector-thumb">
-                <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400" alt="Raw Materials">
+                <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400" alt="Raw Materials">
                 <span><?= $lang === 'de' ? 'Roh- & Baustoffe' : 'Raw & Construction Material' ?></span>
             </a>
         </div>
@@ -86,7 +86,7 @@ $pageSubtitle = $lang === 'de' ? 'Langjährige Erfahrung, technische Kompetenz u
             
             <div class="profile-sidebar">
                 <div class="company-card">
-                    <img src="https://www.streicher.de/fileadmin/theme/templates/img/logo_streicher.svg" alt="MAX STREICHER" class="company-logo">
+                    <img src="https://www.streichergmbh.com/fileadmin/theme/templates/img/logo_streicher.svg" alt="MAX STREICHER" class="company-logo">
                     <h3>MAX STREICHER GmbH & Co. Kommanditgesellschaft auf Aktien</h3>
                     <address>
                         Schwaigerbreite 17<br>
@@ -95,8 +95,8 @@ $pageSubtitle = $lang === 'de' ? 'Langjährige Erfahrung, technische Kompetenz u
                     </address>
                     <p>
                         <strong><?= $lang === 'de' ? 'Telefon' : 'Phone' ?>:</strong> +49 991 330-0<br>
-                        <a href="https://www.streicher.de">www.streicher.de</a><br>
-                        <a href="mailto:info@streicher.de">info@streicher.de</a>
+                        <a href="https://www.streichergmbh.com">www.streichergmbh.com</a><br>
+                        <a href="mailto:info@streichergmbh.com">info@streichergmbh.com</a>
                     </p>
                     <a href="https://goo.gl/maps/v2uwGuFPi4v" class="btn btn-outline" target="_blank">
                         <?= $lang === 'de' ? 'So finden Sie uns' : 'How to find us' ?> »

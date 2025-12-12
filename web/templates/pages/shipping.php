@@ -179,7 +179,7 @@
       </p>
       <div style="display: flex; gap: 16px; justify-content: center;">
         <a href="/contact" class="btn btn-primary">Contact Us</a>
-        <a href="mailto:shipping@streicher.de" class="btn btn-outline">shipping@streicher.de</a>
+        <a href="mailto:shipping@streichergmbh.com" class="btn btn-outline">shipping@streichergmbh.com</a>
       </div>
     </div>
   </div>

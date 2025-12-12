@@ -77,7 +77,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">Sales Email</label>
-          <input type="email" name="sales_email" class="form-control" value="<?= htmlspecialchars($s['sales_email'] ?? 'sales@streichergmbh.com') ?>">
+          <input type="email" name="sales_email" class="form-control" value="<?= htmlspecialchars($s['sales_email'] ?? 'store@streichergmbh.com') ?>">
         </div>
         <div class="form-group">
           <label class="form-label">Shipping Email</label>
@@ -172,7 +172,7 @@
                 <span style="font-weight: 500;">Admin User</span>
               </div>
             </td>
-            <td>admin@streicher.de</td>
+            <td>admin@streichergmbh.com</td>
             <td><span style="background: #dbeafe; color: #1d4ed8; padding: 4px 12px; border-radius: 12px;">Super Admin</span></td>
             <td><?= date('M j, Y g:i A') ?></td>
             <td>

@@ -108,7 +108,7 @@
         </p>
         <div style="font-size: 0.9rem;">
           📞 +49 (0) 941 123 4567<br>
-          ✉️ sales@streicher.de
+          ✉️ store@streichergmbh.com
         </div>
       </div>
     </div>

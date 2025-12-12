@@ -196,8 +196,15 @@ $shipping = json_decode($order['shipping_address'] ?? '{}', true) ?: [];
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
               <div>
                 <select name="status" class="form-control" style="padding: 8px;">
+                  <option value="picked_up">Picked Up from Warehouse</option>
                   <option value="in_transit">In Transit</option>
+                  <option value="arrived_hub">Arrived at Hub</option>
+                  <option value="departed_hub">Departed Hub</option>
+                  <option value="customs_hold">Customs Hold</option>
+                  <option value="customs_cleared">Customs Cleared</option>
+                  <option value="arrived_destination">Arrived at Destination Country</option>
                   <option value="out_for_delivery">Out for Delivery</option>
+                  <option value="delivery_attempted">Delivery Attempted</option>
                   <option value="delivered">Delivered</option>
                 </select>
               </div>

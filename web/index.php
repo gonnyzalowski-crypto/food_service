@@ -146,8 +146,56 @@ function require_admin(): void {
     }
 }
 
-function format_price(float $amount, string $currency = 'USD'): string {
-    return '$' . number_format($amount, 2);
+function format_price(float $amount, string $currency = 'EUR'): string {
+    if ($currency === 'USD') {
+        return '$' . number_format($amount, 2);
+    }
+    return '€' . number_format($amount, 2);
+}
+
+function get_exchange_rate(): float {
+    global $pdo;
+    // Try to get cached rate from database
+    $stmt = $pdo->query("SELECT setting_value, updated_at FROM settings WHERE setting_key = 'eur_usd_rate'");
+    $row = $stmt->fetch();
+    
+    if ($row) {
+        $lastUpdate = strtotime($row['updated_at']);
+        // If rate is less than 24 hours old, use cached
+        if (time() - $lastUpdate < 86400) {
+            return (float)$row['setting_value'];
+        }
+    }
+    
+    // Fetch new rate from API (fallback to default if fails)
+    $rate = 1.08; // Default EUR/USD rate
+    try {
+        $url = 'https://api.exchangerate-api.com/v4/latest/EUR';
+        $context = stream_context_create(['http' => ['timeout' => 5]]);
+        $response = @file_get_contents($url, false, $context);
+        if ($response) {
+            $data = json_decode($response, true);
+            if (isset($data['rates']['USD'])) {
+                $rate = (float)$data['rates']['USD'];
+            }
+        }
+    } catch (Exception $e) {
+        // Use default rate
+    }
+    
+    // Cache the rate
+    $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value) VALUES ('eur_usd_rate', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+    $stmt->execute([$rate]);
+    
+    return $rate;
+}
+
+function convert_price(float $eurAmount, string $toCurrency): float {
+    if ($toCurrency === 'EUR') {
+        return $eurAmount;
+    }
+    $rate = get_exchange_rate();
+    return $eurAmount * $rate;
 }
 
 function get_cart_count(): int {
@@ -746,11 +794,28 @@ if (preg_match('#^/admin/shipments/(\d+)/update-tracking$#', $path, $m) && $meth
     
     $events = json_decode($shipment['events'] ?? '[]', true) ?: [];
     
+    // Status descriptions mapping
+    $statusDescriptions = [
+        'picked_up' => 'Shipment picked up from warehouse',
+        'in_transit' => 'Shipment in transit',
+        'arrived_hub' => 'Arrived at sorting hub',
+        'departed_hub' => 'Departed from sorting hub',
+        'customs_hold' => 'Shipment held at customs for inspection',
+        'customs_cleared' => 'Customs clearance completed - shipment released',
+        'arrived_destination' => 'Arrived at destination country',
+        'out_for_delivery' => 'Out for delivery',
+        'delivery_attempted' => 'Delivery attempted - recipient not available',
+        'delivered' => 'Shipment delivered successfully',
+    ];
+    
+    $statusCode = $data['status'] ?? 'in_transit';
+    $description = !empty($data['description']) ? $data['description'] : ($statusDescriptions[$statusCode] ?? 'Status update');
+    
     // Add new event
     $newEvent = [
         'timestamp' => date('Y-m-d H:i:s'),
-        'status' => $data['status_code'] ?? 'UPDATE',
-        'description' => $data['description'] ?? '',
+        'status' => strtoupper(str_replace('_', ' ', $statusCode)),
+        'description' => $description,
         'location' => $data['location'] ?? '',
         'facility' => $data['facility'] ?? '',
     ];
@@ -1023,6 +1088,11 @@ if ($path === '/' && $method === 'GET') {
 if ($path === '/catalog' && $method === 'GET') {
     $category = $_GET['category'] ?? null;
     $search = $_GET['search'] ?? null;
+    
+    // Handle currency switching
+    if (isset($_GET['currency']) && in_array($_GET['currency'], ['EUR', 'USD'])) {
+        $_SESSION['display_currency'] = $_GET['currency'];
+    }
     
     $sql = 'SELECT p.*, c.name as category_name, c.slug as category_slug 
             FROM products p 
@@ -2057,9 +2127,37 @@ if ($path === '/quote' && $method === 'GET') {
 
 // POST /quote - Quote form submission
 if ($path === '/quote' && $method === 'POST') {
+    $name = $_POST['name'] ?? '';
+    $company = $_POST['company'] ?? '';
+    $email = $_POST['email'] ?? '';
+    $phone = $_POST['phone'] ?? '';
+    $country = $_POST['country'] ?? '';
+    $category = $_POST['category'] ?? '';
+    $quantity = $_POST['quantity'] ?? '1';
+    $requirements = $_POST['requirements'] ?? '';
+    $productSku = $_POST['product_sku'] ?? '';
+    
+    // Generate ticket number
+    $ticketNumber = 'QTE-' . date('Ymd') . '-' . strtoupper(substr(md5(uniqid()), 0, 6));
+    
+    // Build message from quote details
+    $message = "Quote Request\n\n";
+    $message .= "Product Category: $category\n";
+    $message .= "Quantity: $quantity\n";
+    if ($productSku) {
+        $message .= "Product SKU: $productSku\n";
+    }
+    $message .= "Country: $country\n\n";
+    $message .= "Requirements:\n$requirements";
+    
+    // Save to support_tickets table
+    $stmt = $pdo->prepare('INSERT INTO support_tickets (ticket_number, name, company, email, phone, subject, message) VALUES (?, ?, ?, ?, ?, ?, ?)');
+    $stmt->execute([$ticketNumber, $name, $company, $email, $phone, 'Quote Request - ' . $category, $message]);
+    
     render_template('pages/quote.php', [
         'title' => 'Request a Quote - Streicher',
         'success' => true,
+        'ticketNumber' => $ticketNumber,
     ]);
 }
 

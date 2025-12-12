@@ -259,16 +259,11 @@ $packageTypeDisplay = $packageTypes[$shipment['package_type'] ?? 'crate'] ?? '�
   <div class="card mt-4">
     <div class="card-body">
       <h4 style="margin: 0 0 16px 0;">Need Help?</h4>
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
-        <div>
-          <div style="font-size: 1.5rem; margin-bottom: 8px;">📞</div>
-          <div style="font-weight: 500;">Call Us</div>
-          <div style="color: #64748b; font-size: 0.9rem;">+49 (0) 941 123 4567</div>
-        </div>
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;">
         <div>
           <div style="font-size: 1.5rem; margin-bottom: 8px;">✉️</div>
           <div style="font-weight: 500;">Email Support</div>
-          <div style="color: #64748b; font-size: 0.9rem;">shipping@streicher.de</div>
+          <div style="color: #64748b; font-size: 0.9rem;">shipping@streichergmbh.com</div>
         </div>
         <div>
           <div style="font-size: 1.5rem; margin-bottom: 8px;">💬</div>

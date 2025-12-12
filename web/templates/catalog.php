@@ -1,4 +1,8 @@
-<?php $lang = $_SESSION['lang'] ?? 'de'; ?>
+<?php 
+$lang = $_SESSION['lang'] ?? 'de';
+$displayCurrency = $_SESSION['display_currency'] ?? 'EUR';
+$exchangeRate = get_exchange_rate();
+?>
 <div class="breadcrumb">
   <a href="/"><?= __('home') ?></a> <span>/</span>
   <a href="/catalog"><?= __('products') ?></a>
@@ -10,25 +14,8 @@
 <div style="display: grid; grid-template-columns: 280px 1fr; gap: 32px;">
   <!-- Sidebar -->
   <aside>
+    <!-- Search (moved to top) -->
     <div class="card">
-      <div class="card-header">
-        <h3 class="card-title"><?= __('categories') ?></h3>
-      </div>
-      <div class="card-body" style="padding: 0;">
-        <a href="/catalog" style="display: block; padding: 12px 24px; text-decoration: none; color: <?= !$currentCategory ? '#dc2626' : '#334155' ?>; font-weight: <?= !$currentCategory ? '600' : '400' ?>; border-bottom: 1px solid #e2e8f0;">
-          <?= __('all_products') ?>
-        </a>
-        <?php foreach ($categories as $cat): ?>
-        <a href="/catalog?category=<?= htmlspecialchars($cat['slug']) ?>" 
-           style="display: block; padding: 12px 24px; text-decoration: none; color: <?= ($currentCategory && $currentCategory['slug'] === $cat['slug']) ? '#dc2626' : '#334155' ?>; font-weight: <?= ($currentCategory && $currentCategory['slug'] === $cat['slug']) ? '600' : '400' ?>; border-bottom: 1px solid #e2e8f0;">
-          <?= htmlspecialchars($cat['name']) ?>
-        </a>
-        <?php endforeach; ?>
-      </div>
-    </div>
-    
-    <!-- Search -->
-    <div class="card mt-3">
       <div class="card-header">
         <h3 class="card-title"><?= __('search') ?></h3>
       </div>
@@ -43,16 +30,21 @@
       </div>
     </div>
     
-    <!-- Price Range Info -->
+    <!-- Categories -->
     <div class="card mt-3">
       <div class="card-header">
-        <h3 class="card-title"><?= __('price_range') ?></h3>
+        <h3 class="card-title"><?= __('categories') ?></h3>
       </div>
-      <div class="card-body">
-        <p style="margin: 0; color: #64748b; font-size: 0.9rem;">
-          <?= __('price_range_text') ?>
-        </p>
-        <a href="/quote" class="btn btn-outline btn-block mt-3"><?= __('request_custom_quote') ?></a>
+      <div class="card-body" style="padding: 0;">
+        <a href="/catalog" style="display: block; padding: 12px 24px; text-decoration: none; color: <?= !$currentCategory ? '#dc2626' : '#334155' ?>; font-weight: <?= !$currentCategory ? '600' : '400' ?>; border-bottom: 1px solid #e2e8f0;">
+          <?= __('all_products') ?>
+        </a>
+        <?php foreach ($categories as $cat): ?>
+        <a href="/catalog?category=<?= htmlspecialchars($cat['slug']) ?>" 
+           style="display: block; padding: 12px 24px; text-decoration: none; color: <?= ($currentCategory && $currentCategory['slug'] === $cat['slug']) ? '#dc2626' : '#334155' ?>; font-weight: <?= ($currentCategory && $currentCategory['slug'] === $cat['slug']) ? '600' : '400' ?>; border-bottom: 1px solid #e2e8f0;">
+          <?= htmlspecialchars($cat['name']) ?>
+        </a>
+        <?php endforeach; ?>
       </div>
     </div>
   </aside>
@@ -70,8 +62,23 @@
           <?php endif; ?>
         </p>
       </div>
-      <div style="color: #64748b;">
-        <?= count($products) ?> <?= count($products) !== 1 ? __('products_found') : __('product_found') ?>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <!-- Currency Toggle -->
+        <div class="currency-toggle" style="display: flex; align-items: center; gap: 8px; background: #f1f5f9; padding: 4px; border-radius: 8px;">
+          <a href="?<?= http_build_query(array_merge($_GET, ['currency' => 'EUR'])) ?>" 
+             class="currency-btn <?= $displayCurrency === 'EUR' ? 'active' : '' ?>" 
+             style="padding: 6px 12px; border-radius: 6px; text-decoration: none; font-weight: 500; <?= $displayCurrency === 'EUR' ? 'background: white; color: #0066cc; box-shadow: 0 1px 3px rgba(0,0,0,0.1);' : 'color: #64748b;' ?>">
+            € EUR
+          </a>
+          <a href="?<?= http_build_query(array_merge($_GET, ['currency' => 'USD'])) ?>" 
+             class="currency-btn <?= $displayCurrency === 'USD' ? 'active' : '' ?>" 
+             style="padding: 6px 12px; border-radius: 6px; text-decoration: none; font-weight: 500; <?= $displayCurrency === 'USD' ? 'background: white; color: #0066cc; box-shadow: 0 1px 3px rgba(0,0,0,0.1);' : 'color: #64748b;' ?>">
+            $ USD
+          </a>
+        </div>
+        <div style="color: #64748b;">
+          <?= count($products) ?> <?= count($products) !== 1 ? __('products_found') : __('product_found') ?>
+        </div>
       </div>
     </div>
     
@@ -112,7 +119,11 @@
           <div class="product-card-footer">
             <div>
               <span class="product-price-label"><?= __('starting_at') ?></span>
-              <span class="product-price"><?= format_price((float)$product['unit_price']) ?></span>
+              <?php 
+                $basePrice = (float)$product['unit_price'];
+                $displayPrice = $displayCurrency === 'USD' ? $basePrice * $exchangeRate : $basePrice;
+              ?>
+              <span class="product-price"><?= format_price($displayPrice, $displayCurrency) ?></span>
             </div>
             <a href="/product?sku=<?= htmlspecialchars($product['sku']) ?>" class="btn btn-sm btn-primary"><?= __('view') ?></a>
           </div>

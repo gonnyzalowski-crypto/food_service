@@ -107,7 +107,7 @@ $galleryImages = [
     </div>
 </div>
 
-<section class="mediathek-hero" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://www.streicher.de/fileadmin/_processed_/8/6/csm_STREICHER-Deggendorf_Drohne_DJI_0003_6b7c9f7c8a.jpg') center/cover;">
+<section class="mediathek-hero" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://www.streichergmbh.com/fileadmin/_processed_/8/6/csm_STREICHER-Deggendorf_Drohne_DJI_0003_6b7c9f7c8a.jpg') center/cover;">
     <div class="container">
         <h1><?= $pageTitle ?></h1>
     </div>

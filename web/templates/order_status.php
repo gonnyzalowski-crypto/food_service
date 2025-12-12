@@ -172,7 +172,7 @@ switch ($order['status']) {
         <p style="margin: 0; color: #64748b;">Contact our support team for any questions about your order.</p>
       </div>
       <div style="display: flex; gap: 12px;">
-        <a href="mailto:support@streicher.de" class="btn btn-outline">Email Support</a>
+        <a href="mailto:support@streichergmbh.com" class="btn btn-outline">Email Support</a>
         <a href="tel:+499411234567" class="btn btn-outline">Call Us</a>
       </div>
     </div>

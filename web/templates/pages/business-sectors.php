@@ -8,7 +8,7 @@ $sectors = [
         'title_en' => 'Pipelines & Plants',
         'desc_de' => 'Pipelinebau, Anlagenbau, Digitale & Kommunale Infrastruktur, Erdkabel, Tiefbohrungen, Horizontalbohrungen (HDD), Dienstleistungen',
         'desc_en' => 'Pipeline Construction, Plant Construction, Digital & Municipal Infrastructure, Underground Power Lines, Deep Drilling, Horizontal Directional Drilling (HDD), Services',
-        'image' => 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
+        'image' => 'https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=800',
         'icon' => '🔧'
     ],
     [
@@ -17,7 +17,7 @@ $sectors = [
         'title_en' => 'Mechanical Engineering',
         'desc_de' => 'Apparatebau, Anlagentechnik, Bohrtechnik, Verfahrenstechnik, Prozessanlagen, After Sales Service',
         'desc_en' => 'Apparatus Engineering, Equipment Technology, Drilling Technology, Process Engineering, Process Plants, After Sales Service',
-        'image' => 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800',
+        'image' => 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=800',
         'icon' => '⚙️'
     ],
     [
@@ -26,7 +26,7 @@ $sectors = [
         'title_en' => 'Electrical Engineering',
         'desc_de' => 'Elektroinstallation und Energietechnik, Mess- und Regeltechnik, Automatisierungstechnik, Funktionale Sicherheit, Elektronikwerkstatt, Simulationen und Berechnungen',
         'desc_en' => 'Electrical Installation and Energy Technology, Electrical Measurement and Control Technology, Automation Technology, Functional Safety, Electronics Workshop, Simulations and Calculations',
-        'image' => 'https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=800',
+        'image' => 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=800',
         'icon' => '⚡'
     ],
     [
@@ -35,7 +35,7 @@ $sectors = [
         'title_en' => 'Civil & Structural Engineering',
         'desc_de' => 'Straßenbau und Tiefbau, Brückenbau und Ingenieurbau, Wasserbau, Deponiebau, Industriebau und Hochbau, Leitungsbau',
         'desc_en' => 'Road Construction and Civil Engineering, Bridge Construction and Civil Engineering, Hydraulic Engineering, Landfill Construction, Industrial Construction and Structural Engineering, Conduit Construction',
-        'image' => 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800',
+        'image' => 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800',
         'icon' => '🏗️'
     ],
     [
@@ -44,7 +44,7 @@ $sectors = [
         'title_en' => 'Raw & Construction Material',
         'desc_de' => 'Asphaltmischanlagen, Steinbrüche und Kieswerke, Sand- und Kiesgewinnung, Baustoffannahme',
         'desc_en' => 'Asphalt Mixing Plants, Quarries and Gravel Mills, Sand and Gravel Extraction, Construction Material Acceptance',
-        'image' => 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800',
+        'image' => 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800',
         'icon' => '🪨'
     ],
 ];

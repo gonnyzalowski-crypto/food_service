@@ -66,7 +66,7 @@
       
       <h4>Return Process</h4>
       <ol style="color: #475569;">
-        <li style="margin-bottom: 12px;"><strong>Contact Us:</strong> Email returns@streicher.de or call +49 (0) 941 123 4573 to request a Return Authorization (RA) number.</li>
+        <li style="margin-bottom: 12px;"><strong>Contact Us:</strong> Email returns@streichergmbh.com or call +49 (0) 941 123 4573 to request a Return Authorization (RA) number.</li>
         <li style="margin-bottom: 12px;"><strong>Pack Securely:</strong> Repack the product in its original packaging with all accessories.</li>
         <li style="margin-bottom: 12px;"><strong>Ship:</strong> Send the package to our returns center with the RA number clearly marked.</li>
         <li><strong>Refund:</strong> Once inspected, refunds are processed within 10 business days.</li>
@@ -118,7 +118,7 @@
       </p>
       <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
         <div>
-          <strong>📧 Email:</strong> returns@streicher.de
+          <strong>📧 Email:</strong> returns@streichergmbh.com
         </div>
         <div>
           <strong>📞 Phone:</strong> +49 (0) 941 123 4573

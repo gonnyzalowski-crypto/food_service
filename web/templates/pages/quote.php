@@ -174,7 +174,7 @@
         </div>
         <div>
           <strong>✉️ Email</strong><br>
-          <span style="color: #64748b;">sales@streicher.de</span>
+          <span style="color: #64748b;">store@streichergmbh.com</span>
         </div>
       </div>
     </div>

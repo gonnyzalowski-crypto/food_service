@@ -1,5 +1,7 @@
 <?php
 $lang = $_SESSION['lang'] ?? 'de';
+$displayCurrency = $_SESSION['display_currency'] ?? 'EUR';
+$exchangeRate = get_exchange_rate();
 $features = json_decode($product['features'] ?? '[]', true) ?: [];
 $specs = json_decode($product['specifications'] ?? '[]', true) ?: [];
 $galleryImages = json_decode($product['gallery_images'] ?? '[]', true) ?: [];
@@ -7,6 +9,8 @@ $galleryImages = json_decode($product['gallery_images'] ?? '[]', true) ?: [];
 if (empty($galleryImages) && !empty($product['image_url'])) {
     $galleryImages = [$product['image_url']];
 }
+$basePrice = (float)$product['unit_price'];
+$displayPrice = $displayCurrency === 'USD' ? $basePrice * $exchangeRate : $basePrice;
 ?>
 
 <div class="breadcrumb">
@@ -47,7 +51,7 @@ if (empty($galleryImages) && !empty($product['image_url'])) {
     <h1><?= htmlspecialchars($product['name']) ?></h1>
     <div class="product-sku">SKU: <?= htmlspecialchars($product['sku']) ?></div>
     
-    <div class="product-price-large"><?= format_price((float)$product['unit_price']) ?></div>
+    <div class="product-price-large"><?= format_price($displayPrice, $displayCurrency) ?></div>
     <div class="product-price-note">
       <?= __('price_excludes') ?>
     </div>

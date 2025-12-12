@@ -72,7 +72,7 @@
         Data Protection Officer<br>
         Industriestraße 45<br>
         93049 Regensburg, Germany<br>
-        Email: privacy@streicher.de<br>
+        Email: privacy@streichergmbh.com<br>
         Phone: +49 (0) 941 123 4567
       </p>
     </div>

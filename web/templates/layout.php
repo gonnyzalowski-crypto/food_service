@@ -32,7 +32,6 @@ if (isset($_SESSION['cart_id']) && isset($pdo)) {
     <div class="header-top-inner">
       <div>
         <span>🇩🇪 <?= __('made_in_germany') ?></span>
-        <span style="margin-left: 24px;">📞 +49 991 330-00</span>
         <span style="margin-left: 24px;">✉️ store@streichergmbh.com</span>
       </div>
       <div style="display: flex; align-items: center; gap: 16px;">
