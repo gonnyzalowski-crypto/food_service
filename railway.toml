@@ -1,9 +1,0 @@
-# Railway configuration - use project root, not web/
-[build]
-builder = "dockerfile"
-dockerfilePath = "./Dockerfile"
-
-[deploy]
-startCommand = "php -S 0.0.0.0:$PORT -t web web/index.php"
-healthcheckPath = "/"
-healthcheckTimeout = 60
