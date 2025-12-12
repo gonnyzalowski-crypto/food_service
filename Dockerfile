@@ -34,4 +34,5 @@ RUN ln -sf /var/www/html/images /var/www/html/web/images || true
 ENV PORT=8000
 EXPOSE 8000
 
-CMD php -S 0.0.0.0:${PORT} -t web web/index.php
+# Use shell form to properly expand PORT variable
+CMD ["sh", "-c", "php -S 0.0.0.0:${PORT} -t web web/index.php"]
