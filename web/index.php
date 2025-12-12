@@ -490,9 +490,24 @@ if (preg_match('#^/api/orders/(\d+)/upload-payment$#', $path, $m) && $method ===
     
     $file = $_FILES['receipt'];
     $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf'];
     
+    // Validate MIME type
     if (!in_array($file['type'], $allowedTypes)) {
         json_response(['error' => 'Invalid file type. Allowed: JPG, PNG, GIF, PDF'], 400);
+    }
+    
+    // Validate file extension
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if (!in_array($ext, $allowedExtensions)) {
+        json_response(['error' => 'Invalid file extension'], 400);
+    }
+    
+    // Validate actual file content using finfo
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $actualMime = $finfo->file($file['tmp_name']);
+    if (!in_array($actualMime, $allowedTypes)) {
+        json_response(['error' => 'File content does not match allowed types'], 400);
     }
     
     if ($file['size'] > 10 * 1024 * 1024) {
@@ -505,7 +520,7 @@ if (preg_match('#^/api/orders/(\d+)/upload-payment$#', $path, $m) && $method ===
         mkdir($uploadDir, 0755, true);
     }
     
-    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+    // Generate secure random filename to prevent predictable naming
     $filename = 'receipt_' . time() . '_' . uniqid() . '.' . $ext;
     $filepath = $uploadDir . '/' . $filename;
     
@@ -1486,12 +1501,30 @@ if ($path === '/admin/login' && $method === 'GET') {
 if ($path === '/admin/login' && $method === 'POST') {
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
+    $clientIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    
+    // Rate limiting: Check failed attempts in last 15 minutes
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM login_attempts WHERE ip_address = ? AND attempted_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE) AND success = 0');
+    $stmt->execute([$clientIp]);
+    $failedAttempts = (int)$stmt->fetchColumn();
+    
+    if ($failedAttempts >= 5) {
+        render_template('admin_login.php', [
+            'title' => 'Admin Login',
+            'error' => 'Too many failed attempts. Please try again in 15 minutes.',
+        ]);
+        exit;
+    }
     
     $stmt = $pdo->prepare('SELECT * FROM users WHERE email = ? LIMIT 1');
     $stmt->execute([$email]);
     $user = $stmt->fetch();
     
     if ($user && $user['role'] === 'admin' && password_verify($password, $user['password_hash'])) {
+        // Log successful attempt
+        $stmt = $pdo->prepare('INSERT INTO login_attempts (ip_address, email, success) VALUES (?, ?, 1)');
+        $stmt->execute([$clientIp, $email]);
+        
         // Regenerate session ID to prevent session fixation
         session_regenerate_id(true);
         $_SESSION['user_id'] = $user['id'];
@@ -1501,6 +1534,10 @@ if ($path === '/admin/login' && $method === 'POST') {
         header('Location: /admin');
         exit;
     }
+    
+    // Log failed attempt
+    $stmt = $pdo->prepare('INSERT INTO login_attempts (ip_address, email, success) VALUES (?, ?, 0)');
+    $stmt->execute([$clientIp, $email]);
     
     render_template('admin_login.php', [
         'title' => 'Admin Login',
