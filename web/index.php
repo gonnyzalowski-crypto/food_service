@@ -30,6 +30,14 @@ $lang = $_SESSION['lang'] ?? 'de';
 $dotenv = Dotenv::createImmutable(dirname(__DIR__));
 $dotenv->safeLoad();
 
+// Health check endpoint - respond before DB connection for Railway healthcheck
+$requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+if ($requestPath === '/health' || $requestPath === '/healthz') {
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'ok', 'timestamp' => date('c')]);
+    exit;
+}
+
 // Support both local and Railway MySQL environment variables
 $dbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQL_HOST'] ?? $_ENV['MYSQLHOST'] ?? '127.0.0.1';
 $dbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQL_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';
@@ -50,8 +58,11 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
 } catch (PDOException $e) {
-    http_response_code(500);
-    echo 'DB connection error';
+    // Return error page but don't crash - allow healthcheck to pass
+    http_response_code(503);
+    echo '<h1>Database Connection Error</h1><p>Please check database configuration.</p>';
+    echo '<pre>Host: ' . htmlspecialchars($dbHost) . '</pre>';
+    echo '<pre>Database: ' . htmlspecialchars($dbName) . '</pre>';
     exit;
 }
 
