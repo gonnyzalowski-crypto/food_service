@@ -8,7 +8,7 @@ $projects = [
         'location' => 'Germany',
         'year' => '2019-2020',
         'category' => 'Pipelines & Plants',
-        'image' => '/images/photos/pipeline 1.png',
+        'image' => '/images/photos/pipeline1.jpg',
         'desc_de' => 'Europäische Gas-Anbindungsleitung - 480 km Pipeline für den Transport von Erdgas.',
         'desc_en' => 'European Gas Link - 480 km pipeline for natural gas transport.',
     ],
@@ -18,7 +18,7 @@ $projects = [
         'location' => 'Germany',
         'year' => '2023-2025',
         'category' => 'Pipelines & Plants',
-        'image' => '/images/photos/pipeline 2.png',
+        'image' => '/images/photos/pipeline2.jpg',
         'desc_de' => 'Trans-Europa-Naturgas-Pipeline - wichtige Verbindung im europäischen Gasnetz.',
         'desc_en' => 'Trans-Europa-Naturgas-Pipeline - important connection in the European gas network.',
     ],
@@ -28,7 +28,7 @@ $projects = [
         'location' => 'Germany/Belgium',
         'year' => '2020-2021',
         'category' => 'Pipelines & Plants',
-        'image' => '/images/photos/pipeline 3.png',
+        'image' => '/images/photos/pipeline3.jpg',
         'desc_de' => 'Grenzüberschreitende Pipeline zwischen Deutschland und Belgien.',
         'desc_en' => 'Cross-border pipeline between Germany and Belgium.',
     ],
@@ -38,7 +38,7 @@ $projects = [
         'location' => 'North Sea',
         'year' => '2021-2022',
         'category' => 'Drilling Technology',
-        'image' => '/images/photos/drilling.png',
+        'image' => '/images/photos/drilling.jpg',
         'desc_de' => 'Komplette Bohrausrüstung und Hydrauliksysteme für Offshore-Plattform.',
         'desc_en' => 'Complete drilling equipment and hydraulic systems for offshore platform.',
     ],
@@ -48,7 +48,7 @@ $projects = [
         'location' => 'Germany',
         'year' => '2024-2027',
         'category' => 'Civil Engineering',
-        'image' => '/images/photos/civil.png',
+        'image' => '/images/photos/civil.jpg',
         'desc_de' => 'Über 1.300 km Tiefbauarbeiten für die Energiewende.',
         'desc_en' => 'Over 1,300 km of civil engineering works for the energy transition.',
     ],
@@ -58,7 +58,7 @@ $projects = [
         'location' => 'Germany',
         'year' => '2023-2025',
         'category' => 'Pipelines & Plants',
-        'image' => '/images/photos/pipeline 4.png',
+        'image' => '/images/photos/pipeline4.jpg',
         'desc_de' => 'Installation von Hochdruck-Rohrleitungssystemen für das LNG-Import-Terminal.',
         'desc_en' => 'Installation of high-pressure piping systems for the LNG import terminal.',
     ],
@@ -68,7 +68,7 @@ $projects = [
         'location' => 'Germany',
         'year' => '2022-2023',
         'category' => 'Drilling Technology',
-        'image' => '/images/photos/mechanical2.png',
+        'image' => '/images/photos/mechanical2.jpg',
         'desc_de' => 'Tiefbohrungen für Geothermie-Kraftwerk mit mobilen Bohranlagen.',
         'desc_en' => 'Deep drilling for geothermal power plant with mobile drilling rigs.',
     ],
@@ -78,7 +78,7 @@ $projects = [
         'location' => 'Germany',
         'year' => '2020-2021',
         'category' => 'Mechanical Engineering',
-        'image' => '/images/photos/mechanical1.png',
+        'image' => '/images/photos/mechanical1.jpg',
         'desc_de' => 'Modernisierung der Prozessanlagen und Rohrleitungssysteme.',
         'desc_en' => 'Modernization of process plants and piping systems.',
     ],
@@ -95,7 +95,7 @@ $projects = [
     </div>
 </div>
 
-<section class="projects-hero" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('/images/photos/civil2.png') center/cover;">
+<section class="projects-hero" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('/images/photos/civil2.jpg') center/cover;">
     <div class="container">
         <h1><?= $pageTitle ?></h1>
         <p class="hero-subtitle">

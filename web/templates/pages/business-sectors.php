@@ -8,7 +8,7 @@ $sectors = [
         'title_en' => 'Pipelines & Plants',
         'desc_de' => 'Pipelinebau, Anlagenbau, Digitale & Kommunale Infrastruktur, Erdkabel, Tiefbohrungen, Horizontalbohrungen (HDD), Dienstleistungen',
         'desc_en' => 'Pipeline Construction, Plant Construction, Digital & Municipal Infrastructure, Underground Power Lines, Deep Drilling, Horizontal Directional Drilling (HDD), Services',
-        'image' => '/images/photos/pipeline 1.png',
+        'image' => '/images/photos/pipeline1.jpg',
         'icon' => '🔧'
     ],
     [
@@ -17,7 +17,7 @@ $sectors = [
         'title_en' => 'Mechanical Engineering',
         'desc_de' => 'Apparatebau, Anlagentechnik, Bohrtechnik, Verfahrenstechnik, Prozessanlagen, After Sales Service',
         'desc_en' => 'Apparatus Engineering, Equipment Technology, Drilling Technology, Process Engineering, Process Plants, After Sales Service',
-        'image' => '/images/photos/mechanical1.png',
+        'image' => '/images/photos/mechanical1.jpg',
         'icon' => '⚙️'
     ],
     [
@@ -26,7 +26,7 @@ $sectors = [
         'title_en' => 'Electrical Engineering',
         'desc_de' => 'Elektroinstallation und Energietechnik, Mess- und Regeltechnik, Automatisierungstechnik, Funktionale Sicherheit, Elektronikwerkstatt, Simulationen und Berechnungen',
         'desc_en' => 'Electrical Installation and Energy Technology, Electrical Measurement and Control Technology, Automation Technology, Functional Safety, Electronics Workshop, Simulations and Calculations',
-        'image' => '/images/photos/electrical.png',
+        'image' => '/images/photos/electrical.jpg',
         'icon' => '⚡'
     ],
     [
@@ -35,7 +35,7 @@ $sectors = [
         'title_en' => 'Civil & Structural Engineering',
         'desc_de' => 'Straßenbau und Tiefbau, Brückenbau und Ingenieurbau, Wasserbau, Deponiebau, Industriebau und Hochbau, Leitungsbau',
         'desc_en' => 'Road Construction and Civil Engineering, Bridge Construction and Civil Engineering, Hydraulic Engineering, Landfill Construction, Industrial Construction and Structural Engineering, Conduit Construction',
-        'image' => '/images/photos/civil.png',
+        'image' => '/images/photos/civil.jpg',
         'icon' => '🏗️'
     ],
     [
@@ -44,7 +44,7 @@ $sectors = [
         'title_en' => 'Raw & Construction Material',
         'desc_de' => 'Asphaltmischanlagen, Steinbrüche und Kieswerke, Sand- und Kiesgewinnung, Baustoffannahme',
         'desc_en' => 'Asphalt Mixing Plants, Quarries and Gravel Mills, Sand and Gravel Extraction, Construction Material Acceptance',
-        'image' => '/images/photos/raw materials.png',
+        'image' => '/images/photos/raw-materials.jpg',
         'icon' => '🪨'
     ],
 ];
@@ -60,7 +60,7 @@ $sectors = [
     </div>
 </div>
 
-<section class="sectors-hero" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('/images/photos/pipeline 2.png') center/cover;">
+<section class="sectors-hero" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('/images/photos/pipeline2.jpg') center/cover;">
     <div class="container">
         <h1><?= $pageTitle ?></h1>
         <p class="hero-subtitle">

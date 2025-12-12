@@ -13,7 +13,7 @@ $pageSubtitle = $lang === 'de' ? 'Langjährige Erfahrung, technische Kompetenz u
     </div>
 </div>
 
-<section class="profile-hero" style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('/images/photos/mechanical 3.png') center/cover;">
+<section class="profile-hero" style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('/images/photos/mechanical3.jpg') center/cover;">
     <div class="container">
         <div class="profile-hero-content">
             <h2 class="section-label"><?= $lang === 'de' ? 'Unternehmensübersicht' : 'Company Overview' ?></h2>
@@ -26,23 +26,23 @@ $pageSubtitle = $lang === 'de' ? 'Langjährige Erfahrung, technische Kompetenz u
     <div class="container">
         <div class="sectors-gallery">
             <a href="/business-sectors/pipelines-plants" class="sector-thumb">
-                <img src="/images/photos/pipeline 1.png" alt="Pipelines & Plants">
+                <img src="/images/photos/pipeline1.jpg" alt="Pipelines & Plants">
                 <span><?= $lang === 'de' ? 'Pipelines & Anlagen' : 'Pipelines & Plants' ?></span>
             </a>
             <a href="/business-sectors/mechanical-engineering" class="sector-thumb">
-                <img src="/images/photos/mechanical1.png" alt="Mechanical Engineering">
+                <img src="/images/photos/mechanical1.jpg" alt="Mechanical Engineering">
                 <span><?= $lang === 'de' ? 'Maschinenbau' : 'Mechanical Engineering' ?></span>
             </a>
             <a href="/business-sectors/electrical-engineering" class="sector-thumb">
-                <img src="/images/photos/electrical.png" alt="Electrical Engineering">
+                <img src="/images/photos/electrical.jpg" alt="Electrical Engineering">
                 <span><?= $lang === 'de' ? 'Elektrotechnik' : 'Electrical Engineering' ?></span>
             </a>
             <a href="/business-sectors/civil-engineering" class="sector-thumb">
-                <img src="/images/photos/civil.png" alt="Civil Engineering">
+                <img src="/images/photos/civil.jpg" alt="Civil Engineering">
                 <span><?= $lang === 'de' ? 'Hoch- & Tiefbau' : 'Civil & Structural Engineering' ?></span>
             </a>
             <a href="/business-sectors/raw-materials" class="sector-thumb">
-                <img src="/images/photos/raw materials.png" alt="Raw Materials">
+                <img src="/images/photos/raw-materials.jpg" alt="Raw Materials">
                 <span><?= $lang === 'de' ? 'Roh- & Baustoffe' : 'Raw & Construction Material' ?></span>
             </a>
         </div>

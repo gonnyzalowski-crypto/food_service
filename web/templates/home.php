@@ -33,7 +33,7 @@
       </div>
     </div>
     <div class="hero-image">
-      <img src="/images/photos/drilling.png" alt="<?= $lang === 'de' ? 'Bohrausrüstung' : 'Drilling Equipment' ?>">
+      <img src="/images/photos/drilling.jpg" alt="<?= $lang === 'de' ? 'Bohrausrüstung' : 'Drilling Equipment' ?>">
     </div>
   </div>
 </section>
