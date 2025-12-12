@@ -1,0 +1,79 @@
+services:
+  # PHP application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/var/www/html
+      - vendor-data:/var/www/html/vendor
+    depends_on:
+      db:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=streicher
+      - DB_USER=streicher
+      - DB_PASS=secret
+      - MAIL_HOST=mailpit
+      - MAIL_PORT=1025
+    networks:
+      - streicher-net
+
+  # MySQL database
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: streicher
+      MYSQL_USER: streicher
+      MYSQL_PASSWORD: secret
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./migrations:/docker-entrypoint-initdb.d
+    networks:
+      - streicher-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # Mailpit - local email testing (catches all emails)
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "8025:8025"   # Web UI to view emails
+      - "1025:1025"   # SMTP port
+    networks:
+      - streicher-net
+
+  # phpMyAdmin - database management UI
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: streicher
+      PMA_PASSWORD: secret
+    depends_on:
+      - db
+    networks:
+      - streicher-net
+
+volumes:
+  db-data:
+  vendor-data:
+
+networks:
+  streicher-net:
+    driver: bridge

@@ -1,0 +1,34 @@
+# Dependencies
+/vendor/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Docker
+docker-compose.override.yml
+
+# Uploads (user-generated content)
+/uploads/payments/
+/uploads/tracking/
+
+# Cache
+/cache/
+
+# Temp files
+*.tmp
+*.temp
