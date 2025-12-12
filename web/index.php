@@ -86,11 +86,21 @@ if ($requestPath === '/setup-database') {
             dimensions VARCHAR(100),
             image_url VARCHAR(500),
             is_active TINYINT(1) DEFAULT 1,
+            is_featured TINYINT(1) DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
         )");
         $tables[] = 'products';
+
+        // Ensure is_featured column exists for older databases
+        try {
+            $setupPdo->exec("ALTER TABLE products ADD COLUMN is_featured TINYINT(1) DEFAULT 0");
+        } catch (PDOException $e) {
+            if (strpos($e->getMessage(), 'Duplicate column name') === false) {
+                throw $e;
+            }
+        }
         
         // Users table
         $setupPdo->exec("CREATE TABLE IF NOT EXISTS users (
