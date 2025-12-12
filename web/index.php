@@ -1,6 +1,94 @@
 <?php
 declare(strict_types=1);
 
+// Serve static files directly when using PHP built-in server
+$requestUri = $_SERVER['REQUEST_URI'] ?? '/';
+$requestPath = parse_url($requestUri, PHP_URL_PATH);
+
+// Static file mappings
+$staticMappings = [
+    '/styles.css' => __DIR__ . '/assets/styles.css',
+    '/logo.png' => __DIR__ . '/assets/logo.png',
+    '/favicon.png' => __DIR__ . '/assets/favicon.png',
+    '/product-placeholder.svg' => __DIR__ . '/assets/product-placeholder.svg',
+    '/privacy-policy.pdf' => __DIR__ . '/assets/privacy-policy.pdf',
+];
+
+// Check for direct static file mapping
+if (isset($staticMappings[$requestPath])) {
+    $filePath = $staticMappings[$requestPath];
+    if (file_exists($filePath)) {
+        $mimeTypes = [
+            'css' => 'text/css',
+            'png' => 'image/png',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'gif' => 'image/gif',
+            'svg' => 'image/svg+xml',
+            'pdf' => 'application/pdf',
+            'webp' => 'image/webp',
+        ];
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        $mime = $mimeTypes[$ext] ?? 'application/octet-stream';
+        header('Content-Type: ' . $mime);
+        header('Cache-Control: public, max-age=31536000');
+        readfile($filePath);
+        exit;
+    }
+}
+
+// Serve files from /images/ path
+if (preg_match('#^/images/(.+)$#', $requestPath, $matches)) {
+    $imagePath = $matches[1];
+    // Try web/images first, then root images folder
+    $possiblePaths = [
+        __DIR__ . '/images/' . $imagePath,
+        dirname(__DIR__) . '/images/' . $imagePath,
+    ];
+    foreach ($possiblePaths as $filePath) {
+        if (file_exists($filePath) && is_file($filePath)) {
+            $mimeTypes = [
+                'png' => 'image/png',
+                'jpg' => 'image/jpeg',
+                'jpeg' => 'image/jpeg',
+                'gif' => 'image/gif',
+                'svg' => 'image/svg+xml',
+                'webp' => 'image/webp',
+            ];
+            $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+            $mime = $mimeTypes[$ext] ?? 'application/octet-stream';
+            header('Content-Type: ' . $mime);
+            header('Cache-Control: public, max-age=31536000');
+            readfile($filePath);
+            exit;
+        }
+    }
+}
+
+// Serve files from /assets/ path
+if (preg_match('#^/assets/(.+)$#', $requestPath, $matches)) {
+    $assetPath = __DIR__ . '/assets/' . $matches[1];
+    if (file_exists($assetPath) && is_file($assetPath)) {
+        $mimeTypes = [
+            'css' => 'text/css',
+            'js' => 'application/javascript',
+            'png' => 'image/png',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'gif' => 'image/gif',
+            'svg' => 'image/svg+xml',
+            'pdf' => 'application/pdf',
+            'webp' => 'image/webp',
+        ];
+        $ext = strtolower(pathinfo($assetPath, PATHINFO_EXTENSION));
+        $mime = $mimeTypes[$ext] ?? 'application/octet-stream';
+        header('Content-Type: ' . $mime);
+        header('Cache-Control: public, max-age=31536000');
+        readfile($assetPath);
+        exit;
+    }
+}
+
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/translations.php';
 
