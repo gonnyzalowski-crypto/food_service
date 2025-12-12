@@ -364,15 +364,91 @@ if ($requestPath === '/setup-database') {
             $setupPdo->exec("INSERT INTO categories (name, slug, description) VALUES 
                 ('Pipelines & Plants', 'pipelines-plants', 'Pipeline construction and plant equipment'),
                 ('Mechanical Engineering', 'mechanical-engineering', 'Mechanical engineering equipment'),
-                ('Electrical Engineering', 'electrical-engineering', 'Electrical systems and components'),
-                ('Civil Engineering', 'civil-engineering', 'Civil and structural engineering equipment'),
-                ('Raw Materials', 'raw-materials', 'Raw and construction materials')
+                ('Drilling Technology', 'drilling-technology', 'Drilling rigs and equipment'),
+                ('Hydraulic Systems', 'hydraulic-systems', 'Hydraulic power units and components'),
+                ('Instrumentation', 'instrumentation', 'Measurement and control instruments')
             ");
+        }
+        
+        // Seed products from image folders if empty
+        $stmt = $setupPdo->query("SELECT COUNT(*) FROM products");
+        if ($stmt->fetchColumn() == 0) {
+            $products = [
+                ['Centrifugal Pump 1000 GPM', 'centrifugal-pump-1000-gpm', 1, 18500, 'High-capacity centrifugal pump for industrial fluid transfer, 1000 GPM flow rate'],
+                ['Custom Hydraulic Manifold Block', 'custom-hydraulic-manifold-block', 4, 4200, 'Precision-machined hydraulic manifold block for custom applications'],
+                ['Decanting Centrifuge 14"', 'decanting-centrifuge-14', 1, 85000, '14-inch decanting centrifuge for solids control in drilling operations'],
+                ['Directional Control Valve 4-Way', 'directional-control-valve-4-way', 4, 2800, '4-way directional control valve for hydraulic systems'],
+                ['Drawworks 3000 HP', 'drawworks-3000-hp', 3, 450000, 'Heavy-duty 3000 HP drawworks for drilling rig hoisting operations'],
+                ['Drill Pipe Elevator 500-Ton', 'drill-pipe-elevator-500-ton', 3, 28000, '500-ton capacity drill pipe elevator for handling operations'],
+                ['Drilling Swivel 500-Ton', 'drilling-swivel-500-ton', 3, 125000, '500-ton drilling swivel for rotary drilling operations'],
+                ['Flow Meter Ultrasonic', 'flow-meter-ultrasonic', 5, 8500, 'Non-invasive ultrasonic flow meter for accurate flow measurement'],
+                ['Gas Detector Multi-Channel', 'gas-detector-multi-channel', 5, 12000, 'Advanced multi-channel gas detection system for industrial safety'],
+                ['Gate Valve 24" Class 900', 'gate-valve-24-class-900', 1, 35000, '24-inch gate valve Class 900 for high-pressure pipeline applications'],
+                ['Heat Exchanger Shell & Tube', 'heat-exchanger-shell-tube', 2, 45000, 'Industrial shell and tube heat exchanger for process heating/cooling'],
+                ['Heavy Duty Hydraulic Cylinder 800-Ton', 'heavy-duty-hydraulic-cylinder-800-ton', 4, 68000, '800-ton heavy-duty hydraulic cylinder for extreme applications'],
+                ['Hexagonal Kelly 5.25"', 'hexagonal-kelly', 3, 42000, '5.25-inch hexagonal kelly for drilling string rotation'],
+                ['High Pressure Compressor', 'high-pressure-compressor', 2, 95000, 'Industrial high-pressure compressor for oil and gas applications'],
+                ['High Pressure Filter Assembly', 'high-pressure-filter-assembly', 4, 3500, 'High-pressure hydraulic filter assembly for system protection'],
+                ['High Pressure Hose Assembly Kit', 'high-pressure-hose-assembly-kit', 4, 1800, 'Complete high-pressure hose assembly kit with fittings'],
+                ['Hydraulic Accumulator 500L', 'hydraulic-accumulator-500l', 4, 8500, '500-liter hydraulic bladder accumulator for energy storage'],
+                ['Hydraulic Clamping System', 'hydraulic-clamping-system', 4, 15000, 'Precision hydraulic clamping system for industrial applications'],
+                ['Hydraulic Motor 750cc', 'hydraulic-motor-750cc', 4, 4800, '750cc displacement hydraulic motor for heavy-duty applications'],
+                ['Hydraulic Oil Cooler 1000kW', 'hydraulic-oil-cooler-1000kw', 4, 22000, '1000kW capacity hydraulic oil cooler for thermal management'],
+                ['Hydraulic Power Unit', 'hydraulic-power-unit', 4, 35000, 'Complete hydraulic power unit for industrial applications'],
+                ['Hydraulic Power Unit 5000 HP', 'hydraulic-power-unit-5000-hp', 4, 285000, '5000 HP hydraulic power unit for heavy industrial operations'],
+                ['Hydraulic Reservoir Tank 2000L', 'hydraulic-reservoir-tank-2000l', 4, 6500, '2000-liter hydraulic oil reservoir tank with accessories'],
+                ['Hydraulic Test Bench 500 Bar', 'hydraulic-test-bench-500-bar', 4, 48000, '500 bar hydraulic test bench for component testing'],
+                ['Hydrocyclone Desander 12"', 'hydrocyclone-desander-12', 3, 18000, '12-inch hydrocyclone desander for drilling fluid processing'],
+                ['Iron Roughneck Complete', 'iron-roughneck-complete', 3, 380000, 'Complete iron roughneck system for automated pipe handling'],
+                ['Mud Mixing System Complete', 'mud-mixing-system-complete', 3, 125000, 'Complete mud mixing system for drilling fluid preparation'],
+                ['Pig Launcher 20"', 'pig-launcher-20', 1, 55000, '20-inch pig launcher for pipeline cleaning and inspection'],
+                ['Pipeline Ball Valve 24"', 'pipeline-ball-valve-24', 1, 42000, '24-inch trunnion-mounted ball valve for pipeline applications'],
+                ['Pipeline Pig Launcher 48"', 'pipeline-pig-launcher-48', 1, 185000, '48-inch pig launcher for large diameter pipelines'],
+                ['Pipeline Pig Receiver 48"', 'pipeline-pig-receiver-48', 1, 175000, '48-inch pig receiver for large diameter pipelines'],
+                ['Pipeline Repair Clamp 48"', 'pipeline-repair-clamp-48', 1, 28000, '48-inch pipeline repair clamp for emergency repairs'],
+                ['Power Tong 150K ft-lb', 'power-tong-150k-ft-lb', 3, 165000, '150,000 ft-lb power tong for casing and tubing operations'],
+                ['Pressure Intensifier 1:10', 'pressure-intensifier-1-10', 4, 12500, '1:10 ratio hydraulic pressure intensifier'],
+                ['Pressure Transmitter 0-10000 PSI', 'pressure-transmitter-10000-psi', 5, 2800, 'High-accuracy pressure transmitter for extreme pressure applications'],
+                ['Rotary Slips 500-Ton', 'rotary-slips-500-ton', 3, 45000, '500-ton rotary slips for drill string handling'],
+                ['Rotary Table 49.5" 3000 HP', 'rotary-table-3000-hp', 3, 320000, '49.5-inch rotary table rated for 3000 HP drilling operations'],
+                ['Safety Relief Valve 6"', 'safety-relief-valve-6', 1, 8500, '6-inch safety relief valve for pressure protection'],
+                ['Screw Compressor 500 HP', 'screw-compressor-500-hp', 2, 125000, '500 HP rotary screw compressor for continuous operation'],
+                ['Servo Hydraulic Control System', 'servo-hydraulic-control-system', 4, 85000, 'Advanced servo-hydraulic control system for precision applications'],
+                ['Shale Shaker 4-Panel', 'shale-shaker-4-panel', 3, 95000, '4-panel shale shaker for drilling fluid solids control'],
+                ['Swing Check Valve 20"', 'swing-check-valve-20', 1, 18500, '20-inch swing check valve for pipeline applications'],
+                ['Top Drive System 750-Ton', 'top-drive-system-750-ton', 3, 850000, '750-ton top drive system for efficient drilling operations'],
+                ['Triplex Mud Pump 2500 HP', 'triplex-mud-pump-2500-hp', 3, 425000, '2500 HP triplex mud pump for deep drilling operations'],
+                ['Vacuum Degasser 1500 GPM', 'vacuum-degasser-1500-gpm', 3, 75000, '1500 GPM vacuum degasser for drilling fluid processing'],
+                ['Variable Displacement Pump 500cc', 'variable-displacement-pump-500cc', 4, 6800, '500cc variable displacement hydraulic piston pump'],
+            ];
+            
+            $insertStmt = $setupPdo->prepare("INSERT INTO products (sku, name, slug, description, category_id, unit_price, image_url, is_active, is_featured) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)");
+            
+            foreach ($products as $i => $p) {
+                $sku = 'STR-' . str_pad($i + 1, 4, '0', STR_PAD_LEFT);
+                $slug = $p[1];
+                $imageUrl = '/images/' . $slug . '/1.jpg';
+                // Check for different extensions
+                $possibleExts = ['jpg', 'jpeg', 'png', 'webp'];
+                foreach ($possibleExts as $ext) {
+                    $testPath = __DIR__ . '/images/' . $slug;
+                    if (is_dir($testPath)) {
+                        $files = glob($testPath . '/*.*');
+                        if (!empty($files)) {
+                            $imageUrl = '/images/' . $slug . '/' . basename($files[0]);
+                            break;
+                        }
+                    }
+                }
+                $isFeatured = $i < 6 ? 1 : 0; // First 6 products are featured
+                $insertStmt->execute([$sku, $p[0], $slug, $p[4], $p[2], $p[3], $imageUrl, $isFeatured]);
+            }
         }
         
         header('Content-Type: text/html');
         echo '<h1>Database Setup Complete</h1>';
         echo '<p>Created tables: ' . implode(', ', $tables) . '</p>';
+        echo '<p>Seeded ' . count($products ?? []) . ' products</p>';
         echo '<p>Default admin: admin@streichergmbh.com / admin123</p>';
         echo '<p><strong>Change the admin password immediately!</strong></p>';
         echo '<p><a href="/">Go to Homepage</a> | <a href="/admin">Go to Admin</a></p>';
