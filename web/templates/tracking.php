@@ -263,7 +263,7 @@ $packageTypeDisplay = $packageTypes[$shipment['package_type'] ?? 'crate'] ?? '�
         <div>
           <div style="font-size: 1.5rem; margin-bottom: 8px;">✉️</div>
           <div style="font-weight: 500;">Email Support</div>
-          <div style="color: #64748b; font-size: 0.9rem;">shipping@streichergmbh.com</div>
+          <div style="color: #64748b; font-size: 0.9rem;">store@streichergmbh.com</div>
         </div>
         <div>
           <div style="font-size: 1.5rem; margin-bottom: 8px;">💬</div>

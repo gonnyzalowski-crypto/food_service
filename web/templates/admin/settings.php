@@ -69,7 +69,7 @@
       <div class="card-body">
         <div class="form-group">
           <label class="form-label">Support Email</label>
-          <input type="email" name="support_email" class="form-control" value="<?= htmlspecialchars($s['support_email'] ?? 'support@streichergmbh.com') ?>">
+          <input type="email" name="support_email" class="form-control" value="<?= htmlspecialchars($s['support_email'] ?? 'store@streichergmbh.com') ?>">
         </div>
         <div class="form-group">
           <label class="form-label">Support Phone</label>
@@ -81,7 +81,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">Shipping Email</label>
-          <input type="email" name="shipping_email" class="form-control" value="<?= htmlspecialchars($s['shipping_email'] ?? 'shipping@streichergmbh.com') ?>">
+          <input type="email" name="shipping_email" class="form-control" value="<?= htmlspecialchars($s['shipping_email'] ?? 'store@streichergmbh.com') ?>">
         </div>
       </div>
     </div>

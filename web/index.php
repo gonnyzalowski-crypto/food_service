@@ -38,6 +38,257 @@ if ($requestPath === '/health' || $requestPath === '/healthz') {
     exit;
 }
 
+// Database setup endpoint - initialize all tables
+if ($requestPath === '/setup-database') {
+    $setupDbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQL_HOST'] ?? $_ENV['MYSQLHOST'] ?? '127.0.0.1';
+    $setupDbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQL_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';
+    $setupDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQL_DATABASE'] ?? $_ENV['MYSQLDATABASE'] ?? 'streicher';
+    $setupDbUser = $_ENV['DB_USER'] ?? $_ENV['MYSQL_USER'] ?? $_ENV['MYSQLUSER'] ?? 'root';
+    $setupDbPass = $_ENV['DB_PASS'] ?? $_ENV['MYSQL_PASSWORD'] ?? $_ENV['MYSQLPASSWORD'] ?? '';
+    
+    try {
+        $setupPdo = new PDO(
+            "mysql:host=$setupDbHost;port=$setupDbPort;dbname=$setupDbName;charset=utf8mb4",
+            $setupDbUser, $setupDbPass,
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+        );
+        
+        $tables = [];
+        
+        // Categories table
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS categories (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            slug VARCHAR(255) NOT NULL UNIQUE,
+            description TEXT,
+            image_url VARCHAR(500),
+            parent_id INT DEFAULT NULL,
+            sort_order INT DEFAULT 0,
+            is_active TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'categories';
+        
+        // Products table
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS products (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            sku VARCHAR(100) NOT NULL UNIQUE,
+            name VARCHAR(255) NOT NULL,
+            slug VARCHAR(255),
+            description TEXT,
+            specifications TEXT,
+            category_id INT,
+            unit_price DECIMAL(12,2) NOT NULL,
+            currency VARCHAR(3) DEFAULT 'EUR',
+            stock_quantity INT DEFAULT 0,
+            lead_time_days INT DEFAULT 14,
+            weight_kg DECIMAL(10,2),
+            dimensions VARCHAR(100),
+            image_url VARCHAR(500),
+            is_active TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
+        )");
+        $tables[] = 'products';
+        
+        // Users table
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS users (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            company_id INT,
+            email VARCHAR(255) NOT NULL UNIQUE,
+            password_hash VARCHAR(255) NOT NULL,
+            full_name VARCHAR(255),
+            phone VARCHAR(50),
+            role ENUM('customer', 'admin') DEFAULT 'customer',
+            is_active TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'users';
+        
+        // Orders table
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS orders (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            order_number VARCHAR(50) NOT NULL UNIQUE,
+            user_id INT,
+            status VARCHAR(50) DEFAULT 'pending',
+            subtotal DECIMAL(12,2),
+            tax_amount DECIMAL(12,2),
+            shipping_amount DECIMAL(12,2),
+            total_amount DECIMAL(12,2),
+            currency VARCHAR(3) DEFAULT 'EUR',
+            billing_name VARCHAR(255),
+            billing_company VARCHAR(255),
+            billing_email VARCHAR(255),
+            billing_phone VARCHAR(50),
+            billing_address TEXT,
+            billing_city VARCHAR(100),
+            billing_postal VARCHAR(20),
+            billing_country VARCHAR(100),
+            shipping_name VARCHAR(255),
+            shipping_company VARCHAR(255),
+            shipping_address TEXT,
+            shipping_city VARCHAR(100),
+            shipping_postal VARCHAR(20),
+            shipping_country VARCHAR(100),
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'orders';
+        
+        // Order items table
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS order_items (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            order_id INT NOT NULL,
+            product_id INT,
+            sku VARCHAR(100),
+            name VARCHAR(255),
+            quantity INT NOT NULL,
+            unit_price DECIMAL(12,2),
+            total_price DECIMAL(12,2),
+            FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+        )");
+        $tables[] = 'order_items';
+        
+        // Shipments table
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS shipments (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            order_id INT NOT NULL,
+            tracking_number VARCHAR(100),
+            carrier VARCHAR(100),
+            status VARCHAR(50) DEFAULT 'pending',
+            shipped_at TIMESTAMP NULL,
+            delivered_at TIMESTAMP NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+        )");
+        $tables[] = 'shipments';
+        
+        // Tracking history table
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS tracking_history (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            shipment_id INT NOT NULL,
+            status VARCHAR(100),
+            location VARCHAR(255),
+            description TEXT,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (shipment_id) REFERENCES shipments(id) ON DELETE CASCADE
+        )");
+        $tables[] = 'tracking_history';
+        
+        // Payment uploads table
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS payment_uploads (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            order_id INT NOT NULL,
+            filename VARCHAR(255),
+            original_filename VARCHAR(255),
+            file_path VARCHAR(500),
+            file_size INT,
+            mime_type VARCHAR(100),
+            notes TEXT,
+            status VARCHAR(50) DEFAULT 'pending',
+            reviewed_at TIMESTAMP NULL,
+            reviewed_by INT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+        )");
+        $tables[] = 'payment_uploads';
+        
+        // Settings table
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS settings (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            setting_key VARCHAR(100) NOT NULL UNIQUE,
+            setting_value TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'settings';
+        
+        // Support tickets table
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS support_tickets (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            ticket_number VARCHAR(50) NOT NULL UNIQUE,
+            name VARCHAR(255),
+            company VARCHAR(255),
+            email VARCHAR(255),
+            phone VARCHAR(50),
+            subject VARCHAR(255),
+            message TEXT,
+            status VARCHAR(50) DEFAULT 'open',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'support_tickets';
+        
+        // Login attempts table (rate limiting)
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS login_attempts (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            ip_address VARCHAR(45) NOT NULL,
+            email VARCHAR(255),
+            success TINYINT(1) DEFAULT 0,
+            attempted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_ip_time (ip_address, attempted_at)
+        )");
+        $tables[] = 'login_attempts';
+        
+        // Email logs table
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS email_logs (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            to_email VARCHAR(255),
+            subject VARCHAR(255),
+            status VARCHAR(50),
+            error_message TEXT,
+            sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'email_logs';
+        
+        // Tracking communications table
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS tracking_communications (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            order_id INT NOT NULL,
+            sender_type ENUM('customer', 'admin') NOT NULL,
+            message TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+        )");
+        $tables[] = 'tracking_communications';
+        
+        // Create default admin user if not exists
+        $stmt = $setupPdo->query("SELECT COUNT(*) FROM users WHERE role = 'admin'");
+        if ($stmt->fetchColumn() == 0) {
+            $adminHash = password_hash('admin123', PASSWORD_DEFAULT);
+            $setupPdo->exec("INSERT INTO users (email, password_hash, full_name, role) VALUES ('admin@streichergmbh.com', '$adminHash', 'Administrator', 'admin')");
+        }
+        
+        // Insert default categories if empty
+        $stmt = $setupPdo->query("SELECT COUNT(*) FROM categories");
+        if ($stmt->fetchColumn() == 0) {
+            $setupPdo->exec("INSERT INTO categories (name, slug, description) VALUES 
+                ('Pipelines & Plants', 'pipelines-plants', 'Pipeline construction and plant equipment'),
+                ('Mechanical Engineering', 'mechanical-engineering', 'Mechanical engineering equipment'),
+                ('Electrical Engineering', 'electrical-engineering', 'Electrical systems and components'),
+                ('Civil Engineering', 'civil-engineering', 'Civil and structural engineering equipment'),
+                ('Raw Materials', 'raw-materials', 'Raw and construction materials')
+            ");
+        }
+        
+        header('Content-Type: text/html');
+        echo '<h1>Database Setup Complete</h1>';
+        echo '<p>Created tables: ' . implode(', ', $tables) . '</p>';
+        echo '<p>Default admin: admin@streichergmbh.com / admin123</p>';
+        echo '<p><strong>Change the admin password immediately!</strong></p>';
+        echo '<p><a href="/">Go to Homepage</a> | <a href="/admin">Go to Admin</a></p>';
+        exit;
+        
+    } catch (PDOException $e) {
+        header('Content-Type: text/html');
+        http_response_code(500);
+        echo '<h1>Database Setup Failed</h1>';
+        echo '<p>Error: ' . htmlspecialchars($e->getMessage()) . '</p>';
+        exit;
+    }
+}
+
 // Support both local and Railway MySQL environment variables
 $dbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQL_HOST'] ?? $_ENV['MYSQLHOST'] ?? '127.0.0.1';
 $dbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQL_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';

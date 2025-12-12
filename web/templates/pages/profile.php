@@ -26,23 +26,23 @@ $pageSubtitle = $lang === 'de' ? 'Langjährige Erfahrung, technische Kompetenz u
     <div class="container">
         <div class="sectors-gallery">
             <a href="/business-sectors/pipelines-plants" class="sector-thumb">
-                <img src="https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=400" alt="Pipelines & Plants">
+                <img src="https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400" alt="Pipelines & Plants">
                 <span><?= $lang === 'de' ? 'Pipelines & Anlagen' : 'Pipelines & Plants' ?></span>
             </a>
             <a href="/business-sectors/mechanical-engineering" class="sector-thumb">
-                <img src="https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400" alt="Mechanical Engineering">
+                <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400" alt="Mechanical Engineering">
                 <span><?= $lang === 'de' ? 'Maschinenbau' : 'Mechanical Engineering' ?></span>
             </a>
             <a href="/business-sectors/electrical-engineering" class="sector-thumb">
-                <img src="https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400" alt="Electrical Engineering">
+                <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400" alt="Electrical Engineering">
                 <span><?= $lang === 'de' ? 'Elektrotechnik' : 'Electrical Engineering' ?></span>
             </a>
             <a href="/business-sectors/civil-engineering" class="sector-thumb">
-                <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400" alt="Civil Engineering">
+                <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400" alt="Civil Engineering">
                 <span><?= $lang === 'de' ? 'Hoch- & Tiefbau' : 'Civil & Structural Engineering' ?></span>
             </a>
             <a href="/business-sectors/raw-materials" class="sector-thumb">
-                <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400" alt="Raw Materials">
+                <img src="https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400" alt="Raw Materials">
                 <span><?= $lang === 'de' ? 'Roh- & Baustoffe' : 'Raw & Construction Material' ?></span>
             </a>
         </div>
