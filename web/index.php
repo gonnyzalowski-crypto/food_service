@@ -853,11 +853,11 @@ if ($path === '/api/checkout' && $method === 'POST') {
         $orderNumber = generate_order_number();
         
         $stmt = $pdo->prepare(
-            'INSERT INTO orders (company_id, order_number, status, total, currency, billing_address, shipping_address, notes)
+            'INSERT INTO orders (user_id, order_number, status, total_amount, currency, billing_address, shipping_address, notes)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
         );
         $stmt->execute([
-            $data['company_id'] ?? 1,
+            $data['user_id'] ?? null,
             $orderNumber,
             'awaiting_payment',
             $total,
@@ -869,7 +869,7 @@ if ($path === '/api/checkout' && $method === 'POST') {
         $orderId = (int)$pdo->lastInsertId();
         
         $stmtItem = $pdo->prepare(
-            'INSERT INTO order_items (order_id, product_id, sku, qty, unit_price, total)
+            'INSERT INTO order_items (order_id, product_id, product_sku, quantity, unit_price, total_price)
              VALUES (?, ?, ?, ?, ?, ?)'
         );
         
@@ -1686,7 +1686,7 @@ if ($path === '/checkout' && $method === 'POST') {
     $orderNumber = generate_order_number();
     
     $stmt = $pdo->prepare(
-        'INSERT INTO orders (company_id, order_number, status, total, currency, billing_address, shipping_address, notes)
+        'INSERT INTO orders (user_id, order_number, status, total_amount, currency, billing_address, shipping_address, notes)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
     );
     
@@ -1702,11 +1702,11 @@ if ($path === '/checkout' && $method === 'POST') {
     ];
     
     $stmt->execute([
-        1,
+        $_SESSION['user_id'] ?? null,
         $orderNumber,
         'awaiting_payment',
         $total,
-        'USD',
+        'EUR',
         json_encode($billingAddress),
         json_encode($billingAddress),
         $_POST['notes'] ?? null,
@@ -1715,7 +1715,7 @@ if ($path === '/checkout' && $method === 'POST') {
     $orderId = (int)$pdo->lastInsertId();
     
     $stmtItem = $pdo->prepare(
-        'INSERT INTO order_items (order_id, product_id, sku, qty, unit_price, total)
+        'INSERT INTO order_items (order_id, product_id, product_sku, quantity, unit_price, total_price)
          VALUES (?, ?, ?, ?, ?, ?)'
     );
     
@@ -1996,7 +1996,7 @@ if ($path === '/admin' && $method === 'GET') {
     $stats = [];
     $stats['total_orders'] = $pdo->query('SELECT COUNT(*) FROM orders')->fetchColumn();
     $stats['pending_payments'] = $pdo->query("SELECT COUNT(*) FROM orders WHERE status = 'payment_uploaded'")->fetchColumn();
-    $stats['total_revenue'] = $pdo->query("SELECT COALESCE(SUM(total), 0) FROM orders WHERE status NOT IN ('cancelled', 'awaiting_payment')")->fetchColumn();
+    $stats['total_revenue'] = $pdo->query("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE status NOT IN ('cancelled', 'awaiting_payment')")->fetchColumn();
     $stats['total_products'] = $pdo->query('SELECT COUNT(*) FROM products WHERE is_active = 1')->fetchColumn();
     
     // Recent orders
@@ -2439,7 +2439,7 @@ if ($path === '/admin/customers' && $method === 'GET') {
             MAX(JSON_UNQUOTE(JSON_EXTRACT(billing_address, '$.phone'))) as phone,
             MAX(JSON_UNQUOTE(JSON_EXTRACT(billing_address, '$.country'))) as country,
             COUNT(*) as order_count,
-            SUM(total) as total_spent,
+            SUM(total_amount) as total_spent,
             MAX(created_at) as last_order
          FROM orders 
          GROUP BY JSON_UNQUOTE(JSON_EXTRACT(billing_address, '$.email'))
@@ -2462,7 +2462,7 @@ if ($path === '/admin/reports' && $method === 'GET') {
         "SELECT 
             DATE_FORMAT(created_at, '%Y-%m') as month,
             COUNT(*) as order_count,
-            SUM(total) as revenue
+            SUM(total_amount) as revenue
          FROM orders 
          WHERE status NOT IN ('cancelled')
          GROUP BY DATE_FORMAT(created_at, '%Y-%m')
@@ -2749,8 +2749,8 @@ if ($path === '/account' && $method === 'GET') {
         exit;
     }
     
-    $stmt = $pdo->prepare('SELECT * FROM orders WHERE company_id = 1 ORDER BY created_at DESC LIMIT 10');
-    $stmt->execute();
+    $stmt = $pdo->prepare('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 10');
+    $stmt->execute([$_SESSION['user_id']]);
     $orders = $stmt->fetchAll();
     
     render_template('pages/account.php', [
