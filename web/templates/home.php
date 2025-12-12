@@ -33,7 +33,7 @@
       </div>
     </div>
     <div class="hero-image">
-      <img src="https://images.unsplash.com/photo-1562077981-4d7eafd44932?w=800" alt="<?= $lang === 'de' ? 'Offshore Bohrinsel' : 'Offshore Oil Platform' ?>">
+      <img src="/images/photos/drilling.png" alt="<?= $lang === 'de' ? 'Bohrausrüstung' : 'Drilling Equipment' ?>">
     </div>
   </div>
 </section>
