@@ -47,6 +47,15 @@ $sectors = [
         'image' => '/images/photos/raw-materials.jpg',
         'icon' => '🪨'
     ],
+    [
+        'slug' => 'engineering-software',
+        'title_de' => 'Engineering Software',
+        'title_en' => 'Engineering Software',
+        'desc_de' => 'Enterprise-Softwarelösungen für Simulation, Prozesssteuerung, SCADA-Systeme, CAD/CAM, Datenanalyse und industrielle Automatisierung',
+        'desc_en' => 'Enterprise software solutions for simulation, process control, SCADA systems, CAD/CAM, data analytics, and industrial automation',
+        'image' => '/assets/software-product.svg',
+        'icon' => '💻'
+    ],
 ];
 ?>
 

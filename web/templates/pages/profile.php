@@ -110,6 +110,7 @@ $pageSubtitle = $lang === 'de' ? 'Langjährige Erfahrung, technische Kompetenz u
                         <li><a href="/business-sectors/electrical-engineering"><?= $lang === 'de' ? 'Elektrotechnik' : 'Electrical Engineering' ?></a></li>
                         <li><a href="/business-sectors/civil-engineering"><?= $lang === 'de' ? 'Hoch- & Tiefbau' : 'Civil & Structural Engineering' ?></a></li>
                         <li><a href="/business-sectors/raw-materials"><?= $lang === 'de' ? 'Roh- & Baustoffe' : 'Raw & Construction Material' ?></a></li>
+                        <li><a href="/catalog?category=engineering-software">💻 Engineering Software</a></li>
                     </ul>
                 </div>
             </div>
@@ -133,7 +134,7 @@ $pageSubtitle = $lang === 'de' ? 'Langjährige Erfahrung, technische Kompetenz u
                 <span class="stat-label"><?= $lang === 'de' ? 'Standorte' : 'Locations' ?></span>
             </div>
             <div class="stat-item">
-                <span class="stat-number">5</span>
+                <span class="stat-number">6</span>
                 <span class="stat-label"><?= $lang === 'de' ? 'Geschäftsbereiche' : 'Business Sectors' ?></span>
             </div>
         </div>

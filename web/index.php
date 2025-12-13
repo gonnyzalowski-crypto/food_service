@@ -545,8 +545,15 @@ if ($requestPath === '/setup-database') {
                 ('Mechanical Engineering', 'mechanical-engineering', 'Mechanical engineering equipment'),
                 ('Drilling Technology', 'drilling-technology', 'Drilling rigs and equipment'),
                 ('Hydraulic Systems', 'hydraulic-systems', 'Hydraulic power units and components'),
-                ('Instrumentation', 'instrumentation', 'Measurement and control instruments')
+                ('Instrumentation', 'instrumentation', 'Measurement and control instruments'),
+                ('Engineering Software', 'engineering-software', 'Enterprise software solutions for industrial engineering, simulation, and process control')
             ");
+        }
+        
+        // Add Engineering Software category if missing
+        $stmt = $setupPdo->query("SELECT COUNT(*) FROM categories WHERE slug = 'engineering-software'");
+        if ($stmt->fetchColumn() == 0) {
+            $setupPdo->exec("INSERT INTO categories (name, slug, description) VALUES ('Engineering Software', 'engineering-software', 'Enterprise software solutions for industrial engineering, simulation, and process control')");
         }
         
         // Seed products from image folders if empty
@@ -867,6 +874,51 @@ if ($requestPath === '/seed-software-products') {
         header('Content-Type: text/html');
         http_response_code(500);
         echo '<h1>Seeding Failed</h1>';
+        echo '<p>Error: ' . htmlspecialchars($e->getMessage()) . '</p>';
+        exit;
+    }
+}
+
+// Setup Software category and reassign software products
+if ($requestPath === '/setup-software-category') {
+    $swDbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQLHOST'] ?? 'localhost';
+    $swDbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';
+    $swDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQLDATABASE'] ?? 'streicher';
+    $swDbUser = $_ENV['DB_USER'] ?? $_ENV['MYSQLUSER'] ?? 'root';
+    $swDbPass = $_ENV['DB_PASS'] ?? $_ENV['MYSQLPASSWORD'] ?? '';
+    
+    try {
+        $swPdo = new PDO(
+            "mysql:host=$swDbHost;port=$swDbPort;dbname=$swDbName;charset=utf8mb4",
+            $swDbUser, $swDbPass,
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+        );
+        
+        // Add Engineering Software category if not exists
+        $stmt = $swPdo->query("SELECT id FROM categories WHERE slug = 'engineering-software'");
+        $softwareCatId = $stmt->fetchColumn();
+        
+        if (!$softwareCatId) {
+            $swPdo->exec("INSERT INTO categories (name, slug, description) VALUES ('Engineering Software', 'engineering-software', 'Enterprise software solutions for industrial engineering, simulation, and process control')");
+            $softwareCatId = $swPdo->lastInsertId();
+        }
+        
+        // Reassign all software products to the new category
+        $stmt = $swPdo->prepare("UPDATE products SET category_id = ? WHERE product_type = 'software'");
+        $stmt->execute([$softwareCatId]);
+        $updated = $stmt->rowCount();
+        
+        header('Content-Type: text/html');
+        echo '<h1>Software Category Setup Complete</h1>';
+        echo '<p>Category ID: ' . $softwareCatId . '</p>';
+        echo '<p>Products reassigned: ' . $updated . '</p>';
+        echo '<p><a href="/catalog?category=engineering-software">View Software Products</a></p>';
+        exit;
+        
+    } catch (PDOException $e) {
+        header('Content-Type: text/html');
+        http_response_code(500);
+        echo '<h1>Setup Failed</h1>';
         echo '<p>Error: ' . htmlspecialchars($e->getMessage()) . '</p>';
         exit;
     }
