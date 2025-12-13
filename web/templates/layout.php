@@ -57,6 +57,8 @@ if (isset($_SESSION['cart_id']) && isset($pdo)) {
     <a href="/" class="logo">
       <img src="/assets/logo.png" alt="Streicher" class="logo-img" style="height: 48px; width: auto;">
     </a>
+
+    <button class="mobile-menu-toggle" aria-label="Toggle menu">☰</button>
     
     <nav class="header-nav">
       <a href="/profile"><?= __('profile') ?></a>
@@ -185,6 +187,15 @@ window.StreicherCart = {
     }
   }
 };
+
+// Mobile nav toggle
+const menuToggle = document.querySelector('.mobile-menu-toggle');
+const bodyEl = document.body;
+if (menuToggle) {
+  menuToggle.addEventListener('click', () => {
+    bodyEl.classList.toggle('nav-open');
+  });
+}
 </script>
 </body>
 </html>

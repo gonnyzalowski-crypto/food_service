@@ -14,6 +14,12 @@ $title = $title ?? 'Admin - Streicher';
 </head>
 <body>
 <div class="admin-layout">
+  <div class="admin-topbar">
+    <button class="admin-menu-toggle" aria-label="Toggle admin menu">☰</button>
+    <div style="font-weight: 700; letter-spacing: 0.5px;">STREICHER Admin</div>
+    <div style="font-size: 0.9rem; color: #e2e8f0;">Welcome, Administrator</div>
+  </div>
+
   <!-- Sidebar -->
   <aside class="admin-sidebar">
     <div class="admin-sidebar-header">
@@ -63,11 +69,30 @@ $title = $title ?? 'Admin - Streicher';
       </a>
     </nav>
   </aside>
+
+  <div class="admin-overlay"></div>
   
   <!-- Main Content -->
   <main class="admin-content">
     <?= $content ?? '' ?>
   </main>
 </div>
+
+<script>
+// Admin sidebar toggle
+(function() {
+  const toggle = document.querySelector('.admin-menu-toggle');
+  const overlay = document.querySelector('.admin-overlay');
+  const body = document.body;
+  if (toggle) {
+    toggle.addEventListener('click', () => {
+      body.classList.toggle('admin-nav-open');
+    });
+  }
+  if (overlay) {
+    overlay.addEventListener('click', () => body.classList.remove('admin-nav-open'));
+  }
+})();
+</script>
 </body>
 </html>
