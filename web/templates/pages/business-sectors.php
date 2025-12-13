@@ -56,6 +56,15 @@ $sectors = [
         'image' => '/assets/software-product.svg',
         'icon' => '💻'
     ],
+    [
+        'slug' => 'aviation-engineering',
+        'title_de' => 'Luftfahrttechnik',
+        'title_en' => 'Aviation Engineering',
+        'desc_de' => 'Flugzeugwartungsausrüstung, Bodenunterstützungssysteme, Triebwerksprüfstände, Avionik-Testsysteme und Luft- und Raumfahrtfertigungsanlagen',
+        'desc_en' => 'Aircraft maintenance equipment, ground support systems, engine test stands, avionics test systems, and aerospace manufacturing facilities',
+        'image' => '/assets/aviation-product.svg',
+        'icon' => '✈️'
+    ],
 ];
 ?>
 

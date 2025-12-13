@@ -82,6 +82,26 @@ $projects = [
         'desc_de' => 'Modernisierung der Prozessanlagen und Rohrleitungssysteme.',
         'desc_en' => 'Modernization of process plants and piping systems.',
     ],
+    [
+        'title_de' => 'Airbus A320 Wartungszentrum',
+        'title_en' => 'Airbus A320 Maintenance Center',
+        'location' => 'Hamburg, Germany',
+        'year' => '2023-2024',
+        'category' => 'Aviation Engineering',
+        'image' => '/assets/aviation-product.svg',
+        'desc_de' => 'Komplette Ausstattung des Wartungszentrums mit Triebwerksprüfständen, Avionik-Testsystemen und Hydraulik-Bodengeräten.',
+        'desc_en' => 'Complete equipment for maintenance center including engine test stands, avionics test systems, and hydraulic ground support equipment.',
+    ],
+    [
+        'title_de' => 'Lufthansa Technik Prüfanlage',
+        'title_en' => 'Lufthansa Technik Test Facility',
+        'location' => 'Frankfurt, Germany',
+        'year' => '2022-2023',
+        'category' => 'Aviation Engineering',
+        'image' => '/assets/aviation-product.svg',
+        'desc_de' => 'Installation von Fahrwerksprüfständen und Turbinenschaufel-Inspektionssystemen für MRO-Betrieb.',
+        'desc_en' => 'Installation of landing gear test rigs and turbine blade inspection systems for MRO operations.',
+    ],
 ];
 ?>
 

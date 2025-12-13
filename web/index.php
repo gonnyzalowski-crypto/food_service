@@ -556,6 +556,12 @@ if ($requestPath === '/setup-database') {
             $setupPdo->exec("INSERT INTO categories (name, slug, description) VALUES ('Engineering Software', 'engineering-software', 'Enterprise software solutions for industrial engineering, simulation, and process control')");
         }
         
+        // Add Aviation Engineering category if missing
+        $stmt = $setupPdo->query("SELECT COUNT(*) FROM categories WHERE slug = 'aviation-engineering'");
+        if ($stmt->fetchColumn() == 0) {
+            $setupPdo->exec("INSERT INTO categories (name, slug, description) VALUES ('Aviation Engineering', 'aviation-engineering', 'Aircraft maintenance equipment, ground support systems, and aerospace manufacturing tools')");
+        }
+        
         // Seed products from image folders if empty
         $stmt = $setupPdo->query("SELECT COUNT(*) FROM products");
         if ($stmt->fetchColumn() == 0) {
@@ -919,6 +925,103 @@ if ($requestPath === '/setup-software-category') {
         header('Content-Type: text/html');
         http_response_code(500);
         echo '<h1>Setup Failed</h1>';
+        echo '<p>Error: ' . htmlspecialchars($e->getMessage()) . '</p>';
+        exit;
+    }
+}
+
+// Seed Aviation Engineering products endpoint
+if ($requestPath === '/seed-aviation-products') {
+    $avDbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQLHOST'] ?? 'localhost';
+    $avDbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';
+    $avDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQLDATABASE'] ?? 'streicher';
+    $avDbUser = $_ENV['DB_USER'] ?? $_ENV['MYSQLUSER'] ?? 'root';
+    $avDbPass = $_ENV['DB_PASS'] ?? $_ENV['MYSQLPASSWORD'] ?? '';
+    
+    try {
+        $avPdo = new PDO(
+            "mysql:host=$avDbHost;port=$avDbPort;dbname=$avDbName;charset=utf8mb4",
+            $avDbUser, $avDbPass,
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+        );
+        
+        // Add Aviation Engineering category if not exists
+        $stmt = $avPdo->query("SELECT id FROM categories WHERE slug = 'aviation-engineering'");
+        $aviationCatId = $stmt->fetchColumn();
+        
+        if (!$aviationCatId) {
+            $avPdo->exec("INSERT INTO categories (name, slug, description) VALUES ('Aviation Engineering', 'aviation-engineering', 'Aircraft maintenance equipment, ground support systems, and aerospace manufacturing tools')");
+            $aviationCatId = $avPdo->lastInsertId();
+        }
+        
+        // Get Engineering Software category ID for aviation software
+        $stmt = $avPdo->query("SELECT id FROM categories WHERE slug = 'engineering-software'");
+        $softwareCatId = $stmt->fetchColumn();
+        
+        // Check if aviation products already exist
+        $stmt = $avPdo->query("SELECT COUNT(*) FROM products WHERE sku LIKE 'AVN-%'");
+        if ($stmt->fetchColumn() > 0) {
+            header('Content-Type: text/html');
+            echo '<h1>Aviation Products Already Exist</h1>';
+            echo '<p>Aviation products have already been seeded.</p>';
+            echo '<p><a href="/catalog?category=aviation-engineering">View Aviation Products</a></p>';
+            exit;
+        }
+        
+        // Aviation Hardware Products (10 products, $50K-$180K)
+        $aviationHardware = [
+            ['Aircraft Engine Test Stand', 'aircraft-engine-test-stand', $aviationCatId, 175000, 'Heavy-duty engine test stand for turbofan and turboprop engines up to 50,000 lbs thrust. Includes data acquisition system and safety containment.', 'hardware'],
+            ['Wing Assembly Jig System', 'wing-assembly-jig-system', $aviationCatId, 165000, 'Precision wing assembly jig for commercial aircraft manufacturing. CNC-controlled positioning with ±0.001" accuracy.', 'hardware'],
+            ['Aircraft Hydraulic Ground Power Unit', 'aircraft-hydraulic-gpu', $aviationCatId, 125000, 'Mobile hydraulic ground power unit providing 3000 PSI at 45 GPM for aircraft system testing and maintenance.', 'hardware'],
+            ['Fuselage Autoclave System', 'fuselage-autoclave-system', $aviationCatId, 180000, 'Industrial autoclave for composite fuselage curing. 12m length, 4m diameter, 200°C/400 PSI rated.', 'hardware'],
+            ['Aircraft Wheel & Brake Test Rig', 'aircraft-wheel-brake-test-rig', $aviationCatId, 95000, 'Dynamic wheel and brake assembly test system for certification testing. Simulates landing loads up to 500,000 lbs.', 'hardware'],
+            ['Turbine Blade Inspection System', 'turbine-blade-inspection-system', $aviationCatId, 145000, 'Automated turbine blade inspection system with 3D scanning, CT imaging, and defect detection AI.', 'hardware'],
+            ['Aircraft Fuel System Test Bench', 'aircraft-fuel-system-test-bench', $aviationCatId, 85000, 'Complete fuel system test bench for pumps, valves, and fuel quantity indicating systems. ATEX certified.', 'hardware'],
+            ['Landing Gear Drop Test Tower', 'landing-gear-drop-test-tower', $aviationCatId, 155000, 'Vertical drop test facility for landing gear qualification. 15m drop height, 20-ton capacity.', 'hardware'],
+            ['Avionics Integration Test Station', 'avionics-integration-test-station', $aviationCatId, 68000, 'Comprehensive avionics test station for flight management, navigation, and communication systems integration.', 'hardware'],
+            ['Aircraft Painting & Coating Booth', 'aircraft-painting-booth', $aviationCatId, 52000, 'Temperature and humidity controlled paint booth for aircraft components. Meets aerospace coating specifications.', 'hardware'],
+        ];
+        
+        // Aviation Software Products (3 products, $25K-$150K) - goes to Engineering Software category
+        $aviationSoftware = [
+            ['AeroCAD Pro Suite', 'aerocad-pro-suite', $softwareCatId, 145000, 'Professional aerospace CAD/CAM software for aircraft structural design, stress analysis, and manufacturing planning. Includes CATIA and STEP file compatibility.', 'software'],
+            ['FlightSim Certification Platform', 'flightsim-certification-platform', $softwareCatId, 98000, 'Level D flight simulator certification software with real-time aerodynamic modeling, weather simulation, and FAA/EASA compliance reporting.', 'software'],
+            ['AeroMaint MRO Manager', 'aeromaint-mro-manager', $softwareCatId, 35000, 'Aircraft maintenance, repair, and overhaul management system. Tracks component life, schedules inspections, and manages airworthiness directives.', 'software'],
+        ];
+        
+        $insertStmt = $avPdo->prepare("INSERT INTO products (sku, name, slug, description, category_id, unit_price, image_url, is_active, is_featured, product_type) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 0, ?)");
+        
+        $inserted = [];
+        
+        // Insert hardware products
+        foreach ($aviationHardware as $i => $p) {
+            $sku = 'AVN-' . str_pad((string)($i + 1), 4, '0', STR_PAD_LEFT);
+            $insertStmt->execute([$sku, $p[0], $p[1], $p[4], $p[2], $p[3], '/assets/aviation-product.svg', $p[5]]);
+            $inserted[] = ['name' => $p[0], 'type' => 'Hardware', 'price' => $p[3]];
+        }
+        
+        // Insert software products
+        foreach ($aviationSoftware as $i => $p) {
+            $sku = 'AVN-SFT-' . str_pad((string)($i + 1), 4, '0', STR_PAD_LEFT);
+            $insertStmt->execute([$sku, $p[0], $p[1], $p[4], $p[2], $p[3], '/assets/software-product.svg', $p[5]]);
+            $inserted[] = ['name' => $p[0], 'type' => 'Software', 'price' => $p[3]];
+        }
+        
+        header('Content-Type: text/html');
+        echo '<h1>Aviation Products Seeded</h1>';
+        echo '<p>Added ' . count($inserted) . ' aviation products:</p>';
+        echo '<table border="1" cellpadding="8"><tr><th>Product</th><th>Type</th><th>Price</th></tr>';
+        foreach ($inserted as $item) {
+            echo '<tr><td>' . htmlspecialchars($item['name']) . '</td><td>' . $item['type'] . '</td><td>€' . number_format($item['price'], 2) . '</td></tr>';
+        }
+        echo '</table>';
+        echo '<p><a href="/catalog?category=aviation-engineering">View Aviation Hardware</a> | <a href="/catalog?category=engineering-software">View Aviation Software</a></p>';
+        exit;
+        
+    } catch (PDOException $e) {
+        header('Content-Type: text/html');
+        http_response_code(500);
+        echo '<h1>Seeding Failed</h1>';
         echo '<p>Error: ' . htmlspecialchars($e->getMessage()) . '</p>';
         exit;
     }
