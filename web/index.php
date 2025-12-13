@@ -1109,8 +1109,8 @@ if (preg_match('#^/admin/orders/(\d+)/confirm-payment$#', $path, $m) && $method 
     require_admin();
     $orderId = (int)$m[1];
     
-    $pdo->prepare('UPDATE orders SET status = ?, payment_confirmed_at = NOW(), payment_confirmed_by = ? WHERE id = ?')
-        ->execute(['payment_confirmed', $_SESSION['user_id'], $orderId]);
+    $pdo->prepare('UPDATE orders SET status = ? WHERE id = ?')
+        ->execute(['payment_confirmed', $orderId]);
     
     // Update payment upload status
     $pdo->prepare('UPDATE payment_uploads SET status = ?, reviewed_by = ?, reviewed_at = NOW() WHERE order_id = ? AND status = ?')
