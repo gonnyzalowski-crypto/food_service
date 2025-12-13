@@ -1120,12 +1120,14 @@ if ($path === '/api/track' && $method === 'POST') {
 if (preg_match('#^/api/tracking/([A-Za-z0-9]+)/message$#', $path, $m) && $method === 'POST') {
     $trackingNumber = $m[1];
     
-    // Verify shipment exists
-    $stmt = $pdo->prepare('SELECT id FROM shipments WHERE tracking_number = ?');
+    // Verify shipment exists and get order_id
+    $stmt = $pdo->prepare('SELECT id, order_id FROM shipments WHERE tracking_number = ?');
     $stmt->execute([$trackingNumber]);
-    if (!$stmt->fetch()) {
+    $shipment = $stmt->fetch();
+    if (!$shipment) {
         json_response(['error' => 'Shipment not found'], 404);
     }
+    $orderId = $shipment['order_id'];
     
     $message = $_POST['message'] ?? '';
     $documentPath = null;
@@ -1157,10 +1159,11 @@ if (preg_match('#^/api/tracking/([A-Za-z0-9]+)/message$#', $path, $m) && $method
     }
     
     $stmt = $pdo->prepare(
-        'INSERT INTO tracking_communications (tracking_number, sender_type, message_type, message, document_name, document_path, document_type) 
-         VALUES (?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO tracking_communications (order_id, tracking_number, sender_type, message_type, message, document_name, document_path, document_type) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
     );
     $stmt->execute([
+        $orderId,
         $trackingNumber,
         'customer',
         $messageType,
@@ -1401,8 +1404,9 @@ if (preg_match('#^/admin/shipments/(\d+)/customs-hold$#', $path, $m) && $method 
     
     // Add system message to communications
     $pdo->prepare(
-        'INSERT INTO tracking_communications (tracking_number, sender_type, message_type, message) VALUES (?, ?, ?, ?)'
+        'INSERT INTO tracking_communications (order_id, tracking_number, sender_type, message_type, message) VALUES (?, ?, ?, ?, ?)'
     )->execute([
+        $shipment['order_id'],
         $shipment['tracking_number'],
         'system',
         'status_update',
@@ -1447,8 +1451,9 @@ if (preg_match('#^/admin/shipments/(\d+)/clear-customs$#', $path, $m) && $method
     
     // Add system message
     $pdo->prepare(
-        'INSERT INTO tracking_communications (tracking_number, sender_type, message_type, message) VALUES (?, ?, ?, ?)'
+        'INSERT INTO tracking_communications (order_id, tracking_number, sender_type, message_type, message) VALUES (?, ?, ?, ?, ?)'
     )->execute([
+        $shipment['order_id'],
         $shipment['tracking_number'],
         'system',
         'status_update',
@@ -1509,10 +1514,11 @@ if (preg_match('#^/admin/shipments/(\d+)/send-message$#', $path, $m) && $method 
     }
     
     $stmt = $pdo->prepare(
-        'INSERT INTO tracking_communications (tracking_number, sender_type, sender_name, message_type, message, document_name, document_path, document_type) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO tracking_communications (order_id, tracking_number, sender_type, sender_name, message_type, message, document_name, document_path, document_type) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
     $stmt->execute([
+        $shipment['order_id'],
         $trackingNumber,
         'admin',
         $_SESSION['user_name'] ?? 'Streicher Logistics',
@@ -1531,6 +1537,12 @@ if (preg_match('#^/admin/shipments/(\d+)/send-message$#', $path, $m) && $method 
 if (preg_match('#^/admin/tracking/([A-Za-z0-9]+)/message$#', $path, $m) && $method === 'POST') {
     require_admin();
     $trackingNumber = $m[1];
+    
+    // Get shipment to find order_id
+    $stmt = $pdo->prepare('SELECT order_id FROM shipments WHERE tracking_number = ?');
+    $stmt->execute([$trackingNumber]);
+    $shipment = $stmt->fetch();
+    $orderId = $shipment ? $shipment['order_id'] : null;
     
     $message = $_POST['message'] ?? '';
     $documentPath = null;
@@ -1562,10 +1574,11 @@ if (preg_match('#^/admin/tracking/([A-Za-z0-9]+)/message$#', $path, $m) && $meth
     }
     
     $stmt = $pdo->prepare(
-        'INSERT INTO tracking_communications (tracking_number, sender_type, sender_name, message_type, message, document_name, document_path, document_type) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO tracking_communications (order_id, tracking_number, sender_type, sender_name, message_type, message, document_name, document_path, document_type) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
     $stmt->execute([
+        $orderId,
         $trackingNumber,
         'admin',
         $_SESSION['user_name'] ?? 'Streicher Logistics',
