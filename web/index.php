@@ -124,12 +124,160 @@ $lang = $_SESSION['lang'] ?? 'de';
 $dotenv = Dotenv::createImmutable(dirname(__DIR__));
 $dotenv->safeLoad();
 
+// Telegram notification helper function
+function sendTelegramNotification(string $message, ?string $documentUrl = null): bool {
+    $botToken = $_ENV['TELEGRAM_BOT_TOKEN'] ?? getenv('TELEGRAM_BOT_TOKEN') ?? null;
+    $chatId = $_ENV['TELEGRAM_USER_ID'] ?? getenv('TELEGRAM_USER_ID') ?? null;
+    
+    if (!$botToken || !$chatId) {
+        return false;
+    }
+    
+    // Send text message
+    $url = "https://api.telegram.org/bot$botToken/sendMessage";
+    $data = [
+        'chat_id' => $chatId,
+        'text' => $message,
+        'parse_mode' => 'HTML',
+    ];
+    
+    $options = [
+        'http' => [
+            'method' => 'POST',
+            'header' => 'Content-Type: application/json',
+            'content' => json_encode($data),
+            'timeout' => 10,
+        ],
+        'ssl' => [
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+        ],
+    ];
+    
+    $context = stream_context_create($options);
+    $result = @file_get_contents($url, false, $context);
+    
+    // If there's a document, send it too
+    if ($documentUrl && $result !== false) {
+        $docUrl = "https://api.telegram.org/bot$botToken/sendDocument";
+        $fullDocUrl = (strpos($documentUrl, 'http') === 0) ? $documentUrl : 'https://streichergmbh.com' . $documentUrl;
+        $docData = [
+            'chat_id' => $chatId,
+            'document' => $fullDocUrl,
+            'caption' => 'Attachment from customer',
+        ];
+        $docOptions = [
+            'http' => [
+                'method' => 'POST',
+                'header' => 'Content-Type: application/json',
+                'content' => json_encode($docData),
+                'timeout' => 15,
+            ],
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+            ],
+        ];
+        $docContext = stream_context_create($docOptions);
+        @file_get_contents($docUrl, false, $docContext);
+    }
+    
+    return $result !== false;
+}
+
 // Health check endpoint - respond before DB connection for Railway healthcheck
 $requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 if ($requestPath === '/health' || $requestPath === '/healthz') {
     header('Content-Type: application/json');
     echo json_encode(['status' => 'ok', 'timestamp' => date('c')]);
     exit;
+}
+
+// Telegram webhook endpoint - process admin replies from Telegram
+if ($requestPath === '/telegram-webhook') {
+    $botToken = $_ENV['TELEGRAM_BOT_TOKEN'] ?? getenv('TELEGRAM_BOT_TOKEN') ?? null;
+    
+    if (!$botToken) {
+        http_response_code(500);
+        exit('Bot token not configured');
+    }
+    
+    $content = file_get_contents('php://input');
+    $update = json_decode($content, true);
+    
+    if (!$update || !isset($update['message'])) {
+        http_response_code(200);
+        exit('OK');
+    }
+    
+    $message = $update['message'];
+    $chatId = $message['chat']['id'];
+    $text = $message['text'] ?? '';
+    
+    // Database connection for webhook
+    $whDbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQLHOST'] ?? 'localhost';
+    $whDbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';
+    $whDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQLDATABASE'] ?? 'streicher';
+    $whDbUser = $_ENV['DB_USER'] ?? $_ENV['MYSQLUSER'] ?? 'root';
+    $whDbPass = $_ENV['DB_PASS'] ?? $_ENV['MYSQLPASSWORD'] ?? '';
+    
+    try {
+        $whPdo = new PDO(
+            "mysql:host=$whDbHost;port=$whDbPort;dbname=$whDbName;charset=utf8mb4",
+            $whDbUser, $whDbPass,
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+        );
+    } catch (PDOException $e) {
+        http_response_code(200);
+        exit('OK');
+    }
+    
+    // Process /reply command
+    if (preg_match('/^\/reply\s+([A-Z0-9]+)\s+(.+)$/is', $text, $matches)) {
+        $trackingNumber = strtoupper(trim($matches[1]));
+        $replyMessage = trim($matches[2]);
+        
+        $stmt = $whPdo->prepare('SELECT id, order_id FROM shipments WHERE tracking_number = ?');
+        $stmt->execute([$trackingNumber]);
+        $shipment = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($shipment) {
+            $stmt = $whPdo->prepare(
+                'INSERT INTO tracking_communications (order_id, tracking_number, sender_type, sender_name, message_type, message)
+                 VALUES (?, ?, ?, ?, ?, ?)'
+            );
+            $stmt->execute([
+                $shipment['order_id'],
+                $trackingNumber,
+                'admin',
+                'Streicher Support',
+                'message',
+                $replyMessage,
+            ]);
+            
+            // Send confirmation
+            $confirmUrl = "https://api.telegram.org/bot$botToken/sendMessage";
+            $confirmData = ['chat_id' => $chatId, 'text' => "✅ Reply sent to tracking $trackingNumber:\n\n$replyMessage"];
+            $ctx = stream_context_create(['http' => ['method' => 'POST', 'header' => 'Content-Type: application/json', 'content' => json_encode($confirmData)]]);
+            @file_get_contents($confirmUrl, false, $ctx);
+        } else {
+            $errorUrl = "https://api.telegram.org/bot$botToken/sendMessage";
+            $errorData = ['chat_id' => $chatId, 'text' => "❌ Tracking number not found: $trackingNumber"];
+            $ctx = stream_context_create(['http' => ['method' => 'POST', 'header' => 'Content-Type: application/json', 'content' => json_encode($errorData)]]);
+            @file_get_contents($errorUrl, false, $ctx);
+        }
+    }
+    // Help command
+    elseif ($text === '/start' || $text === '/help') {
+        $helpMsg = "🤖 Streicher Admin Bot\n\nI notify you when customers send messages.\n\nCommands:\n/reply TRACKING_NUMBER Your message - Reply to a customer\n/help - Show this help\n\nExample:\n/reply STR20251213ABC123 Your shipment is on the way!";
+        $helpUrl = "https://api.telegram.org/bot$botToken/sendMessage";
+        $helpData = ['chat_id' => $chatId, 'text' => $helpMsg];
+        $ctx = stream_context_create(['http' => ['method' => 'POST', 'header' => 'Content-Type: application/json', 'content' => json_encode($helpData)]]);
+        @file_get_contents($helpUrl, false, $ctx);
+    }
+    
+    http_response_code(200);
+    exit('OK');
 }
 
 // Database setup endpoint - initialize all tables
@@ -1178,6 +1326,19 @@ if (preg_match('#^/api/tracking/([A-Za-z0-9]+)/message$#', $path, $m) && $method
         $documentPath,
         $documentType,
     ]);
+    
+    // Send Telegram notification to admin
+    $telegramMessage = "📬 <b>New Customer Message</b>\n\n";
+    $telegramMessage .= "🔖 <b>Tracking:</b> <code>$trackingNumber</code>\n";
+    if ($message) {
+        $telegramMessage .= "💬 <b>Message:</b>\n" . htmlspecialchars($message) . "\n";
+    }
+    if ($documentName) {
+        $telegramMessage .= "📎 <b>Attachment:</b> $documentName\n";
+    }
+    $telegramMessage .= "\n<i>Reply with:</i>\n<code>/reply $trackingNumber Your message here</code>";
+    
+    sendTelegramNotification($telegramMessage, $documentPath);
     
     json_response(['ok' => true, 'message' => 'Message sent successfully']);
 }
