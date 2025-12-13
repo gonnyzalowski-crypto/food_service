@@ -1192,28 +1192,17 @@ if (preg_match('#^/admin/orders/(\d+)/ship$#', $path, $m) && $method === 'POST')
         'motorcycle' => 'Motorcycle Courier Express',
     ];
     
-    // Create shipment (simplified for production DB)
+    // Create shipment (minimal columns for production DB)
     $stmt = $pdo->prepare(
-        'INSERT INTO shipments (order_id, carrier, tracking_number, status, events)
-         VALUES (?, ?, ?, ?, ?)'
+        'INSERT INTO shipments (order_id, carrier, tracking_number, status)
+         VALUES (?, ?, ?, ?)'
     );
-    
-    $initialEvents = [
-        [
-            'timestamp' => date('Y-m-d H:i:s'),
-            'status' => 'SHIPPED',
-            'description' => 'Shipment picked up from warehouse via ' . ($methodDescriptions[$shippingMethod] ?? 'Streicher Logistics'),
-            'location' => 'Regensburg, Germany',
-            'facility' => 'Streicher Logistics Center',
-        ],
-    ];
     
     $stmt->execute([
         $orderId,
         $carrier,
         $trackingNumber,
         'shipped',
-        json_encode($initialEvents),
     ]);
     
     // Update order (simplified - avoid shipped_at column)
