@@ -1386,13 +1386,15 @@ body.admin-nav-open .admin-overlay {
 
 @media (max-width: 768px) {
   /* Hide desktop elements */
-  .desktop-only {
+  .desktop-only,
+  .header-top,
+  .header-main {
     display: none !important;
   }
   
   /* Mobile Header Bar */
   .mobile-header {
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: space-between;
     padding: 8px 12px;
@@ -1482,7 +1484,7 @@ body.admin-nav-open .admin-overlay {
   
   /* Mobile Slide-out Nav */
   .mobile-nav {
-    display: flex;
+    display: flex !important;
     flex-direction: column;
     position: fixed;
     top: 0;
@@ -1499,6 +1501,11 @@ body.admin-nav-open .admin-overlay {
   
   body.nav-open .mobile-nav {
     transform: translateX(0);
+  }
+  
+  /* Mobile Catalog Header */
+  .mobile-catalog-header {
+    display: flex !important;
   }
   
   .mobile-nav-header {
