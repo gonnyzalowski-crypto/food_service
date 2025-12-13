@@ -282,9 +282,9 @@ $shipping = json_decode($order['shipping_address'] ?? '{}', true) ?: [];
     <?php if (!empty($shipments)): ?>
     <?php foreach ($shipments as $shipment): 
       $trackingNumber = $shipment['tracking_number'];
-      // Fetch communications for this shipment
-      $commStmt = $pdo->prepare("SELECT * FROM tracking_communications WHERE tracking_number = ? ORDER BY created_at ASC");
-      $commStmt->execute([$trackingNumber]);
+      // Fetch communications for this order
+      $commStmt = $pdo->prepare("SELECT * FROM tracking_communications WHERE order_id = ? ORDER BY created_at ASC");
+      $commStmt->execute([$order['id']]);
       $communications = $commStmt->fetchAll();
     ?>
     <div class="card mb-4" id="communications-<?= $shipment['id'] ?>">
