@@ -445,9 +445,63 @@ if ($requestPath === '/setup-database') {
             }
         }
         
+        // Add missing columns for order flow (safe to run multiple times)
+        $migrations = [];
+        
+        // Add events column to shipments if missing
+        try {
+            $setupPdo->exec("ALTER TABLE shipments ADD COLUMN events JSON NULL");
+            $migrations[] = 'shipments.events';
+        } catch (PDOException $e) {
+            if (strpos($e->getMessage(), 'Duplicate column') === false) {
+                // Column already exists, ignore
+            }
+        }
+        
+        // Add shipped_at to orders if missing
+        try {
+            $setupPdo->exec("ALTER TABLE orders ADD COLUMN shipped_at TIMESTAMP NULL");
+            $migrations[] = 'orders.shipped_at';
+        } catch (PDOException $e) {}
+        
+        // Add payment_confirmed_at to orders if missing
+        try {
+            $setupPdo->exec("ALTER TABLE orders ADD COLUMN payment_confirmed_at TIMESTAMP NULL");
+            $migrations[] = 'orders.payment_confirmed_at';
+        } catch (PDOException $e) {}
+        
+        // Add payment_confirmed_by to orders if missing
+        try {
+            $setupPdo->exec("ALTER TABLE orders ADD COLUMN payment_confirmed_by INT NULL");
+            $migrations[] = 'orders.payment_confirmed_by';
+        } catch (PDOException $e) {}
+        
+        // Add total column to orders if missing (alias for total_amount)
+        try {
+            $setupPdo->exec("ALTER TABLE orders ADD COLUMN total DECIMAL(14,2) NULL");
+            $migrations[] = 'orders.total';
+        } catch (PDOException $e) {}
+        
+        // Add qty column to order_items if missing (alias for quantity)
+        try {
+            $setupPdo->exec("ALTER TABLE order_items ADD COLUMN qty INT NULL");
+            $migrations[] = 'order_items.qty';
+        } catch (PDOException $e) {}
+        
+        // Sync qty with quantity for existing records
+        try {
+            $setupPdo->exec("UPDATE order_items SET qty = quantity WHERE qty IS NULL AND quantity IS NOT NULL");
+        } catch (PDOException $e) {}
+        
+        // Sync total with total_amount for existing records
+        try {
+            $setupPdo->exec("UPDATE orders SET total = total_amount WHERE total IS NULL AND total_amount IS NOT NULL");
+        } catch (PDOException $e) {}
+        
         header('Content-Type: text/html');
         echo '<h1>Database Setup Complete</h1>';
         echo '<p>Created tables: ' . implode(', ', $tables) . '</p>';
+        echo '<p>Migrations applied: ' . (empty($migrations) ? 'none (all columns exist)' : implode(', ', $migrations)) . '</p>';
         echo '<p>Seeded ' . count($products ?? []) . ' products</p>';
         echo '<p>Default admin: admin@streichergmbh.com / admin123</p>';
         echo '<p><strong>Change the admin password immediately!</strong></p>';
@@ -1192,17 +1246,28 @@ if (preg_match('#^/admin/orders/(\d+)/ship$#', $path, $m) && $method === 'POST')
         'motorcycle' => 'Motorcycle Courier Express',
     ];
     
-    // Create shipment (minimal columns for production DB)
+    // Create shipment with tracking events
     $stmt = $pdo->prepare(
-        'INSERT INTO shipments (order_id, carrier, tracking_number, status)
-         VALUES (?, ?, ?, ?)'
+        'INSERT INTO shipments (order_id, carrier, tracking_number, status, events)
+         VALUES (?, ?, ?, ?, ?)'
     );
+    
+    $initialEvents = [
+        [
+            'timestamp' => date('Y-m-d H:i:s'),
+            'status' => 'SHIPPED',
+            'description' => 'Shipment picked up from warehouse via ' . ($methodDescriptions[$shippingMethod] ?? 'Streicher Logistics'),
+            'location' => 'Regensburg, Germany',
+            'facility' => 'Streicher Logistics Center',
+        ],
+    ];
     
     $stmt->execute([
         $orderId,
         $carrier,
         $trackingNumber,
         'shipped',
+        json_encode($initialEvents),
     ]);
     
     // Update order (simplified - avoid shipped_at column)
