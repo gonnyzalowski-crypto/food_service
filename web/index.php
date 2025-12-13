@@ -688,6 +688,69 @@ if ($requestPath === '/setup-database') {
     }
 }
 
+// Update product images endpoint - scans filesystem and updates database
+if ($requestPath === '/update-product-images') {
+    $imgDbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQLHOST'] ?? 'localhost';
+    $imgDbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';
+    $imgDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQLDATABASE'] ?? 'streicher';
+    $imgDbUser = $_ENV['DB_USER'] ?? $_ENV['MYSQLUSER'] ?? 'root';
+    $imgDbPass = $_ENV['DB_PASS'] ?? $_ENV['MYSQLPASSWORD'] ?? '';
+    
+    try {
+        $imgPdo = new PDO(
+            "mysql:host=$imgDbHost;port=$imgDbPort;dbname=$imgDbName;charset=utf8mb4",
+            $imgDbUser, $imgDbPass,
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+        );
+        
+        $updated = [];
+        $imagesDir = __DIR__ . '/images';
+        
+        // Get all products
+        $products = $imgPdo->query('SELECT id, slug, image_url FROM products')->fetchAll(PDO::FETCH_ASSOC);
+        
+        foreach ($products as $product) {
+            $slug = $product['slug'];
+            $productImgDir = $imagesDir . '/' . $slug;
+            
+            if (is_dir($productImgDir)) {
+                $files = glob($productImgDir . '/*.*');
+                if (!empty($files)) {
+                    // Sort to get 1.* first
+                    usort($files, function($a, $b) {
+                        return basename($a) <=> basename($b);
+                    });
+                    $newImageUrl = '/images/' . $slug . '/' . basename($files[0]);
+                    
+                    if ($newImageUrl !== $product['image_url']) {
+                        $stmt = $imgPdo->prepare('UPDATE products SET image_url = ? WHERE id = ?');
+                        $stmt->execute([$newImageUrl, $product['id']]);
+                        $updated[] = $slug . ': ' . $newImageUrl;
+                    }
+                }
+            }
+        }
+        
+        header('Content-Type: text/html');
+        echo '<h1>Product Images Updated</h1>';
+        echo '<p>Updated ' . count($updated) . ' products:</p>';
+        echo '<ul>';
+        foreach ($updated as $u) {
+            echo '<li>' . htmlspecialchars($u) . '</li>';
+        }
+        echo '</ul>';
+        echo '<p><a href="/catalog">View Catalog</a></p>';
+        exit;
+        
+    } catch (PDOException $e) {
+        header('Content-Type: text/html');
+        http_response_code(500);
+        echo '<h1>Update Failed</h1>';
+        echo '<p>Error: ' . htmlspecialchars($e->getMessage()) . '</p>';
+        exit;
+    }
+}
+
 // Support both local and Railway MySQL environment variables
 $dbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQL_HOST'] ?? $_ENV['MYSQLHOST'] ?? '127.0.0.1';
 $dbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQL_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';
