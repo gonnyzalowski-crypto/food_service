@@ -129,7 +129,7 @@ $packageTypeDisplay = $packageTypes[$shipment['package_type'] ?? 'crate'] ?? 'ğŸ
     </div>
     
     <!-- Shipment Details -->
-    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; padding: 24px; background: #f8fafc; border-radius: 8px;">
+    <div class="shipment-details-grid">
       <div>
         <div style="color: #64748b; font-size: 0.85rem; margin-bottom: 4px;">Origin</div>
         <div style="font-weight: 600;"><?= htmlspecialchars($shipment['origin_city'] ?? 'Regensburg') ?>, <?= htmlspecialchars($shipment['origin_country'] ?? 'DE') ?></div>
@@ -259,7 +259,7 @@ $packageTypeDisplay = $packageTypes[$shipment['package_type'] ?? 'crate'] ?? 'ğŸ
   <div class="card mt-4">
     <div class="card-body">
       <h4 style="margin: 0 0 16px 0;">Need Help?</h4>
-      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;">
+      <div class="help-grid">
         <div>
           <div style="font-size: 1.5rem; margin-bottom: 8px;">âœ‰ï¸</div>
           <div style="font-weight: 500;">Email Support</div>
