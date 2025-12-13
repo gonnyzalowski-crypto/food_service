@@ -26,6 +26,9 @@ if (isset($_SESSION['cart_id']) && isset($pdo)) {
 </head>
 <body>
 
+<!-- Skip Link for Accessibility -->
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
 <!-- Mobile Nav Overlay -->
 <div class="mobile-nav-overlay"></div>
 
@@ -142,7 +145,7 @@ if (isset($_SESSION['cart_id']) && isset($pdo)) {
 </header>
 
 <!-- Main Content -->
-<main class="<?= ($isHomePage ?? false) ? 'home-page' : 'page-content' ?>">
+<main id="main-content" class="<?= ($isHomePage ?? false) ? 'home-page' : 'page-content' ?>">
   <?= $content ?? '' ?>
 </main>
 
