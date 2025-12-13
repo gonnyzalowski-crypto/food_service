@@ -869,8 +869,8 @@ if ($path === '/api/checkout' && $method === 'POST') {
         $orderId = (int)$pdo->lastInsertId();
         
         $stmtItem = $pdo->prepare(
-            'INSERT INTO order_items (order_id, product_id, product_sku, quantity, unit_price, total_price)
-             VALUES (?, ?, ?, ?, ?, ?)'
+            'INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price)
+             VALUES (?, ?, ?, ?, ?)'
         );
         
         foreach ($cart as $item) {
@@ -882,7 +882,6 @@ if ($path === '/api/checkout' && $method === 'POST') {
             $stmtItem->execute([
                 $orderId,
                 $productId,
-                $item['sku'],
                 $item['qty'],
                 $item['price'],
                 $item['price'] * $item['qty'],
@@ -1715,8 +1714,8 @@ if ($path === '/checkout' && $method === 'POST') {
     $orderId = (int)$pdo->lastInsertId();
     
     $stmtItem = $pdo->prepare(
-        'INSERT INTO order_items (order_id, product_id, product_sku, quantity, unit_price, total_price)
-         VALUES (?, ?, ?, ?, ?, ?)'
+        'INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price)
+         VALUES (?, ?, ?, ?, ?)'
     );
     
     foreach ($cart as $item) {
@@ -1727,7 +1726,6 @@ if ($path === '/checkout' && $method === 'POST') {
         $stmtItem->execute([
             $orderId,
             $productId,
-            $item['sku'],
             $item['qty'],
             $item['price'],
             $item['price'] * $item['qty'],
