@@ -1,18 +1,31 @@
 <?php
 $billingAddress = json_decode($order['billing_address'] ?? '{}', true) ?: [];
 $shippingAddress = json_decode($order['shipping_address'] ?? '{}', true) ?: [];
+$orderType = $order['order_type'] ?? 'hardware';
+$isSoftwareOrder = ($orderType === 'software');
 
-// Determine progress step
+// Determine progress step - software orders have different flow
 $progressStep = 1;
-switch ($order['status']) {
-    case 'awaiting_payment': $progressStep = 1; break;
-    case 'payment_uploaded': $progressStep = 2; break;
-    case 'payment_confirmed': $progressStep = 3; break;
-    case 'processing': $progressStep = 3; break;
-    case 'shipped': $progressStep = 4; break;
-    case 'in_transit': $progressStep = 4; break;
-    case 'out_for_delivery': $progressStep = 4; break;
-    case 'delivered': $progressStep = 5; break;
+if ($isSoftwareOrder) {
+    switch ($order['status']) {
+        case 'awaiting_payment': $progressStep = 1; break;
+        case 'payment_uploaded': $progressStep = 2; break;
+        case 'payment_confirmed': $progressStep = 3; break;
+        case 'processing': $progressStep = 3; break;
+        case 'license_sent': 
+        case 'delivered': $progressStep = 4; break;
+    }
+} else {
+    switch ($order['status']) {
+        case 'awaiting_payment': $progressStep = 1; break;
+        case 'payment_uploaded': $progressStep = 2; break;
+        case 'payment_confirmed': $progressStep = 3; break;
+        case 'processing': $progressStep = 3; break;
+        case 'shipped': $progressStep = 4; break;
+        case 'in_transit': $progressStep = 4; break;
+        case 'out_for_delivery': $progressStep = 4; break;
+        case 'delivered': $progressStep = 5; break;
+    }
 }
 ?>
 
@@ -35,28 +48,49 @@ switch ($order['status']) {
       </span>
       <p style="margin: 16px 0 0 0; color: #64748b;">
         <?php
-        switch ($order['status']) {
-            case 'awaiting_payment':
-                echo 'Please complete your payment and upload the receipt.';
-                break;
-            case 'payment_uploaded':
-                echo 'Your payment receipt is being reviewed. This usually takes 1-2 business days.';
-                break;
-            case 'payment_confirmed':
-                echo 'Payment confirmed! Your order is being prepared for shipment.';
-                break;
-            case 'shipped':
-            case 'in_transit':
-                echo 'Your order is on its way!';
-                break;
-            case 'out_for_delivery':
-                echo 'Your order is out for delivery today!';
-                break;
-            case 'delivered':
-                echo 'Your order has been delivered. Thank you for your business!';
-                break;
-            default:
-                echo 'Order is being processed.';
+        if ($isSoftwareOrder) {
+            switch ($order['status']) {
+                case 'awaiting_payment':
+                    echo '💻 Software Order - Please complete your payment and upload the receipt.';
+                    break;
+                case 'payment_uploaded':
+                    echo '💻 Your payment receipt is being reviewed. Once confirmed, you will receive license instructions via email.';
+                    break;
+                case 'payment_confirmed':
+                case 'processing':
+                    echo '💻 Payment confirmed! Our team is preparing your software license and will send instructions to your email shortly.';
+                    break;
+                case 'license_sent':
+                case 'delivered':
+                    echo '💻 Your software license has been sent! Check your email for installation instructions and license key.';
+                    break;
+                default:
+                    echo '💻 Software order is being processed.';
+            }
+        } else {
+            switch ($order['status']) {
+                case 'awaiting_payment':
+                    echo 'Please complete your payment and upload the receipt.';
+                    break;
+                case 'payment_uploaded':
+                    echo 'Your payment receipt is being reviewed. This usually takes 1-2 business days.';
+                    break;
+                case 'payment_confirmed':
+                    echo 'Payment confirmed! Your order is being prepared for shipment.';
+                    break;
+                case 'shipped':
+                case 'in_transit':
+                    echo 'Your order is on its way!';
+                    break;
+                case 'out_for_delivery':
+                    echo 'Your order is out for delivery today!';
+                    break;
+                case 'delivered':
+                    echo 'Your order has been delivered. Thank you for your business!';
+                    break;
+                default:
+                    echo 'Order is being processed.';
+            }
         }
         ?>
       </p>

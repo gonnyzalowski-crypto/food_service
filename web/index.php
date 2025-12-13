@@ -327,6 +327,7 @@ if ($requestPath === '/setup-database') {
             weight_kg DECIMAL(10,2),
             dimensions VARCHAR(100),
             image_url VARCHAR(500),
+            product_type VARCHAR(20) DEFAULT 'hardware',
             is_active TINYINT(1) DEFAULT 1,
             is_featured TINYINT(1) DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -334,6 +335,9 @@ if ($requestPath === '/setup-database') {
             FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
         )");
         $tables[] = 'products';
+        
+        // Add product_type column if missing
+        try { $setupPdo->exec("ALTER TABLE products ADD COLUMN product_type VARCHAR(20) DEFAULT 'hardware'"); } catch (PDOException $e) {}
 
         // Ensure is_featured column exists for older databases
         try {
@@ -364,6 +368,7 @@ if ($requestPath === '/setup-database') {
             order_number VARCHAR(50) NOT NULL UNIQUE,
             user_id INT,
             status VARCHAR(50) DEFAULT 'pending',
+            order_type VARCHAR(20) DEFAULT 'hardware',
             subtotal DECIMAL(12,2),
             tax_amount DECIMAL(12,2),
             shipping_amount DECIMAL(12,2),
@@ -388,6 +393,9 @@ if ($requestPath === '/setup-database') {
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )");
         $tables[] = 'orders';
+        
+        // Add order_type column if missing
+        try { $setupPdo->exec("ALTER TABLE orders ADD COLUMN order_type VARCHAR(20) DEFAULT 'hardware'"); } catch (PDOException $e) {}
         
         // Order items table
         $setupPdo->exec("CREATE TABLE IF NOT EXISTS order_items (
@@ -593,13 +601,41 @@ if ($requestPath === '/setup-database') {
                 ['Variable Displacement Pump 500cc', 'variable-displacement-pump-500cc', 4, 6800, '500cc variable displacement hydraulic piston pump'],
             ];
             
-            $insertStmt = $setupPdo->prepare("INSERT INTO products (sku, name, slug, description, category_id, unit_price, image_url, is_active, is_featured) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)");
+            // Software products - 15 products across 5 categories (3 each)
+            $softwareProducts = [
+                // Pipelines & Plants Software (category 1)
+                ['PipeFlow Pro Enterprise', 'pipeflow-pro-enterprise', 1, 125000, 'Advanced pipeline flow simulation and analysis software with real-time monitoring, leak detection algorithms, and predictive maintenance. Includes perpetual license key and 24/7 support.', 'software'],
+                ['PlantDesign Suite 2024', 'plantdesign-suite-2024', 1, 98000, 'Comprehensive 3D plant design and engineering software for process industries. Features P&ID creation, equipment sizing, and regulatory compliance tools. Enterprise license included.', 'software'],
+                ['Pipeline Integrity Manager', 'pipeline-integrity-manager', 1, 145000, 'Enterprise pipeline integrity management system with corrosion modeling, risk assessment, and inspection scheduling. Includes API integration and multi-site deployment.', 'software'],
+                
+                // Mechanical Engineering Software (category 2)
+                ['MechCAD Professional', 'mechcad-professional', 2, 115000, 'Industrial-grade mechanical CAD software with FEA analysis, thermal simulation, and fatigue life prediction. Perpetual license with source code access for customization.', 'software'],
+                ['TurboMachinery Simulator', 'turbomachinery-simulator', 2, 135000, 'High-fidelity turbomachinery design and simulation platform for compressors, turbines, and pumps. Includes CFD integration and performance optimization tools.', 'software'],
+                ['Structural Analysis Pro', 'structural-analysis-pro', 2, 89000, 'Advanced structural analysis software for heavy machinery and industrial equipment. Features dynamic load analysis, vibration modeling, and safety factor calculations.', 'software'],
+                
+                // Drilling Technology Software (category 3)
+                ['DrillSim Enterprise', 'drillsim-enterprise', 3, 185000, 'Real-time drilling simulation and optimization platform with wellbore stability analysis, torque & drag modeling, and automated drilling parameter optimization.', 'software'],
+                ['WellPlan Professional', 'wellplan-professional', 3, 165000, 'Comprehensive well planning software with 3D trajectory design, anti-collision analysis, and casing design optimization. Includes real-time data integration.', 'software'],
+                ['MudLogic Analyzer', 'mudlogic-analyzer', 3, 95000, 'Drilling fluid analysis and optimization software with rheology modeling, solids control simulation, and chemical treatment recommendations.', 'software'],
+                
+                // Hydraulic Systems Software (category 4)
+                ['HydroSim Professional', 'hydrosim-professional', 4, 78000, 'Hydraulic system design and simulation software with component sizing, circuit optimization, and energy efficiency analysis. Includes extensive component library.', 'software'],
+                ['FluidPower Designer', 'fluidpower-designer', 4, 112000, 'Enterprise fluid power system design platform with real-time simulation, failure mode analysis, and predictive maintenance algorithms.', 'software'],
+                ['Servo Control Suite', 'servo-control-suite', 4, 145000, 'Advanced servo-hydraulic control system software with PID tuning, motion profiling, and multi-axis synchronization. Includes hardware interface modules.', 'software'],
+                
+                // Instrumentation Software (category 5)
+                ['SCADA Master Enterprise', 'scada-master-enterprise', 5, 195000, 'Industrial SCADA platform with unlimited tags, historian, alarm management, and cybersecurity features. Includes redundancy and disaster recovery capabilities.', 'software'],
+                ['ProcessControl Pro', 'processcontrol-pro', 5, 125000, 'Advanced process control software with model predictive control, neural network optimization, and real-time performance monitoring.', 'software'],
+                ['InstruCalib Manager', 'instrucalib-manager', 5, 68000, 'Instrument calibration management system with automated scheduling, compliance reporting, and audit trail. Supports all major instrument protocols.', 'software'],
+            ];
             
+            $insertStmt = $setupPdo->prepare("INSERT INTO products (sku, name, slug, description, category_id, unit_price, image_url, is_active, is_featured, product_type) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)");
+            
+            // Insert hardware products
             foreach ($products as $i => $p) {
                 $sku = 'STR-' . str_pad((string)($i + 1), 4, '0', STR_PAD_LEFT);
                 $slug = $p[1];
                 $imageUrl = '/images/' . $slug . '/1.jpg';
-                // Check for different extensions
                 $possibleExts = ['jpg', 'jpeg', 'png', 'webp'];
                 foreach ($possibleExts as $ext) {
                     $testPath = __DIR__ . '/images/' . $slug;
@@ -611,8 +647,18 @@ if ($requestPath === '/setup-database') {
                         }
                     }
                 }
-                $isFeatured = $i < 6 ? 1 : 0; // First 6 products are featured
-                $insertStmt->execute([$sku, $p[0], $slug, $p[4], $p[2], $p[3], $imageUrl, $isFeatured]);
+                $isFeatured = $i < 6 ? 1 : 0;
+                $insertStmt->execute([$sku, $p[0], $slug, $p[4], $p[2], $p[3], $imageUrl, $isFeatured, 'hardware']);
+            }
+            
+            // Insert software products
+            $softwareStartIndex = count($products) + 1;
+            foreach ($softwareProducts as $i => $p) {
+                $sku = 'SFT-' . str_pad((string)($i + 1), 4, '0', STR_PAD_LEFT);
+                $slug = $p[1];
+                $imageUrl = '/assets/software-product.png'; // Default software icon
+                $isFeatured = 0;
+                $insertStmt->execute([$sku, $p[0], $slug, $p[4], $p[2], $p[3], $imageUrl, $isFeatured, $p[5]]);
             }
         }
         
@@ -746,6 +792,81 @@ if ($requestPath === '/update-product-images') {
         header('Content-Type: text/html');
         http_response_code(500);
         echo '<h1>Update Failed</h1>';
+        echo '<p>Error: ' . htmlspecialchars($e->getMessage()) . '</p>';
+        exit;
+    }
+}
+
+// Seed software products endpoint - adds software products to existing database
+if ($requestPath === '/seed-software-products') {
+    $sftDbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQLHOST'] ?? 'localhost';
+    $sftDbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';
+    $sftDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQLDATABASE'] ?? 'streicher';
+    $sftDbUser = $_ENV['DB_USER'] ?? $_ENV['MYSQLUSER'] ?? 'root';
+    $sftDbPass = $_ENV['DB_PASS'] ?? $_ENV['MYSQLPASSWORD'] ?? '';
+    
+    try {
+        $sftPdo = new PDO(
+            "mysql:host=$sftDbHost;port=$sftDbPort;dbname=$sftDbName;charset=utf8mb4",
+            $sftDbUser, $sftDbPass,
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+        );
+        
+        // Add product_type column if missing
+        try { $sftPdo->exec("ALTER TABLE products ADD COLUMN product_type VARCHAR(20) DEFAULT 'hardware'"); } catch (PDOException $e) {}
+        
+        // Check if software products already exist
+        $stmt = $sftPdo->query("SELECT COUNT(*) FROM products WHERE product_type = 'software'");
+        if ($stmt->fetchColumn() > 0) {
+            header('Content-Type: text/html');
+            echo '<h1>Software Products Already Exist</h1>';
+            echo '<p>Software products have already been seeded.</p>';
+            echo '<p><a href="/catalog">View Catalog</a></p>';
+            exit;
+        }
+        
+        $softwareProducts = [
+            ['PipeFlow Pro Enterprise', 'pipeflow-pro-enterprise', 1, 125000, 'Advanced pipeline flow simulation and analysis software with real-time monitoring, leak detection algorithms, and predictive maintenance. Includes perpetual license key and 24/7 support.'],
+            ['PlantDesign Suite 2024', 'plantdesign-suite-2024', 1, 98000, 'Comprehensive 3D plant design and engineering software for process industries. Features P&ID creation, equipment sizing, and regulatory compliance tools. Enterprise license included.'],
+            ['Pipeline Integrity Manager', 'pipeline-integrity-manager', 1, 145000, 'Enterprise pipeline integrity management system with corrosion modeling, risk assessment, and inspection scheduling. Includes API integration and multi-site deployment.'],
+            ['MechCAD Professional', 'mechcad-professional', 2, 115000, 'Industrial-grade mechanical CAD software with FEA analysis, thermal simulation, and fatigue life prediction. Perpetual license with source code access for customization.'],
+            ['TurboMachinery Simulator', 'turbomachinery-simulator', 2, 135000, 'High-fidelity turbomachinery design and simulation platform for compressors, turbines, and pumps. Includes CFD integration and performance optimization tools.'],
+            ['Structural Analysis Pro', 'structural-analysis-pro', 2, 89000, 'Advanced structural analysis software for heavy machinery and industrial equipment. Features dynamic load analysis, vibration modeling, and safety factor calculations.'],
+            ['DrillSim Enterprise', 'drillsim-enterprise', 3, 185000, 'Real-time drilling simulation and optimization platform with wellbore stability analysis, torque & drag modeling, and automated drilling parameter optimization.'],
+            ['WellPlan Professional', 'wellplan-professional', 3, 165000, 'Comprehensive well planning software with 3D trajectory design, anti-collision analysis, and casing design optimization. Includes real-time data integration.'],
+            ['MudLogic Analyzer', 'mudlogic-analyzer', 3, 95000, 'Drilling fluid analysis and optimization software with rheology modeling, solids control simulation, and chemical treatment recommendations.'],
+            ['HydroSim Professional', 'hydrosim-professional', 4, 78000, 'Hydraulic system design and simulation software with component sizing, circuit optimization, and energy efficiency analysis. Includes extensive component library.'],
+            ['FluidPower Designer', 'fluidpower-designer', 4, 112000, 'Enterprise fluid power system design platform with real-time simulation, failure mode analysis, and predictive maintenance algorithms.'],
+            ['Servo Control Suite', 'servo-control-suite', 4, 145000, 'Advanced servo-hydraulic control system software with PID tuning, motion profiling, and multi-axis synchronization. Includes hardware interface modules.'],
+            ['SCADA Master Enterprise', 'scada-master-enterprise', 5, 195000, 'Industrial SCADA platform with unlimited tags, historian, alarm management, and cybersecurity features. Includes redundancy and disaster recovery capabilities.'],
+            ['ProcessControl Pro', 'processcontrol-pro', 5, 125000, 'Advanced process control software with model predictive control, neural network optimization, and real-time performance monitoring.'],
+            ['InstruCalib Manager', 'instrucalib-manager', 5, 68000, 'Instrument calibration management system with automated scheduling, compliance reporting, and audit trail. Supports all major instrument protocols.'],
+        ];
+        
+        $insertStmt = $sftPdo->prepare("INSERT INTO products (sku, name, slug, description, category_id, unit_price, image_url, is_active, is_featured, product_type) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 0, 'software')");
+        
+        $inserted = [];
+        foreach ($softwareProducts as $i => $p) {
+            $sku = 'SFT-' . str_pad((string)($i + 1), 4, '0', STR_PAD_LEFT);
+            $insertStmt->execute([$sku, $p[0], $p[1], $p[4], $p[2], $p[3], '/assets/software-product.svg']);
+            $inserted[] = $p[0];
+        }
+        
+        header('Content-Type: text/html');
+        echo '<h1>Software Products Seeded</h1>';
+        echo '<p>Added ' . count($inserted) . ' software products:</p>';
+        echo '<ul>';
+        foreach ($inserted as $name) {
+            echo '<li>' . htmlspecialchars($name) . '</li>';
+        }
+        echo '</ul>';
+        echo '<p><a href="/catalog">View Catalog</a></p>';
+        exit;
+        
+    } catch (PDOException $e) {
+        header('Content-Type: text/html');
+        http_response_code(500);
+        echo '<h1>Seeding Failed</h1>';
         echo '<p>Error: ' . htmlspecialchars($e->getMessage()) . '</p>';
         exit;
     }
@@ -1991,15 +2112,35 @@ if ($path === '/checkout' && $method === 'POST') {
     }
     
     $total = 0;
+    $hasSoftware = false;
+    $hasHardware = false;
+    
     foreach ($cart as $item) {
         $total += $item['price'] * $item['qty'];
+        // Check product type
+        $stmt = $pdo->prepare('SELECT product_type FROM products WHERE sku = ?');
+        $stmt->execute([$item['sku']]);
+        $productType = $stmt->fetchColumn() ?: 'hardware';
+        if ($productType === 'software') {
+            $hasSoftware = true;
+        } else {
+            $hasHardware = true;
+        }
+    }
+    
+    // Determine order type based on products
+    $orderType = 'hardware';
+    if ($hasSoftware && !$hasHardware) {
+        $orderType = 'software';
+    } elseif ($hasSoftware && $hasHardware) {
+        $orderType = 'mixed';
     }
     
     $orderNumber = generate_order_number();
     
     $stmt = $pdo->prepare(
-        'INSERT INTO orders (user_id, order_number, status, total_amount, currency, billing_address, shipping_address, notes)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO orders (user_id, order_number, status, total_amount, currency, billing_address, shipping_address, notes, order_type)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
     
     $billingAddress = [
@@ -2022,6 +2163,7 @@ if ($path === '/checkout' && $method === 'POST') {
         json_encode($billingAddress),
         json_encode($billingAddress),
         $_POST['notes'] ?? null,
+        $orderType,
     ]);
     
     $orderId = (int)$pdo->lastInsertId();

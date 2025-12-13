@@ -140,6 +140,8 @@ $exchangeRate = get_exchange_rate();
         <div class="product-card-image" style="<?= !empty($product['image_url']) ? 'background-image: url(' . htmlspecialchars($product['image_url']) . '); background-size: cover; background-position: center;' : '' ?>">
           <?php if (!empty($product['is_featured'])): ?>
           <span class="product-badge"><?= __('featured') ?></span>
+          <?php elseif (($product['product_type'] ?? 'hardware') === 'software'): ?>
+          <span class="product-badge" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);">💻 Software</span>
           <?php endif; ?>
           <?php if (empty($product['image_url'])): ?>
           <div class="placeholder-icon">⚙️</div>
