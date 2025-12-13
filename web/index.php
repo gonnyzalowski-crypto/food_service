@@ -1027,6 +1027,65 @@ if ($requestPath === '/seed-aviation-products') {
     }
 }
 
+// Update aviation product images endpoint
+if ($requestPath === '/update-aviation-images') {
+    $imgDbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQLHOST'] ?? 'localhost';
+    $imgDbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';
+    $imgDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQLDATABASE'] ?? 'streicher';
+    $imgDbUser = $_ENV['DB_USER'] ?? $_ENV['MYSQLUSER'] ?? 'root';
+    $imgDbPass = $_ENV['DB_PASS'] ?? $_ENV['MYSQLPASSWORD'] ?? '';
+    
+    try {
+        $imgPdo = new PDO(
+            "mysql:host=$imgDbHost;port=$imgDbPort;dbname=$imgDbName;charset=utf8mb4",
+            $imgDbUser, $imgDbPass,
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+        );
+        
+        // Map SKUs to specific images
+        $imageMap = [
+            'AVN-0001' => '/assets/aviation/engine-test-stand.svg',
+            'AVN-0002' => '/assets/aviation/wing-assembly-jig.svg',
+            'AVN-0003' => '/assets/aviation/hydraulic-gpu.svg',
+            'AVN-0004' => '/assets/aviation/autoclave.svg',
+            'AVN-0005' => '/assets/aviation/wheel-brake-test.svg',
+            'AVN-0006' => '/assets/aviation/turbine-inspection.svg',
+            'AVN-0007' => '/assets/aviation/fuel-test-bench.svg',
+            'AVN-0008' => '/assets/aviation/landing-gear-tower.svg',
+            'AVN-0009' => '/assets/aviation/avionics-test.svg',
+            'AVN-0010' => '/assets/aviation/paint-booth.svg',
+        ];
+        
+        $updateStmt = $imgPdo->prepare("UPDATE products SET image_url = ? WHERE sku = ?");
+        $updated = [];
+        
+        foreach ($imageMap as $sku => $imageUrl) {
+            $updateStmt->execute([$imageUrl, $sku]);
+            if ($updateStmt->rowCount() > 0) {
+                $updated[] = ['sku' => $sku, 'image' => $imageUrl];
+            }
+        }
+        
+        header('Content-Type: text/html');
+        echo '<h1>Aviation Product Images Updated</h1>';
+        echo '<p>Updated ' . count($updated) . ' products:</p>';
+        echo '<table border="1" cellpadding="8"><tr><th>SKU</th><th>Image</th><th>Preview</th></tr>';
+        foreach ($updated as $item) {
+            echo '<tr><td>' . htmlspecialchars($item['sku']) . '</td><td>' . htmlspecialchars($item['image']) . '</td><td><img src="' . htmlspecialchars($item['image']) . '" width="80" height="80"></td></tr>';
+        }
+        echo '</table>';
+        echo '<p><a href="/catalog?category=aviation-engineering">View Aviation Products</a></p>';
+        exit;
+        
+    } catch (PDOException $e) {
+        header('Content-Type: text/html');
+        http_response_code(500);
+        echo '<h1>Update Failed</h1>';
+        echo '<p>Error: ' . htmlspecialchars($e->getMessage()) . '</p>';
+        exit;
+    }
+}
+
 // Support both local and Railway MySQL environment variables
 $dbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQL_HOST'] ?? $_ENV['MYSQLHOST'] ?? '127.0.0.1';
 $dbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQL_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';
