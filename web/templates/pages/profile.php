@@ -94,7 +94,6 @@ $pageSubtitle = $lang === 'de' ? 'Langjährige Erfahrung, technische Kompetenz u
                         Germany
                     </address>
                     <p>
-                        <strong><?= $lang === 'de' ? 'Telefon' : 'Phone' ?>:</strong> +49 991 330-0<br>
                         <a href="https://www.streichergmbh.com">www.streichergmbh.com</a><br>
                         <a href="mailto:info@streichergmbh.com">info@streichergmbh.com</a>
                     </p>

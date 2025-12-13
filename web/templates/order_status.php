@@ -173,7 +173,7 @@ switch ($order['status']) {
       </div>
       <div style="display: flex; gap: 12px;">
         <a href="mailto:store@streichergmbh.com" class="btn btn-outline">Email Support</a>
-        <a href="tel:+499411234567" class="btn btn-outline">Call Us</a>
+        <a href="/contact" class="btn btn-outline">Contact Us</a>
       </div>
     </div>
   </div>

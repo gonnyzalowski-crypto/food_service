@@ -11,11 +11,11 @@
 <!-- Support Options -->
 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 48px;">
   <div class="card text-center" style="padding: 32px;">
-    <div style="font-size: 3rem; margin-bottom: 16px;">📞</div>
-    <h3 style="margin: 0 0 8px 0;">Phone Support</h3>
-    <p style="color: #64748b; margin-bottom: 16px;">Speak directly with our technical experts</p>
-    <div style="font-size: 1.25rem; font-weight: 700; margin-bottom: 16px;">+49 (0) 941 123 4571</div>
-    <div style="color: #64748b; font-size: 0.9rem;">Mon-Fri: 8AM - 6PM CET</div>
+    <div style="font-size: 3rem; margin-bottom: 16px;">💬</div>
+    <h3 style="margin: 0 0 8px 0;">Live Chat</h3>
+    <p style="color: #64748b; margin-bottom: 16px;">Chat with our technical experts</p>
+    <a href="/contact" class="btn btn-primary">Start Chat</a>
+    <div style="color: #64748b; font-size: 0.9rem; margin-top: 12px;">Mon-Fri: 8AM - 6PM CET</div>
   </div>
   
   <div class="card text-center" style="padding: 32px;">
@@ -30,8 +30,8 @@
     <div style="font-size: 3rem; margin-bottom: 16px;">🚨</div>
     <h3 style="margin: 0 0 8px 0;">Emergency Support</h3>
     <p style="margin-bottom: 16px; opacity: 0.9;">24/7 critical equipment support</p>
-    <div style="font-size: 1.25rem; font-weight: 700; margin-bottom: 16px;">+49 (0) 941 123 4599</div>
-    <div style="font-size: 0.9rem; opacity: 0.9;">Available 24/7/365</div>
+    <a href="/contact" class="btn" style="background: white; color: #dc2626; font-weight: 600;">Contact Emergency Team</a>
+    <div style="font-size: 0.9rem; opacity: 0.9; margin-top: 12px;">Available 24/7/365</div>
   </div>
 </div>
 

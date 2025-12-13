@@ -168,13 +168,12 @@
         <p style="margin: 0 0 16px 0; color: #64748b;">
           Our sales team is ready to assist you with your quote request.
         </p>
-        <div style="margin-bottom: 12px;">
-          <strong>📞 Sales Hotline</strong><br>
-          <span style="color: #64748b;">+49 (0) 941 123 4570</span>
-        </div>
         <div>
           <strong>✉️ Email</strong><br>
           <span style="color: #64748b;">store@streichergmbh.com</span>
+        </div>
+        <div style="margin-top: 12px;">
+          <a href="/contact" class="btn btn-outline btn-sm">Contact Sales Team</a>
         </div>
       </div>
     </div>

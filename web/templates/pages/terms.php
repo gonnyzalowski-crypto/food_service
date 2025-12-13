@@ -57,8 +57,7 @@
         <strong>Streicher GmbH</strong><br>
         Industriestraße 45<br>
         93049 Regensburg, Germany<br>
-        Email: legal@streichergmbh.com<br>
-        Phone: +49 (0) 941 123 4567
+        Email: legal@streichergmbh.com
       </p>
     </div>
   </div>

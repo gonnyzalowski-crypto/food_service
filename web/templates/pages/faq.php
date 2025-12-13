@@ -147,7 +147,7 @@
         <h4 style="margin: 0 0 8px 0;">How do I get technical support?</h4>
         <p style="margin: 0; color: #64748b;">
           Visit our <a href="/support">Technical Support</a> page to submit a support request, or contact 
-          our support team directly at store@streichergmbh.com or +49 (0) 941 123 4571.
+          our support team directly at store@streichergmbh.com.
         </p>
       </div>
       

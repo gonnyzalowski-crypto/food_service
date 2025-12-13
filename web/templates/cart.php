@@ -107,7 +107,6 @@
           Our sales team is available 24/7 to assist you.
         </p>
         <div style="font-size: 0.9rem;">
-          📞 +49 (0) 941 123 4567<br>
           ✉️ store@streichergmbh.com
         </div>
       </div>
