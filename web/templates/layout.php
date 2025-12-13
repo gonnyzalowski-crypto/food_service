@@ -26,9 +26,13 @@ if (isset($_SESSION['cart_id']) && isset($pdo)) {
 </head>
 <body>
 
+<!-- Mobile Nav Overlay -->
+<div class="mobile-nav-overlay"></div>
+
 <!-- Header -->
 <header class="site-header">
-  <div class="header-top">
+  <!-- Desktop Header Top -->
+  <div class="header-top desktop-only">
     <div class="header-top-inner">
       <div>
         <span>🇩🇪 <?= __('made_in_germany') ?></span>
@@ -53,12 +57,30 @@ if (isset($_SESSION['cart_id']) && isset($pdo)) {
     </div>
   </div>
   
-  <div class="header-main">
+  <!-- Mobile Header Bar -->
+  <div class="mobile-header">
+    <button class="mobile-menu-toggle" aria-label="Toggle menu">
+      <span class="hamburger-icon"></span>
+    </button>
+    <a href="/" class="mobile-logo">
+      <img src="/assets/logo.png" alt="Streicher" style="height: 36px; width: auto;">
+    </a>
+    <div class="mobile-header-actions">
+      <div class="lang-switcher-mobile">
+        <a href="?lang=de" class="<?= $lang === 'de' ? 'active' : '' ?>">DE</a>
+        <a href="?lang=en" class="<?= $lang === 'en' ? 'active' : '' ?>">EN</a>
+      </div>
+      <a href="/cart" class="mobile-cart-btn">
+        🛒<?php if ($cartCount > 0): ?><span class="cart-badge"><?= $cartCount ?></span><?php endif; ?>
+      </a>
+    </div>
+  </div>
+  
+  <!-- Desktop Header Main -->
+  <div class="header-main desktop-only">
     <a href="/" class="logo">
       <img src="/assets/logo.png" alt="Streicher" class="logo-img" style="height: 48px; width: auto;">
     </a>
-
-    <button class="mobile-menu-toggle" aria-label="Toggle menu">☰</button>
     
     <nav class="header-nav">
       <a href="/profile"><?= __('profile') ?></a>
@@ -77,6 +99,46 @@ if (isset($_SESSION['cart_id']) && isset($pdo)) {
       </a>
     </nav>
   </div>
+  
+  <!-- Mobile Slide-out Navigation -->
+  <nav class="mobile-nav">
+    <div class="mobile-nav-header">
+      <span>Menu</span>
+      <button class="mobile-nav-close" aria-label="Close menu">✕</button>
+    </div>
+    <div class="mobile-nav-links">
+      <a href="/profile"><?= __('profile') ?></a>
+      <a href="/business-sectors"><?= __('business_sectors') ?></a>
+      <a href="/reference-projects"><?= __('references') ?></a>
+      <a href="/catalog"><?= __('products') ?></a>
+      <a href="/hse-q">HSE-Q</a>
+      <?php if (!empty($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
+        <a href="/admin">Admin</a>
+      <?php endif; ?>
+    </div>
+    <div class="mobile-nav-footer">
+      <a href="/cart" class="mobile-nav-cart">
+        🛒 <?= __('cart') ?>
+        <?php if ($cartCount > 0): ?><span>(<?= $cartCount ?>)</span><?php endif; ?>
+      </a>
+      <div class="mobile-nav-secondary">
+        <a href="/news"><?= __('news') ?></a>
+        <a href="/events"><?= __('events') ?></a>
+        <a href="/contact"><?= __('contact') ?></a>
+        <a href="/mediathek"><?= __('media') ?></a>
+        <?php if (!empty($_SESSION['user_id'])): ?>
+          <a href="/account"><?= __('my_account') ?></a>
+          <a href="/logout"><?= __('logout') ?></a>
+        <?php else: ?>
+          <a href="/login"><?= __('login') ?></a>
+        <?php endif; ?>
+      </div>
+      <div class="mobile-nav-info">
+        <span>🇩🇪 <?= __('made_in_germany') ?></span>
+        <span>✉️ store@streichergmbh.com</span>
+      </div>
+    </div>
+  </nav>
 </header>
 
 <!-- Main Content -->
@@ -189,13 +251,30 @@ window.StreicherCart = {
 };
 
 // Mobile nav toggle
-const menuToggle = document.querySelector('.mobile-menu-toggle');
-const bodyEl = document.body;
-if (menuToggle) {
-  menuToggle.addEventListener('click', () => {
-    bodyEl.classList.toggle('nav-open');
-  });
-}
+(function() {
+  const menuToggle = document.querySelector('.mobile-menu-toggle');
+  const menuClose = document.querySelector('.mobile-nav-close');
+  const overlay = document.querySelector('.mobile-nav-overlay');
+  const body = document.body;
+  
+  function openNav() {
+    body.classList.add('nav-open');
+  }
+  
+  function closeNav() {
+    body.classList.remove('nav-open');
+  }
+  
+  if (menuToggle) {
+    menuToggle.addEventListener('click', openNav);
+  }
+  if (menuClose) {
+    menuClose.addEventListener('click', closeNav);
+  }
+  if (overlay) {
+    overlay.addEventListener('click', closeNav);
+  }
+})();
 </script>
 </body>
 </html>

@@ -3,7 +3,42 @@ $lang = $_SESSION['lang'] ?? 'de';
 $displayCurrency = $_SESSION['display_currency'] ?? 'EUR';
 $exchangeRate = get_exchange_rate();
 ?>
-<div class="breadcrumb">
+
+<!-- Mobile Category Filter Bar -->
+<div class="mobile-catalog-header">
+  <div class="mobile-catalog-title">
+    <h1><?= $currentCategory ? htmlspecialchars($currentCategory['name']) : __('all_products') ?></h1>
+    <span class="product-count"><?= count($products) ?> <?= $lang === 'de' ? 'Produkte' : 'products' ?></span>
+  </div>
+  <button class="mobile-filter-btn" onclick="document.getElementById('mobile-filters').classList.toggle('show')">
+    <span>☰</span> <?= $lang === 'de' ? 'Filter' : 'Filter' ?>
+  </button>
+</div>
+
+<!-- Mobile Filters Dropdown -->
+<div id="mobile-filters" class="mobile-filters">
+  <div class="mobile-filter-section">
+    <form action="/catalog" method="GET" class="mobile-search-form">
+      <?php if ($currentCategory): ?>
+      <input type="hidden" name="category" value="<?= htmlspecialchars($currentCategory['slug']) ?>">
+      <?php endif; ?>
+      <input type="text" name="search" placeholder="<?= __('search_products') ?>" value="<?= htmlspecialchars($search ?? '') ?>">
+      <button type="submit"><?= __('search') ?></button>
+    </form>
+  </div>
+  <div class="mobile-filter-section">
+    <div class="mobile-category-chips">
+      <a href="/catalog" class="category-chip <?= !$currentCategory ? 'active' : '' ?>"><?= __('all_products') ?></a>
+      <?php foreach ($categories as $cat): ?>
+      <a href="/catalog?category=<?= htmlspecialchars($cat['slug']) ?>" class="category-chip <?= ($currentCategory && $currentCategory['slug'] === $cat['slug']) ? 'active' : '' ?>">
+        <?= htmlspecialchars($cat['name']) ?>
+      </a>
+      <?php endforeach; ?>
+    </div>
+  </div>
+</div>
+
+<div class="breadcrumb desktop-only">
   <a href="/"><?= __('home') ?></a> <span>/</span>
   <a href="/catalog"><?= __('products') ?></a>
   <?php if ($currentCategory): ?>
@@ -11,9 +46,9 @@ $exchangeRate = get_exchange_rate();
   <?php endif; ?>
 </div>
 
-<div style="display: grid; grid-template-columns: 280px 1fr; gap: 32px;">
+<div class="catalog-layout" style="display: grid; grid-template-columns: 280px 1fr; gap: 32px;">
   <!-- Sidebar -->
-  <aside>
+  <aside class="catalog-sidebar">
     <!-- Search (moved to top) -->
     <div class="card">
       <div class="card-header">
