@@ -343,13 +343,30 @@ if ($requestPath === '/setup-database') {
         // Tracking communications table
         $setupPdo->exec("CREATE TABLE IF NOT EXISTS tracking_communications (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            order_id INT NOT NULL,
-            sender_type ENUM('customer', 'admin') NOT NULL,
-            message TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+            order_id INT NULL,
+            tracking_number VARCHAR(100) NULL,
+            sender_type VARCHAR(50) NOT NULL,
+            sender_name VARCHAR(255) NULL,
+            message_type VARCHAR(50) DEFAULT 'message',
+            message TEXT NULL,
+            document_name VARCHAR(255) NULL,
+            document_path VARCHAR(500) NULL,
+            document_type VARCHAR(100) NULL,
+            is_read TINYINT(1) DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )");
         $tables[] = 'tracking_communications';
+        
+        // Add missing columns to tracking_communications if they don't exist
+        try { $setupPdo->exec("ALTER TABLE tracking_communications ADD COLUMN tracking_number VARCHAR(100) NULL"); } catch (PDOException $e) {}
+        try { $setupPdo->exec("ALTER TABLE tracking_communications ADD COLUMN sender_name VARCHAR(255) NULL"); } catch (PDOException $e) {}
+        try { $setupPdo->exec("ALTER TABLE tracking_communications ADD COLUMN message_type VARCHAR(50) DEFAULT 'message'"); } catch (PDOException $e) {}
+        try { $setupPdo->exec("ALTER TABLE tracking_communications ADD COLUMN document_name VARCHAR(255) NULL"); } catch (PDOException $e) {}
+        try { $setupPdo->exec("ALTER TABLE tracking_communications ADD COLUMN document_path VARCHAR(500) NULL"); } catch (PDOException $e) {}
+        try { $setupPdo->exec("ALTER TABLE tracking_communications ADD COLUMN document_type VARCHAR(100) NULL"); } catch (PDOException $e) {}
+        try { $setupPdo->exec("ALTER TABLE tracking_communications ADD COLUMN is_read TINYINT(1) DEFAULT 0"); } catch (PDOException $e) {}
+        try { $setupPdo->exec("ALTER TABLE tracking_communications MODIFY COLUMN sender_type VARCHAR(50) NOT NULL"); } catch (PDOException $e) {}
+        try { $setupPdo->exec("ALTER TABLE tracking_communications MODIFY COLUMN message TEXT NULL"); } catch (PDOException $e) {}
         
         // Create default admin user if not exists
         $stmt = $setupPdo->query("SELECT COUNT(*) FROM users WHERE role = 'admin'");
