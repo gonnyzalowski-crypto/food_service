@@ -1388,7 +1388,10 @@ body.admin-nav-open .admin-overlay {
   /* Hide desktop elements */
   .desktop-only,
   .header-top,
-  .header-main {
+  .header-main,
+  .catalog-layout > .page-header,
+  .catalog-layout .page-title,
+  .catalog-layout .page-subtitle {
     display: none !important;
   }
   
@@ -1471,7 +1474,7 @@ body.admin-nav-open .admin-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.5);
-    z-index: 1001;
+    z-index: 1000;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;
