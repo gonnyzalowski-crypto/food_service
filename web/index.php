@@ -1192,10 +1192,10 @@ if (preg_match('#^/admin/orders/(\d+)/ship$#', $path, $m) && $method === 'POST')
         'motorcycle' => 'Motorcycle Courier Express',
     ];
     
-    // Create shipment
+    // Create shipment (simplified for production DB)
     $stmt = $pdo->prepare(
-        'INSERT INTO shipments (order_id, carrier, tracking_number, status, shipped_at, origin_city, origin_country, destination_city, shipping_method, package_type, events)
-         VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO shipments (order_id, carrier, tracking_number, status, events)
+         VALUES (?, ?, ?, ?, ?)'
     );
     
     $initialEvents = [
@@ -1213,16 +1213,11 @@ if (preg_match('#^/admin/orders/(\d+)/ship$#', $path, $m) && $method === 'POST')
         $carrier,
         $trackingNumber,
         'shipped',
-        'Regensburg',
-        'DE',
-        $data['destination'] ?? null,
-        $shippingMethod,
-        $packageType,
         json_encode($initialEvents),
     ]);
     
-    // Update order
-    $pdo->prepare('UPDATE orders SET status = ?, shipped_at = NOW() WHERE id = ?')
+    // Update order (simplified - avoid shipped_at column)
+    $pdo->prepare('UPDATE orders SET status = ? WHERE id = ?')
         ->execute(['shipped', $orderId]);
     
     if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])) {
