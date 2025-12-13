@@ -1986,6 +1986,36 @@ if ($path === '/track' && $method === 'GET') {
             $stmt->execute([$shipment['order_id']]);
             $communications = $stmt->fetchAll();
             
+            // Auto-send welcome message if this is the first time viewing (no communications yet)
+            if (empty($communications)) {
+                $welcomeMessage = "🎉 Great news! Your order has been shipped and is on its way!\n\n" .
+                    "Your tracking number: " . $trackingNumber . "\n\n" .
+                    "📦 You can track your shipment status on this page at any time.\n\n" .
+                    "💬 Have questions? Need assistance? Feel free to send us a message right here! " .
+                    "Our logistics team monitors this chat and will respond promptly to any inquiries, " .
+                    "feedback, or concerns you may have.\n\n" .
+                    "We're here to help make your delivery experience smooth and hassle-free!\n\n" .
+                    "— Streicher Logistics Team";
+                
+                $stmt = $pdo->prepare(
+                    'INSERT INTO tracking_communications (order_id, tracking_number, sender_type, sender_name, message_type, message) 
+                     VALUES (?, ?, ?, ?, ?, ?)'
+                );
+                $stmt->execute([
+                    $shipment['order_id'],
+                    $trackingNumber,
+                    'admin',
+                    'Streicher Logistics',
+                    'message',
+                    $welcomeMessage,
+                ]);
+                
+                // Re-fetch communications to include the welcome message
+                $stmt = $pdo->prepare('SELECT * FROM tracking_communications WHERE order_id = ? ORDER BY created_at ASC');
+                $stmt->execute([$shipment['order_id']]);
+                $communications = $stmt->fetchAll();
+            }
+            
             // Count unread messages from admin
             $unreadCount = 0;
             foreach ($communications as $comm) {
