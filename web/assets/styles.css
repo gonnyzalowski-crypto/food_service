@@ -1072,6 +1072,32 @@ body.admin-nav-open .admin-overlay {
   padding: 24px 0;
 }
 
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 0;
+}
+
+.admin-nav a {
+  display: block;
+  padding: 12px 24px;
+  color: rgba(255,255,255,0.8);
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+.admin-nav a:hover,
+.admin-nav a.active {
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
+.admin-sidebar-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 8px;
+}
+
 .admin-content {
   background: var(--gray-100);
   padding: 32px;
