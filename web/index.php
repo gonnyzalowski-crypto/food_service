@@ -780,7 +780,7 @@ if ($path === '/api/products' && $method === 'GET') {
         $params[] = $category;
     }
     if ($search) {
-        $sql .= ' AND (p.name LIKE ? OR p.sku LIKE ? OR p.short_desc LIKE ?)';
+        $sql .= ' AND (p.name LIKE ? OR p.sku LIKE ? OR p.description LIKE ?)';
         $params[] = "%$search%";
         $params[] = "%$search%";
         $params[] = "%$search%";
@@ -1638,7 +1638,7 @@ if ($path === '/catalog' && $method === 'GET') {
         $params[] = $category;
     }
     if ($search) {
-        $sql .= ' AND (p.name LIKE ? OR p.sku LIKE ? OR p.short_desc LIKE ?)';
+        $sql .= ' AND (p.name LIKE ? OR p.sku LIKE ? OR p.description LIKE ?)';
         $params[] = "%$search%";
         $params[] = "%$search%";
         $params[] = "%$search%";
