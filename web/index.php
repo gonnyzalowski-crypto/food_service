@@ -2135,6 +2135,119 @@ if ($path === '/admin/products/new' && $method === 'POST') {
     exit;
 }
 
+// GET /admin/products/{id}/edit - Edit product form
+if (preg_match('#^/admin/products/(\d+)/edit$#', $path, $m) && $method === 'GET') {
+    require_admin();
+    $productId = (int)$m[1];
+    
+    $stmt = $pdo->prepare('SELECT * FROM products WHERE id = ?');
+    $stmt->execute([$productId]);
+    $product = $stmt->fetch();
+    
+    if (!$product) {
+        http_response_code(404);
+        echo 'Product not found';
+        exit;
+    }
+    
+    $stmt = $pdo->query('SELECT * FROM categories ORDER BY sort_order');
+    $categories = $stmt->fetchAll();
+    
+    render_admin_template('product_form.php', [
+        'title' => 'Edit Product - Admin',
+        'product' => $product,
+        'categories' => $categories,
+    ]);
+}
+
+// POST /admin/products/{id}/edit - Update product
+if (preg_match('#^/admin/products/(\d+)/edit$#', $path, $m) && $method === 'POST') {
+    require_admin();
+    $productId = (int)$m[1];
+    
+    // Handle image upload
+    $imageUrl = null;
+    if (!empty($_FILES['product_image']) && $_FILES['product_image']['error'] === UPLOAD_ERR_OK) {
+        $uploadDir = __DIR__ . '/images/products/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+        
+        $ext = strtolower(pathinfo($_FILES['product_image']['name'], PATHINFO_EXTENSION));
+        $allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+        
+        if (in_array($ext, $allowedExts)) {
+            $filename = 'product-' . $productId . '-' . time() . '.' . $ext;
+            $targetPath = $uploadDir . $filename;
+            
+            if (move_uploaded_file($_FILES['product_image']['tmp_name'], $targetPath)) {
+                $imageUrl = '/images/products/' . $filename;
+            }
+        }
+    }
+    
+    // Build update query
+    $fields = [
+        'sku = ?',
+        'category_id = ?',
+        'name = ?',
+        'short_desc = ?',
+        'description = ?',
+        'long_description = ?',
+        'unit_price = ?',
+        'features = ?',
+        'weight_kg = ?',
+        'warranty_months = ?',
+        'moq = ?',
+        'manufacturer = ?',
+        'is_featured = ?',
+        'is_active = ?',
+    ];
+    
+    $params = [
+        $_POST['sku'],
+        $_POST['category_id'] ?: null,
+        $_POST['name'],
+        $_POST['short_desc'],
+        $_POST['description'] ?? '',
+        $_POST['long_description'] ?? '',
+        $_POST['unit_price'],
+        json_encode(array_filter(array_map('trim', explode("\n", $_POST['features'] ?? '')))),
+        $_POST['weight_kg'] ?: null,
+        $_POST['warranty_months'] ?: 12,
+        $_POST['moq'] ?: 1,
+        $_POST['manufacturer'] ?? 'Streicher',
+        isset($_POST['is_featured']) ? 1 : 0,
+        isset($_POST['is_active']) ? 1 : 0,
+    ];
+    
+    // Add image_url if uploaded
+    if ($imageUrl) {
+        $fields[] = 'image_url = ?';
+        $params[] = $imageUrl;
+    }
+    
+    $params[] = $productId;
+    
+    $stmt = $pdo->prepare('UPDATE products SET ' . implode(', ', $fields) . ' WHERE id = ?');
+    $stmt->execute($params);
+    
+    header('Location: /admin/products');
+    exit;
+}
+
+// POST /admin/products/{id}/delete - Delete product
+if (preg_match('#^/admin/products/(\d+)/delete$#', $path, $m) && $method === 'POST') {
+    require_admin();
+    $productId = (int)$m[1];
+    
+    $stmt = $pdo->prepare('DELETE FROM products WHERE id = ?');
+    $stmt->execute([$productId]);
+    
+    header('Location: /admin/products');
+    exit;
+}
+
 // GET /admin/tickets - Support tickets
 if ($path === '/admin/tickets' && $method === 'GET') {
     require_admin();

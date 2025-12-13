@@ -13,13 +13,16 @@ $title = $title ?? 'Admin - Streicher';
   <link rel="stylesheet" href="/assets/styles.css">
 </head>
 <body>
-<div class="admin-layout">
-  <div class="admin-topbar">
-    <button class="admin-menu-toggle" aria-label="Toggle admin menu">☰</button>
-    <div style="font-weight: 700; letter-spacing: 0.5px;">STREICHER Admin</div>
-    <div style="font-size: 0.9rem; color: #e2e8f0;">Welcome, Administrator</div>
-  </div>
+<!-- Mobile Admin Topbar (outside grid) -->
+<div class="admin-topbar">
+  <button class="admin-menu-toggle" aria-label="Toggle admin menu">☰</button>
+  <div style="font-weight: 700; letter-spacing: 0.5px;">STREICHER Admin</div>
+  <a href="/" style="font-size: 0.85rem; color: #e2e8f0; text-decoration: none;">← Back to Store</a>
+</div>
 
+<div class="admin-overlay"></div>
+
+<div class="admin-layout">
   <!-- Sidebar -->
   <aside class="admin-sidebar">
     <div class="admin-sidebar-header">
@@ -69,8 +72,6 @@ $title = $title ?? 'Admin - Streicher';
       </a>
     </nav>
   </aside>
-
-  <div class="admin-overlay"></div>
   
   <!-- Main Content -->
   <main class="admin-content">
