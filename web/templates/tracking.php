@@ -94,7 +94,10 @@ $packageTypeDisplay = $packageTypes[$shipment['package_type'] ?? 'crate'] ?? 'ğŸ
   <?php if ($shipment): ?>
   <!-- Tracking Header -->
   <div class="tracking-header">
-    <div class="tracking-number-display"><?= htmlspecialchars($shipment['tracking_number']) ?></div>
+    <div class="tracking-number-display" style="display: flex; align-items: center; gap: 8px;">
+      <?= htmlspecialchars($shipment['tracking_number']) ?>
+      <button type="button" onclick="copyToClipboard('<?= htmlspecialchars($shipment['tracking_number']) ?>', this)" style="background: rgba(255,255,255,0.2); border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; color: white; font-size: 0.75rem;">ğŸ“‹ Copy</button>
+    </div>
     <div class="tracking-carrier"><?= htmlspecialchars($shipment['carrier'] ?? 'Streicher Logistics') ?></div>
   </div>
   
@@ -136,7 +139,21 @@ $packageTypeDisplay = $packageTypes[$shipment['package_type'] ?? 'crate'] ?? 'ğŸ
       </div>
       <div>
         <div style="color: #64748b; font-size: 0.85rem; margin-bottom: 4px;">Destination</div>
-        <div style="font-weight: 600;"><?= htmlspecialchars($shipment['destination_city'] ?? 'Pending') ?>, <?= htmlspecialchars($shipment['destination_country'] ?? '') ?></div>
+        <div style="font-weight: 600;">
+          <?php 
+            $destCity = $shipment['destination_city'] ?? '';
+            $destCountry = $shipment['destination_country'] ?? '';
+            if ($destCity && $destCountry) {
+              echo htmlspecialchars($destCity) . ', ' . htmlspecialchars($destCountry);
+            } elseif ($destCity) {
+              echo htmlspecialchars($destCity);
+            } elseif ($destCountry) {
+              echo htmlspecialchars($destCountry);
+            } else {
+              echo 'Pending';
+            }
+          ?>
+        </div>
       </div>
       <div>
         <div style="color: #64748b; font-size: 0.85rem; margin-bottom: 4px;">Shipping Method</div>

@@ -107,9 +107,12 @@
                 <span style="color: #94a3b8;">Account Holder</span>
                 <span style="font-weight: 600;"><?= htmlspecialchars($s['account_holder'] ?? 'Streicher GmbH') ?></span>
               </div>
-              <div style="display: flex; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.1); border-radius: 8px;">
                 <span style="color: #94a3b8;">IBAN</span>
-                <span style="font-weight: 600;"><?= htmlspecialchars($s['iban'] ?? 'DE89 3704 0044 0532 0130 00') ?></span>
+                <span style="display: flex; align-items: center; gap: 8px;">
+                  <span id="iban-value" style="font-weight: 600;"><?= htmlspecialchars($s['iban'] ?? 'DE89 3704 0044 0532 0130 00') ?></span>
+                  <button type="button" onclick="copyToClipboard('DE89370400440532013000', this)" style="background: rgba(255,255,255,0.2); border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; color: white; font-size: 0.8rem;">📋 Copy</button>
+                </span>
               </div>
               <div style="display: flex; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.1); border-radius: 8px;">
                 <span style="color: #94a3b8;">BIC/SWIFT</span>

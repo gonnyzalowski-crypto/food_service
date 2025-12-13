@@ -80,10 +80,10 @@ $latestUpload = $hasUploads ? $uploads[0] : null;
         <?php foreach ($items as $item): ?>
         <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
           <div>
-            <div style="font-weight: 500;"><?= htmlspecialchars($item['sku']) ?></div>
-            <div style="font-size: 0.85rem; color: #64748b;">Qty: <?= (int)$item['qty'] ?></div>
+            <div style="font-weight: 500;"><?= htmlspecialchars($item['product_name'] ?? $item['sku'] ?? 'Product') ?></div>
+            <div style="font-size: 0.85rem; color: #64748b;">Qty: <?= (int)($item['quantity'] ?? $item['qty'] ?? 0) ?></div>
           </div>
-          <div style="font-weight: 600;"><?= format_price((float)$item['total']) ?></div>
+          <div style="font-weight: 600;"><?= format_price((float)($item['total_price'] ?? $item['total'] ?? 0)) ?></div>
         </div>
         <?php endforeach; ?>
         

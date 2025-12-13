@@ -278,6 +278,21 @@ window.StreicherCart = {
     overlay.addEventListener('click', closeNav);
   }
 })();
+
+// Copy to clipboard utility function
+function copyToClipboard(text, button) {
+  navigator.clipboard.writeText(text).then(function() {
+    const originalText = button.innerHTML;
+    button.innerHTML = '✓ Copied!';
+    button.style.background = 'rgba(34, 197, 94, 0.3)';
+    setTimeout(function() {
+      button.innerHTML = originalText;
+      button.style.background = '';
+    }, 2000);
+  }).catch(function(err) {
+    console.error('Failed to copy: ', err);
+  });
+}
 </script>
 </body>
 </html>

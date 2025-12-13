@@ -118,8 +118,8 @@ $shipping = json_decode($order['shipping_address'] ?? '{}', true) ?: [];
               <td style="font-weight: 500;"><?= htmlspecialchars($item['product_name'] ?? $item['sku']) ?></td>
               <td style="color: #64748b;"><?= htmlspecialchars($item['sku']) ?></td>
               <td><?= format_price((float)$item['unit_price']) ?></td>
-              <td><?= (int)$item['qty'] ?></td>
-              <td style="font-weight: 600;"><?= format_price((float)$item['total']) ?></td>
+              <td><?= (int)($item['quantity'] ?? $item['qty'] ?? 0) ?></td>
+              <td style="font-weight: 600;"><?= format_price((float)($item['total_price'] ?? $item['total'] ?? 0)) ?></td>
             </tr>
             <?php endforeach; ?>
           </tbody>
