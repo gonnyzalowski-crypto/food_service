@@ -43,7 +43,7 @@ The Streicher GmbH E-Commerce Platform is a full-featured industrial equipment a
 ### Public Features
 - **Multi-language Support**: German (DE) and English (EN)
 - **Multi-currency Display**: EUR and USD with live exchange rates
-- **Product Catalog**: 61+ products across 9 categories
+- **Product Catalog**: 74+ products across 11 categories
 - **Product Search**: Full-text search across products
 - **Category Filtering**: Browse by product category
 - **Shopping Cart**: Session-based cart management
@@ -53,8 +53,8 @@ The Streicher GmbH E-Commerce Platform is a full-featured industrial equipment a
 - **Live Chat**: Real-time customer support messaging
 
 ### Business Features
-- **Hardware Products**: 46 industrial equipment items
-- **Software Products**: 15 enterprise software licenses
+- **Hardware Products**: 56 industrial equipment items (including 10 aviation)
+- **Software Products**: 18 enterprise software licenses (including 3 aviation)
 - **Digital Delivery**: Software orders with license key delivery via email
 - **Bank Transfer Payments**: Wire transfer with receipt upload
 - **Order Management**: Full order lifecycle management
@@ -64,25 +64,27 @@ The Streicher GmbH E-Commerce Platform is a full-featured industrial equipment a
 
 ## Product Categories
 
-### Hardware Categories (5)
+### Hardware Categories (6)
 1. **Pipelines & Plants** - Pipeline construction and plant equipment
 2. **Mechanical Engineering** - Mechanical engineering equipment
 3. **Drilling Technology** - Drilling rigs and equipment
 4. **Hydraulic Systems** - Hydraulic power units and components
 5. **Instrumentation** - Measurement and control instruments
+6. **Aviation Engineering** - Aircraft maintenance equipment, ground support systems (10 products, $52K-$180K)
 
 ### Additional Categories (3)
-6. **Electrical Engineering** - Electrical systems and components
-7. **Civil Engineering** - Civil and structural engineering equipment
-8. **Raw Materials** - Raw and construction materials
+7. **Electrical Engineering** - Electrical systems and components
+8. **Civil Engineering** - Civil and structural engineering equipment
+9. **Raw Materials** - Raw and construction materials
 
 ### Software Category (1)
-9. **Engineering Software** - Enterprise software solutions (15 products)
-   - Pipeline simulation software
-   - CAD/CAM solutions
-   - SCADA systems
-   - Process control software
-   - Drilling simulation platforms
+10. **Engineering Software** - Enterprise software solutions (18 products)
+    - Pipeline simulation software
+    - CAD/CAM solutions
+    - SCADA systems
+    - Process control software
+    - Drilling simulation platforms
+    - Aviation software (AeroCAD Pro Suite, FlightSim Certification, AeroMaint MRO Manager)
 
 ---
 
@@ -368,8 +370,8 @@ TELEGRAM_ADMIN_ID=<admin-chat-id>
 ## Achievements
 
 ### E-Commerce Platform
-- ✅ Full product catalog with 61+ products
-- ✅ 9 product categories including Engineering Software
+- ✅ Full product catalog with 74+ products
+- ✅ 11 product categories including Engineering Software and Aviation Engineering
 - ✅ Shopping cart and checkout system
 - ✅ Bank transfer payment with receipt upload
 - ✅ Order tracking system
@@ -387,12 +389,20 @@ TELEGRAM_ADMIN_ID=<admin-chat-id>
 - ✅ Support ticket system
 
 ### Software Products
-- ✅ 15 enterprise software products added
+- ✅ 18 enterprise software products added (including 3 aviation software)
 - ✅ Separate "Engineering Software" category
 - ✅ Software badge on product cards
 - ✅ Different order flow for digital delivery
 - ✅ License delivery via email workflow
 - ✅ Featured in landing page, profile, business sectors
+
+### Aviation Engineering
+- ✅ 10 aviation hardware products ($52K-$180K)
+- ✅ 3 aviation software products ($35K-$145K)
+- ✅ Separate "Aviation Engineering" category with ✈️ icon
+- ✅ Featured in landing page, business sectors, profile page
+- ✅ 2 aviation reference projects (Airbus A320, Lufthansa Technik)
+- ✅ Products include: Engine Test Stands, Wing Assembly Jigs, Autoclaves, Avionics Test Systems
 
 ### Communication
 - ✅ Telegram notifications for admin
