@@ -1951,19 +1951,18 @@ if ($path === '/track' && $method === 'GET') {
         if ($shipment) {
             $events = json_decode($shipment['events'] ?? '[]', true) ?: [];
             
-            // Fetch communications for this tracking number
-            $stmt = $pdo->prepare('SELECT * FROM tracking_communications WHERE tracking_number = ? ORDER BY created_at ASC');
-            $stmt->execute([$trackingNumber]);
+            // Fetch communications for this order
+            $stmt = $pdo->prepare('SELECT * FROM tracking_communications WHERE order_id = ? ORDER BY created_at ASC');
+            $stmt->execute([$shipment['order_id']]);
             $communications = $stmt->fetchAll();
             
             // Count unread messages from admin
-            $stmt = $pdo->prepare('SELECT COUNT(*) FROM tracking_communications WHERE tracking_number = ? AND sender_type = "admin" AND is_read = 0');
-            $stmt->execute([$trackingNumber]);
-            $unreadCount = (int)$stmt->fetchColumn();
-            
-            // Mark customer-viewed messages as read
-            $pdo->prepare('UPDATE tracking_communications SET is_read = 1 WHERE tracking_number = ? AND sender_type = "admin"')
-                ->execute([$trackingNumber]);
+            $unreadCount = 0;
+            foreach ($communications as $comm) {
+                if ($comm['sender_type'] === 'admin' && empty($comm['is_read'])) {
+                    $unreadCount++;
+                }
+            }
         }
     }
     
