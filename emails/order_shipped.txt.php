@@ -21,4 +21,4 @@ Positionen:
 Bei Rückfragen stehen wir Ihnen gerne zur Verfügung.
 
 Mit freundlichen Grüßen
-Streicher GmbH
+Gordon Food Service

@@ -18,7 +18,14 @@
 </div>
 <?php endif; ?>
 
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 48px; max-width: 1200px; margin: 0 auto;">
+<style>
+  @media (max-width: 768px) {
+    .contact-grid { grid-template-columns: 1fr !important; }
+    .contact-grid > div:first-child { order: 2; }
+    .contact-grid > div:last-child { order: 1; }
+  }
+</style>
+<div class="contact-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 48px; max-width: 1200px; margin: 0 auto;">
   <!-- Contact Form -->
   <div class="card">
     <div class="card-header">
@@ -72,26 +79,25 @@
         <div style="display: flex; gap: 16px; margin-bottom: 20px;">
           <div style="font-size: 2rem;">🏢</div>
           <div>
-            <div style="font-weight: 600;">Streicher GmbH</div>
-            <div style="color: #64748b;">
-              Industriestraße 45<br>
-              93049 Regensburg<br>
-              Germany
+            <div style="font-weight: 600; color: #ffffff;">Gordon Food Service</div>
+            <div style="color: rgba(255,255,255,0.6);">
+              28th–36th St Port/Harborside industrial zone<br>
+              Galveston, TX
             </div>
           </div>
         </div>
         <div style="display: flex; gap: 16px; margin-bottom: 20px;">
           <div style="font-size: 2rem;">📞</div>
           <div>
-            <div style="font-weight: 600;">Phone</div>
-            <div style="color: #64748b;">+49 991 330-00</div>
+            <div style="font-weight: 600; color: #ffffff;">Phone</div>
+            <div style="color: rgba(255,255,255,0.6);">+1 213-653-0266</div>
           </div>
         </div>
         <div style="display: flex; gap: 16px;">
           <div style="font-size: 2rem;">✉️</div>
           <div>
-            <div style="font-weight: 600;">Email</div>
-            <div style="color: #64748b;">store@streichergmbh.com</div>
+            <div style="font-weight: 600; color: #ffffff;">Email</div>
+            <div style="color: rgba(255,255,255,0.6);">contact@gordonfoods.com</div>
           </div>
         </div>
       </div>
@@ -102,20 +108,20 @@
         <h3 class="card-title">Business Hours</h3>
       </div>
       <div class="card-body">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: rgba(255,255,255,0.8);">
           <span>Monday - Friday</span>
-          <span style="font-weight: 600;">8:00 AM - 6:00 PM CET</span>
+          <span style="font-weight: 600; color: #ffffff;">8:00 AM - 6:00 PM CST</span>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: rgba(255,255,255,0.8);">
           <span>Saturday</span>
-          <span style="font-weight: 600;">9:00 AM - 1:00 PM CET</span>
+          <span style="font-weight: 600; color: #ffffff;">9:00 AM - 1:00 PM CST</span>
         </div>
-        <div style="display: flex; justify-content: space-between;">
+        <div style="display: flex; justify-content: space-between; color: rgba(255,255,255,0.8);">
           <span>Sunday</span>
-          <span style="font-weight: 600;">Closed</span>
+          <span style="font-weight: 600; color: #ffffff;">Closed</span>
         </div>
-        <div class="alert alert-info mt-3" style="margin-bottom: 0;">
-          <strong>24/7 Emergency Support</strong> available for critical equipment issues.
+        <div style="margin-top: 16px; padding: 12px 16px; background: rgba(0,191,255,0.1); border: 1px solid rgba(0,191,255,0.3); border-radius: 8px;">
+          <strong style="color: #00bfff;">24/7 Emergency Support</strong> <span style="color: rgba(255,255,255,0.7);">available for critical supply issues.</span>
         </div>
       </div>
     </div>

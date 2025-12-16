@@ -1,225 +1,227 @@
-<!-- Hero Section -->
-<section class="hero-section">
-  <div class="hero-container">
-    <div class="hero-content">
-      <div class="hero-badge">
-        <span>🇩🇪 <?= $lang === 'de' ? 'Deutsche Ingenieurskunst' : 'German Engineering Excellence' ?></span>
-      </div>
-      <h1 class="hero-title">
-        <?= $lang === 'de' ? 'Premium Industrieausrüstung für Öl & Gas' : 'Premium Industrial Equipment for Oil & Gas' ?>
-      </h1>
-      <p class="hero-subtitle">
-        <?= $lang === 'de' 
-          ? 'Streicher GmbH liefert erstklassige Hydrauliksysteme, Bohrausrüstung und Pipeline-Komponenten, denen Branchenführer weltweit seit 1972 vertrauen.'
-          : 'Streicher GmbH delivers world-class hydraulic systems, drilling equipment, and pipeline components trusted by industry leaders worldwide since 1972.' ?>
-      </p>
-      <div class="hero-buttons">
-        <a href="/catalog" class="btn btn-primary btn-lg"><?= $lang === 'de' ? 'Katalog durchsuchen' : 'Browse Catalog' ?></a>
-        <a href="/quote" class="btn btn-outline-light btn-lg"><?= $lang === 'de' ? 'Angebot anfordern' : 'Request Quote' ?></a>
-      </div>
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <div class="hero-stat-number">50+</div>
-          <div class="hero-stat-label"><?= $lang === 'de' ? 'Jahre Erfahrung' : 'Years Experience' ?></div>
-        </div>
-        <div class="hero-stat">
-          <div class="hero-stat-number">100+</div>
-          <div class="hero-stat-label"><?= $lang === 'de' ? 'Produkte' : 'Products' ?></div>
-        </div>
-        <div class="hero-stat">
-          <div class="hero-stat-number">45+</div>
-          <div class="hero-stat-label"><?= $lang === 'de' ? 'Länder' : 'Countries' ?></div>
-        </div>
-      </div>
-    </div>
-    <div class="hero-image">
-      <img src="/images/photos/drilling.jpg" alt="<?= $lang === 'de' ? 'Bohrausrüstung' : 'Drilling Equipment' ?>">
-    </div>
+<!-- Hero Section - Full Width Dark Theme -->
+<section style="min-height: 100vh; background: #0a0a0a; position: relative; overflow: hidden; width: 100vw; margin-left: calc(-50vw + 50%);">
+  <!-- Full-width Background Image - Grocery/Food warehouse -->
+  <div style="position: absolute; inset: 0;">
+    <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=1920&q=90" alt="" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.4;">
+    <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.5) 50%, rgba(10,10,10,0.9) 100%);"></div>
   </div>
-</section>
-
-<!-- Trusted By Section -->
-<section class="clients-section">
-  <div class="section-container">
-    <p class="clients-label"><?= $lang === 'de' ? 'Vertraut von führenden Unternehmen weltweit' : 'Trusted by leading companies worldwide' ?></p>
-    <div class="clients-grid">
-      <div class="client-logo" title="Shell">
-        <img src="https://logo.clearbit.com/shell.com" alt="Shell" onerror="this.parentElement.innerHTML='<span>Shell</span>'">
-      </div>
-      <div class="client-logo" title="BP">
-        <img src="https://logo.clearbit.com/bp.com" alt="BP" onerror="this.parentElement.innerHTML='<span>BP</span>'">
-      </div>
-      <div class="client-logo" title="ExxonMobil">
-        <img src="https://logo.clearbit.com/exxonmobil.com" alt="ExxonMobil" onerror="this.parentElement.innerHTML='<span>ExxonMobil</span>'">
-      </div>
-      <div class="client-logo" title="Chevron">
-        <img src="https://logo.clearbit.com/chevron.com" alt="Chevron" onerror="this.parentElement.innerHTML='<span>Chevron</span>'">
-      </div>
-      <div class="client-logo" title="TotalEnergies">
-        <img src="https://logo.clearbit.com/totalenergies.com" alt="TotalEnergies" onerror="this.parentElement.innerHTML='<span>TotalEnergies</span>'">
-      </div>
-      <div class="client-logo" title="ConocoPhillips">
-        <img src="https://logo.clearbit.com/conocophillips.com" alt="ConocoPhillips" onerror="this.parentElement.innerHTML='<span>ConocoPhillips</span>'">
-      </div>
-      <div class="client-logo" title="Equinor">
-        <img src="https://logo.clearbit.com/equinor.com" alt="Equinor" onerror="this.parentElement.innerHTML='<span>Equinor</span>'">
-      </div>
-      <div class="client-logo" title="Eni">
-        <img src="https://logo.clearbit.com/eni.com" alt="Eni" onerror="this.parentElement.innerHTML='<span>Eni</span>'">
-      </div>
-      <div class="client-logo" title="Petrobras">
-        <img src="https://logo.clearbit.com/petrobras.com.br" alt="Petrobras" onerror="this.parentElement.innerHTML='<span>Petrobras</span>'">
-      </div>
-      <div class="client-logo" title="Saudi Aramco">
-        <img src="https://logo.clearbit.com/aramco.com" alt="Saudi Aramco" onerror="this.parentElement.innerHTML='<span>Aramco</span>'">
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Categories -->
-<section class="categories-section">
-  <div class="section-container">
-    <div class="section-header">
-      <h2 class="section-title"><?= $lang === 'de' ? 'Produktkategorien' : 'Product Categories' ?></h2>
-      <p class="section-subtitle"><?= $lang === 'de' ? 'Entdecken Sie unser umfassendes Sortiment an Industrieausrüstung' : 'Explore our comprehensive range of industrial equipment' ?></p>
-    </div>
+  
+  <!-- Hero Content - Centered -->
+  <div style="position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 80px 20px;">
     
-    <div class="categories-grid">
-      <?php 
-      $categoryIcons = [
-        'pipelines-plants' => '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h16M4 6v4c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V6M4 18h16M4 18v-4c0-1.1.9-2 2-2h12c1.1 0 2 .9 2 2v4"/></svg>',
-        'mechanical-engineering' => '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>',
-        'electrical-engineering' => '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>',
-        'civil-engineering' => '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 20h20M4 20V10l8-6 8 6v10M9 20v-6h6v6"/><rect x="9" y="10" width="6" height="4"/></svg>',
-        'raw-materials' => '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg>',
-        'drilling-technology' => '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L12 22M8 6h8M6 10h12M4 14h16M8 18h8"/><circle cx="12" cy="4" r="2"/></svg>',
-        'hydraulic-systems' => '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>',
-        'instrumentation' => '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="6"/></svg>',
-        'engineering-software' => '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8l3 3-3 3M12 14h5"/></svg>',
-        'aviation-engineering' => '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>',
-      ];
-      foreach ($categories as $cat): 
-        $icon = $categoryIcons[$cat['slug']] ?? '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>';
-      ?>
-      <a href="/catalog?category=<?= htmlspecialchars($cat['slug']) ?>" class="category-card">
-        <div class="category-icon"><?= $icon ?></div>
-        <h3 class="category-name"><?= htmlspecialchars($cat['name']) ?></h3>
-        <p class="category-desc"><?= htmlspecialchars($cat['description'] ?? '') ?></p>
+    <h1 style="font-family: 'Playfair Display', serif; font-size: clamp(2.5rem, 8vw, 6rem); font-weight: 900; color: #ffffff; line-height: 1.1; margin: 0 0 24px 0; font-style: italic;">
+      Premium Food<br><span style="color: #00bfff;">&amp; Supply Services</span>
+    </h1>
+    
+    <p style="font-size: clamp(1rem, 2vw, 1.2rem); color: rgba(255,255,255,0.75); max-width: 700px; margin: 0 0 48px 0; line-height: 1.8; padding: 0 20px;">
+      Wholesale provisioning for offshore rigs, vessels, and industrial operations. Fresh food, groceries, dry goods, and essential supplies—delivered when you need them.
+    </p>
+    
+    <div style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-bottom: 60px;">
+      <a href="/supply" class="dark-btn" style="text-decoration: none; padding: 16px 36px; font-size: 1rem;">
+        Access Supply Portal
       </a>
-      <?php endforeach; ?>
+      <a href="/contact" class="dark-btn-outline" style="text-decoration: none; padding: 16px 36px; font-size: 1rem;">Contact Us</a>
+    </div>
+    
+    <!-- Stats Row -->
+    <div style="display: flex; gap: clamp(30px, 8vw, 80px); justify-content: center; flex-wrap: wrap;">
+      <div style="text-align: center;">
+        <div style="font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; color: #00bfff;">15+</div>
+        <div style="color: rgba(255,255,255,0.5); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">Years Experience</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; color: #00bfff;">200+</div>
+        <div style="color: rgba(255,255,255,0.5); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">Clients Served</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; color: #00bfff;">24/7</div>
+        <div style="color: rgba(255,255,255,0.5); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">Operations</div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Scroll Indicator -->
+  <div style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); text-align: center;">
+    <div style="width: 24px; height: 40px; border: 2px solid rgba(255,255,255,0.3); border-radius: 12px; margin: 0 auto 8px;">
+      <div style="width: 4px; height: 8px; background: #00bfff; border-radius: 2px; margin: 6px auto; animation: scroll-bounce 1.5s ease-in-out infinite;"></div>
+    </div>
+    <span style="color: rgba(255,255,255,0.4); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px;">Scroll</span>
+  </div>
+</section>
+
+<style>
+@keyframes scroll-bounce {
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(10px); opacity: 0.5; }
+}
+@media (max-width: 768px) {
+  .hero-section h1 { font-size: 2.5rem !important; }
+}
+</style>
+
+<!-- Trust Bar Section - Dark -->
+<section style="background: #1a1a1a; padding: 48px 0; border-top: 1px solid #333; border-bottom: 1px solid #333;">
+  <div style="max-width: 1400px; margin: 0 auto; padding: 0 80px;">
+    <div style="display: flex; justify-content: center; align-items: center; gap: 64px; flex-wrap: wrap;">
+      <div style="text-align: center;">
+        <div style="font-size: 1.5rem; color: #00bfff; margin-bottom: 4px;">✓</div>
+        <div style="font-weight: 500; color: rgba(255,255,255,0.8); font-size: 0.9rem;">USDA Certified</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 1.5rem; color: #00bfff; margin-bottom: 4px;">✓</div>
+        <div style="font-weight: 500; color: rgba(255,255,255,0.8); font-size: 0.9rem;">HACCP Compliant</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 1.5rem; color: #00bfff; margin-bottom: 4px;">✓</div>
+        <div style="font-weight: 500; color: rgba(255,255,255,0.8); font-size: 0.9rem;">Coast Guard Approved</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 1.5rem; color: #00bfff; margin-bottom: 4px;">✓</div>
+        <div style="font-weight: 500; color: rgba(255,255,255,0.8); font-size: 0.9rem;">24/7 Dispatch</div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- Featured Products -->
-<section class="products-section">
-  <div class="section-container">
-    <div class="section-header-flex">
-      <div>
-        <h2 class="section-title"><?= $lang === 'de' ? 'Ausgewählte Produkte' : 'Featured Products' ?></h2>
-        <p class="section-subtitle"><?= $lang === 'de' ? 'Hochleistungsausrüstung für anspruchsvolle Anwendungen' : 'High-performance equipment for demanding applications' ?></p>
-      </div>
-      <a href="/catalog" class="btn btn-outline"><?= $lang === 'de' ? 'Alle Produkte →' : 'View All Products →' ?></a>
+<!-- Services Section - Dark -->
+<section style="padding: 100px 0; background: #0d0d0d;">
+  <div style="max-width: 1400px; margin: 0 auto; padding: 0 80px;">
+    <div style="text-align: center; margin-bottom: 64px;">
+      <h2 style="font-family: 'Inter', sans-serif; font-size: 2.5rem; font-weight: 700; color: #ffffff; margin-bottom: 16px;">Our Services</h2>
+      <p style="font-size: 1.1rem; color: rgba(255,255,255,0.6); max-width: 600px; margin: 0 auto;">Comprehensive provisioning solutions for the Gulf Coast energy sector</p>
     </div>
     
-    <div class="product-grid">
-      <?php foreach ($products as $product): ?>
-      <div class="product-card">
-        <div class="product-card-image" style="<?= !empty($product['image_url']) ? 'background-image: url(' . htmlspecialchars($product['image_url']) . '); background-size: cover; background-position: center;' : '' ?>">
-          <?php if (!empty($product['is_featured'])): ?>
-          <span class="product-badge"><?= $lang === 'de' ? 'Empfohlen' : 'Featured' ?></span>
-          <?php endif; ?>
-          <?php if (empty($product['image_url'])): ?>
-          <div class="placeholder-icon">⚙️</div>
-          <?php endif; ?>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+      <div style="background: #1a1a1a; border: 1px solid #333; border-radius: 20px; padding: 32px; transition: all 0.3s ease;">
+        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #00bfff 0%, #0099cc 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+          <span style="font-size: 1.75rem;">🥩</span>
         </div>
-        <div class="product-card-body">
-          <div class="product-category"><?= htmlspecialchars($product['category_name'] ?? 'Equipment') ?></div>
-          <h3 class="product-card-title">
-            <a href="/product?sku=<?= htmlspecialchars($product['sku']) ?>"><?= htmlspecialchars($product['name']) ?></a>
-          </h3>
-          <p class="product-card-desc"><?= htmlspecialchars($product['short_desc'] ?? '') ?></p>
-          <div class="product-card-footer">
-            <div>
-              <span class="product-price-label"><?= $lang === 'de' ? 'Ab' : 'Starting at' ?></span>
-              <span class="product-price"><?= format_price((float)$product['unit_price']) ?></span>
+        <h3 style="font-size: 1.2rem; font-weight: 600; color: #ffffff; margin-bottom: 12px;">Fresh & Frozen Foods</h3>
+        <p style="color: rgba(255,255,255,0.6); line-height: 1.6; margin: 0;">Premium meats, seafood, produce, and dairy. Cold chain integrity guaranteed.</p>
+      </div>
+      
+      <div style="background: #1a1a1a; border: 1px solid #333; border-radius: 20px; padding: 32px; transition: all 0.3s ease;">
+        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+          <span style="font-size: 1.75rem;">🥫</span>
+        </div>
+        <h3 style="font-size: 1.2rem; font-weight: 600; color: #ffffff; margin-bottom: 12px;">Dry & Canned Goods</h3>
+        <p style="color: rgba(255,255,255,0.6); line-height: 1.6; margin: 0;">Extended shelf-life provisions perfect for offshore operations.</p>
+      </div>
+      
+      <div style="background: #1a1a1a; border: 1px solid #333; border-radius: 20px; padding: 32px; transition: all 0.3s ease;">
+        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+          <span style="font-size: 1.75rem;">💧</span>
+        </div>
+        <h3 style="font-size: 1.2rem; font-weight: 600; color: #ffffff; margin-bottom: 12px;">Water & Beverages</h3>
+        <p style="color: rgba(255,255,255,0.6); line-height: 1.6; margin: 0;">Potable water and beverages matched to your crew size and duration.</p>
+      </div>
+      
+      <div style="background: #1a1a1a; border: 1px solid #333; border-radius: 20px; padding: 32px; transition: all 0.3s ease;">
+        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+          <span style="font-size: 1.75rem;">📦</span>
+        </div>
+        <h3 style="font-size: 1.2rem; font-weight: 600; color: #ffffff; margin-bottom: 12px;">Mixed Supply Packages</h3>
+        <p style="color: rgba(255,255,255,0.6); line-height: 1.6; margin: 0;">Custom-configured packages tailored to your operational needs.</p>
+      </div>
+      
+      <div style="background: #1a1a1a; border: 1px solid #333; border-radius: 20px; padding: 32px; transition: all 0.3s ease;">
+        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+          <span style="font-size: 1.75rem;">🧴</span>
+        </div>
+        <h3 style="font-size: 1.2rem; font-weight: 600; color: #ffffff; margin-bottom: 12px;">Toiletries & Hygiene</h3>
+        <p style="color: rgba(255,255,255,0.6); line-height: 1.6; margin: 0;">Personal care products and hygiene supplies for crew comfort.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Gallery Section - Dark -->
+<section style="padding: 80px 0; background: #1a1a1a;">
+  <div style="width: 100%; padding: 0 40px; box-sizing: border-box;">
+    <div style="text-align: center; margin-bottom: 48px;">
+      <h2 style="font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 800; color: #ffffff; margin-bottom: 16px; font-style: italic;">Serving the Gulf Coast</h2>
+      <p style="font-size: 1rem; color: rgba(255,255,255,0.6); max-width: 600px; margin: 0 auto;">From our warehouse to your offshore platform</p>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; max-width: 1400px; margin: 0 auto;">
+      <!-- Large warehouse image -->
+      <div style="grid-column: span 2; min-height: 350px; border-radius: 16px; overflow: hidden; border: 1px solid #333;">
+        <img src="https://images.unsplash.com/photo-1553413077-190dd305871c?w=800&q=80" alt="Warehouse" style="width: 100%; height: 100%; object-fit: cover;">
+      </div>
+      <!-- Warehouse with forklift -->
+      <div style="min-height: 170px; border-radius: 16px; overflow: hidden; border: 1px solid #333;">
+        <img src="/assets/images/services1.png" alt="Warehouse operations" style="width: 100%; height: 100%; object-fit: cover;">
+      </div>
+      <!-- Wholesale store -->
+      <div style="min-height: 170px; border-radius: 16px; overflow: hidden; border: 1px solid #333;">
+        <img src="/assets/images/services2.png" alt="Wholesale supplies" style="width: 100%; height: 100%; object-fit: cover;">
+      </div>
+      <!-- Food supplies -->
+      <div style="min-height: 170px; border-radius: 16px; overflow: hidden; border: 1px solid #333;">
+        <img src="https://images.unsplash.com/photo-1606787366850-de6330128bfc?w=400&q=80" alt="Food supplies" style="width: 100%; height: 100%; object-fit: cover;">
+      </div>
+      <!-- Shipping containers -->
+      <div style="min-height: 170px; border-radius: 16px; overflow: hidden; border: 1px solid #333;">
+        <img src="https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=80" alt="Shipping" style="width: 100%; height: 100%; object-fit: cover;">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Why Choose Us - Dark -->
+<section style="padding: 100px 0; background: #0d0d0d;">
+  <div style="max-width: 1400px; margin: 0 auto; padding: 0 80px;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;">
+      <div>
+        <h2 style="font-family: 'Inter', sans-serif; font-size: 2.5rem; font-weight: 700; color: #ffffff; margin-bottom: 32px;">Why Choose<br>Gordon Food Service?</h2>
+        <div style="display: flex; flex-direction: column; gap: 28px;">
+          <div style="display: flex; gap: 20px; align-items: flex-start;">
+            <div style="width: 48px; height: 48px; background: rgba(0,191,255,0.15); border: 1px solid rgba(0,191,255,0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <span style="color: #00bfff; font-size: 1.25rem;">🚚</span>
             </div>
-            <a href="/product?sku=<?= htmlspecialchars($product['sku']) ?>" class="btn btn-sm btn-primary"><?= $lang === 'de' ? 'Details' : 'View' ?></a>
+            <div>
+              <h4 style="font-weight: 600; color: #ffffff; margin: 0 0 6px 0;">Reliable Delivery</h4>
+              <p style="color: rgba(255,255,255,0.6); margin: 0; line-height: 1.6;">On-time delivery to docks, heliports, and offshore platforms throughout the Gulf.</p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 20px; align-items: flex-start;">
+            <div style="width: 48px; height: 48px; background: rgba(0,191,255,0.15); border: 1px solid rgba(0,191,255,0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <span style="color: #00bfff; font-size: 1.25rem;">💰</span>
+            </div>
+            <div>
+              <h4 style="font-weight: 600; color: #ffffff; margin: 0 0 6px 0;">Contractor Discounts</h4>
+              <p style="color: rgba(255,255,255,0.6); margin: 0; line-height: 1.6;">Exclusive pricing for registered contractors. Up to 50% off standard rates.</p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 20px; align-items: flex-start;">
+            <div style="width: 48px; height: 48px; background: rgba(0,191,255,0.15); border: 1px solid rgba(0,191,255,0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <span style="color: #00bfff; font-size: 1.25rem;">📋</span>
+            </div>
+            <div>
+              <h4 style="font-weight: 600; color: #ffffff; margin: 0 0 6px 0;">Easy Ordering</h4>
+              <p style="color: rgba(255,255,255,0.6); margin: 0; line-height: 1.6;">Simple online portal for supply requests. Track orders and manage your account 24/7.</p>
+            </div>
           </div>
         </div>
       </div>
-      <?php endforeach; ?>
-    </div>
-  </div>
-</section>
-
-<!-- Trust Badges -->
-<section class="trust-section">
-  <div class="section-container">
-    <h2 class="trust-title"><?= $lang === 'de' ? 'Warum Streicher wählen?' : 'Why Choose Streicher?' ?></h2>
-    <div class="trust-grid">
-      <div class="trust-item">
-        <div class="trust-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="6"/><path d="M12 14v8M8 22h8"/></svg>
-        </div>
-        <div class="trust-content">
-          <div class="trust-name">ISO 9001:2015</div>
-          <div class="trust-desc"><?= $lang === 'de' ? 'Qualitätszertifiziert' : 'Quality Certified' ?></div>
-        </div>
-      </div>
-      <div class="trust-item">
-        <div class="trust-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-        </div>
-        <div class="trust-content">
-          <div class="trust-name">API <?= $lang === 'de' ? 'Zertifiziert' : 'Certified' ?></div>
-          <div class="trust-desc"><?= $lang === 'de' ? 'Öl & Gas Standards' : 'Oil & Gas Standards' ?></div>
-        </div>
-      </div>
-      <div class="trust-item">
-        <div class="trust-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
-        </div>
-        <div class="trust-content">
-          <div class="trust-name"><?= $lang === 'de' ? 'Weltweiter Versand' : 'Global Shipping' ?></div>
-          <div class="trust-desc"><?= $lang === 'de' ? '45+ Länder' : '45+ Countries' ?></div>
-        </div>
-      </div>
-      <div class="trust-item">
-        <div class="trust-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L3 7v6c0 5.5 3.8 10.3 9 12 5.2-1.7 9-6.5 9-12V7l-9-5z"/></svg>
-        </div>
-        <div class="trust-content">
-          <div class="trust-name"><?= $lang === 'de' ? '24 Monate Garantie' : '24-Month Warranty' ?></div>
-          <div class="trust-desc"><?= $lang === 'de' ? 'Volle Abdeckung' : 'Full Coverage' ?></div>
-        </div>
-      </div>
-      <div class="trust-item">
-        <div class="trust-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
-        </div>
-        <div class="trust-content">
-          <div class="trust-name"><?= $lang === 'de' ? '24/7 Support' : '24/7 Support' ?></div>
-          <div class="trust-desc"><?= $lang === 'de' ? 'Expertenunterstützung' : 'Expert Assistance' ?></div>
-        </div>
+      <div style="border-radius: 20px; overflow: hidden; border: 1px solid #333;">
+        <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&q=80" alt="Warehouse operations" style="width: 100%; height: auto; display: block;">
       </div>
     </div>
   </div>
 </section>
 
-<!-- CTA Section -->
-<section class="cta-section">
-  <div class="section-container">
-    <h2 class="cta-title"><?= $lang === 'de' ? 'Benötigen Sie maßgeschneiderte Ausrüstung oder Mengenrabatte?' : 'Need Custom Equipment or Bulk Pricing?' ?></h2>
-    <p class="cta-subtitle">
-      <?= $lang === 'de' 
-        ? 'Unser Ingenieurteam hilft Ihnen, die perfekte Lösung für Ihre Projektanforderungen zu finden.'
-        : 'Our engineering team can help you find the perfect solution for your project requirements.' ?>
+<!-- CTA Section - Dark -->
+<section style="padding: 100px 0; background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%); text-align: center; border-top: 1px solid #333;">
+  <div style="max-width: 800px; margin: 0 auto; padding: 0 40px;">
+    <h2 style="font-family: 'Inter', sans-serif; font-size: 2.5rem; font-weight: 700; color: #ffffff; margin-bottom: 16px;">Ready to Get Started?</h2>
+    <p style="font-size: 1.1rem; color: rgba(255,255,255,0.6); margin: 0 0 40px 0;">
+      Access our Supply Portal to configure and submit your provisioning requests. Registered contractors enjoy exclusive pricing and priority fulfillment.
     </p>
-    <div class="cta-buttons">
-      <a href="/quote" class="btn btn-primary btn-lg"><?= $lang === 'de' ? 'Angebot anfordern' : 'Request a Quote' ?></a>
-      <a href="/contact" class="btn btn-secondary btn-lg"><?= $lang === 'de' ? 'Vertrieb kontaktieren' : 'Contact Sales' ?></a>
+    <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+      <a href="/supply" class="dark-btn" style="text-decoration: none;">Access Supply Portal</a>
+      <a href="/contact" class="dark-btn-outline" style="text-decoration: none;">Contact Sales</a>
     </div>
   </div>
 </section>

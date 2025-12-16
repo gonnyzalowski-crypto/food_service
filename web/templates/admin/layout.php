@@ -1,5 +1,5 @@
 <?php
-$title = $title ?? 'Admin - Streicher';
+$title = $title ?? 'Admin - Gordon Food Service';
 ?>
 <!doctype html>
 <html lang="en">
@@ -16,8 +16,8 @@ $title = $title ?? 'Admin - Streicher';
 <!-- Mobile Admin Topbar (outside grid) -->
 <div class="admin-topbar">
   <button class="admin-menu-toggle" aria-label="Toggle admin menu">☰</button>
-  <div style="font-weight: 700; letter-spacing: 0.5px;">STREICHER Admin</div>
-  <a href="/" style="font-size: 0.85rem; color: #e2e8f0; text-decoration: none;">← Back to Store</a>
+  <div style="font-weight: 700; letter-spacing: 0.5px;">Gordon Food Service Admin</div>
+  <a href="/supply" style="font-size: 0.85rem; color: #e2e8f0; text-decoration: none;">← Back to Supply Portal</a>
 </div>
 
 <div class="admin-overlay"></div>
@@ -29,7 +29,7 @@ $title = $title ?? 'Admin - Streicher';
       <a href="/admin" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: white;">
         <div class="logo-icon" style="width: 40px; height: 40px; font-size: 1.25rem;">S</div>
         <div>
-          <div style="font-weight: 700;">STREICHER</div>
+          <div style="font-weight: 700;">GORDON FOOD SERVICE</div>
           <div style="font-size: 0.75rem; color: #94a3b8;">Admin Panel</div>
         </div>
       </a>
@@ -39,33 +39,18 @@ $title = $title ?? 'Admin - Streicher';
       <a href="/admin" class="<?= $_SERVER['REQUEST_URI'] === '/admin' ? 'active' : '' ?>">
         📊 Dashboard
       </a>
-      <a href="/admin/orders" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/orders') === 0 ? 'active' : '' ?>">
-        📦 Orders
+      <a href="/admin/supply-requests" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/supply-requests') === 0 ? 'active' : '' ?>">
+        🛥️ Supply Requests
       </a>
-      <a href="/admin/orders?status=payment_uploaded" class="<?= strpos($_SERVER['REQUEST_URI'], 'payment_uploaded') !== false ? 'active' : '' ?>" style="padding-left: 48px; font-size: 0.9rem;">
-        💳 Pending Payments
-      </a>
-      <a href="/admin/products" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/products') === 0 ? 'active' : '' ?>">
-        🏭 Products
-      </a>
-      <a href="/admin/shipments" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/shipments') === 0 ? 'active' : '' ?>">
-        🚚 Shipments
-      </a>
-      <a href="/admin/tickets" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/tickets') === 0 ? 'active' : '' ?>">
-        🎫 Support Tickets
-      </a>
-      <a href="/admin/customers" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/customers') === 0 ? 'active' : '' ?>">
-        👥 Customers
-      </a>
-      <a href="/admin/reports" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/reports') === 0 ? 'active' : '' ?>">
-        📈 Reports
+      <a href="/admin/contractors" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/contractors') === 0 ? 'active' : '' ?>">
+        🏢 Contractors
       </a>
       <a href="/admin/settings" class="<?= strpos($_SERVER['REQUEST_URI'], '/admin/settings') === 0 ? 'active' : '' ?>">
         ⚙️ Settings
       </a>
       <div style="border-top: 1px solid rgba(255,255,255,0.1); margin: 24px 0;"></div>
-      <a href="/" target="_blank">
-        🌐 View Store
+      <a href="/supply" target="_blank">
+        🌐 View Supply Portal
       </a>
       <a href="/admin/logout">
         🚪 Logout

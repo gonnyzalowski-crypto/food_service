@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Streicher GmbH E-Commerce Platform</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/black.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/highlight/monokai.css" />
+
+    <style>
+      .reveal table { width: 100%; font-size: 0.85em; }
+      .reveal th, .reveal td { padding: 10px 12px; }
+      .reveal pre code { max-height: 520px; }
+      .muted { opacity: 0.8; font-size: 0.9em; }
+    </style>
+  </head>
+
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section>
+          <h1>Streicher GmbH</h1>
+          <h3>E-Commerce Platform</h3>
+          <p class="muted">Documentation converted to slides</p>
+          <p><a href="https://streichergmbh.com" target="_blank" rel="noreferrer">https://streichergmbh.com</a></p>
+        </section>
+
+        <section>
+          <h2>Overview</h2>
+          <p>
+            Full-featured industrial equipment and enterprise software sales website built for a German engineering company.
+            Supports B2B sales of heavy industrial equipment and software solutions.
+          </p>
+        </section>
+
+        <section>
+          <h2>Technology Stack</h2>
+          <table>
+            <thead>
+              <tr><th>Component</th><th>Technology</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Backend</td><td>PHP 8.x</td></tr>
+              <tr><td>Database</td><td>MySQL (Railway)</td></tr>
+              <tr><td>Frontend</td><td>HTML5, CSS3, JavaScript</td></tr>
+              <tr><td>Hosting</td><td>Railway.app</td></tr>
+              <tr><td>Version Control</td><td>GitHub</td></tr>
+              <tr><td>CI/CD</td><td>Railway Auto-Deploy</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section>
+          <h2>Features Overview</h2>
+          <section>
+            <h3>Public Features</h3>
+            <ul>
+              <li>Multi-language support (DE/EN)</li>
+              <li>Multi-currency display (EUR/USD) with live exchange rates</li>
+              <li>Product catalog (74+ products across 11 categories)</li>
+              <li>Full-text product search and category filtering</li>
+              <li>Session-based cart, checkout, and order tracking</li>
+              <li>Quote requests, contact forms, and live chat</li>
+            </ul>
+          </section>
+          <section>
+            <h3>Business Features</h3>
+            <ul>
+              <li>Hardware products: 56 industrial equipment items (incl. 10 aviation)</li>
+              <li>Software products: 18 enterprise licenses (incl. 3 aviation)</li>
+              <li>Digital delivery workflow (license key via email)</li>
+              <li>Bank transfer payments with receipt upload</li>
+              <li>Order lifecycle management and shipment tracking</li>
+            </ul>
+          </section>
+        </section>
+
+        <section>
+          <h2>Product Categories</h2>
+          <section>
+            <h3>Hardware (6)</h3>
+            <ol>
+              <li>Pipelines &amp; Plants</li>
+              <li>Mechanical Engineering</li>
+              <li>Drilling Technology</li>
+              <li>Hydraulic Systems</li>
+              <li>Instrumentation</li>
+              <li>Aviation Engineering (10 products, $52K-$180K)</li>
+            </ol>
+          </section>
+          <section>
+            <h3>Additional (3)</h3>
+            <ol start="7">
+              <li>Electrical Engineering</li>
+              <li>Civil Engineering</li>
+              <li>Raw Materials</li>
+            </ol>
+          </section>
+          <section>
+            <h3>Software (1)</h3>
+            <p><strong>Engineering Software</strong> (18 products)</p>
+            <ul>
+              <li>Pipeline simulation</li>
+              <li>CAD/CAM solutions</li>
+              <li>SCADA systems</li>
+              <li>Process control software</li>
+              <li>Drilling simulation platforms</li>
+              <li>Aviation software (AeroCAD Pro Suite, FlightSim Certification, AeroMaint MRO Manager)</li>
+            </ul>
+          </section>
+        </section>
+
+        <section>
+          <h2>User Features</h2>
+          <section>
+            <h3>Account Management</h3>
+            <ul>
+              <li>Registration and login</li>
+              <li>Password reset</li>
+              <li>Profile management</li>
+              <li>Order history</li>
+            </ul>
+          </section>
+          <section>
+            <h3>Shopping Experience</h3>
+            <ul>
+              <li>Browse by category, search by name/description</li>
+              <li>Product details with images</li>
+              <li>Add to cart, adjust quantities, checkout</li>
+            </ul>
+          </section>
+          <section>
+            <h3>Order Tracking &amp; Support</h3>
+            <ul>
+              <li>Track by order number and view status updates</li>
+              <li>Download invoices</li>
+              <li>FAQ, contact form, live chat</li>
+              <li>Returns and warranty info</li>
+            </ul>
+          </section>
+        </section>
+
+        <section>
+          <h2>Admin Features</h2>
+          <section>
+            <h3>Dashboard (/admin)</h3>
+            <ul>
+              <li>Overview statistics (orders, revenue, products)</li>
+              <li>Recent orders list and quick actions</li>
+              <li>Order status breakdown</li>
+            </ul>
+          </section>
+          <section>
+            <h3>Operations</h3>
+            <ul>
+              <li>Order management (/admin/orders)</li>
+              <li>Product management (/admin/products)</li>
+              <li>Customer management (/admin/customers)</li>
+              <li>Shipment management (/admin/shipments)</li>
+              <li>Support tickets (/admin/tickets)</li>
+            </ul>
+          </section>
+          <section>
+            <h3>Settings (/admin/settings)</h3>
+            <ul>
+              <li>Company info, bank details, contacts</li>
+              <li>Tax &amp; shipping config</li>
+              <li>Notification settings</li>
+              <li>Admin users management</li>
+            </ul>
+          </section>
+        </section>
+
+        <section>
+          <h2>Order Flow</h2>
+          <section>
+            <h3>Hardware Orders</h3>
+            <pre><code class="language-text">1. Customer adds products to cart
+2. Customer proceeds to checkout
+3. Customer fills billing/shipping information
+4. Order created with status: "Awaiting Payment"
+5. Customer receives bank details
+6. Customer makes bank transfer
+7. Customer uploads payment receipt
+8. Status changes to: "Payment Uploaded"
+9. Admin reviews and confirms payment
+10. Status changes to: "Payment Confirmed"
+11. Admin creates shipment with tracking
+12. Status changes to: "Shipped"
+13. Customer receives tracking information
+14. Status changes to: "Delivered" upon delivery</code></pre>
+          </section>
+          <section>
+            <h3>Software Orders</h3>
+            <pre><code class="language-text">1. Customer adds software products to cart
+2. Customer proceeds to checkout
+3. Customer fills billing information (no shipping needed)
+4. Order created with type: "software"
+5. Customer receives bank details
+6. Customer makes bank transfer
+7. Customer uploads payment receipt
+8. Admin reviews and confirms payment
+9. Admin sends license key via email
+10. Status changes to: "License Sent" / "Delivered"
+11. Customer receives software instructions via email</code></pre>
+          </section>
+        </section>
+
+        <section>
+          <h2>Payment System</h2>
+          <ul>
+            <li>Supported method: Bank Transfer / Wire Payment</li>
+            <li>Bank details configurable in admin settings</li>
+            <li>Payment receipt upload: PDF/JPG/PNG, max 10MB</li>
+            <li>Admin manually verifies payment</li>
+          </ul>
+          <p class="muted">Bank details include Bank Name, Account Holder, IBAN, BIC/SWIFT.</p>
+        </section>
+
+        <section>
+          <h2>Notification System</h2>
+          <section>
+            <h3>Telegram</h3>
+            <ul>
+              <li>Notifications for new messages, payment uploads, new orders</li>
+              <li>Admin can reply via Telegram</li>
+              <li>Replies are sent to customer email</li>
+            </ul>
+          </section>
+          <section>
+            <h3>Email</h3>
+            <ul>
+              <li>Order confirmations</li>
+              <li>Payment confirmations</li>
+              <li>Shipment notifications with tracking</li>
+              <li>Software license delivery emails</li>
+            </ul>
+          </section>
+        </section>
+
+        <section>
+          <h2>Database Schema (Core Tables)</h2>
+          <ul>
+            <li><code>users</code>: id, email, password_hash, full_name, phone, role, is_active, created_at</li>
+            <li><code>products</code>: sku, name, slug, description, specs, category_id, pricing, stock, type (hardware/software)</li>
+            <li><code>categories</code>: name, slug, description, image_url, parent_id, sort_order</li>
+            <li><code>orders</code>: order_number, user_id, status, type (hardware/software/mixed), totals, addresses (JSON)</li>
+            <li><code>order_items</code>: order_id, product_id, sku, name, quantity, unit_price, total_price</li>
+            <li><code>shipments</code>: carrier, tracking_number, status, timestamps</li>
+            <li><code>payment_uploads</code>: order_id, file_path, file_name, status, notes</li>
+            <li><code>tracking_communications</code>: tracking_number, sender_type, message</li>
+            <li><code>settings</code>: setting_key, setting_value</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>API Endpoints (Public)</h2>
+          <ul>
+            <li>GET <code>/</code> Home</li>
+            <li>GET <code>/catalog</code> Catalog (optional <code>?category={slug}</code>)</li>
+            <li>GET <code>/product?sku={sku}</code> Product detail</li>
+            <li>Cart: GET <code>/cart</code>, POST <code>/cart/add</code>, <code>/cart/update</code>, <code>/cart/remove</code></li>
+            <li>Checkout: GET/POST <code>/checkout</code></li>
+            <li>Tracking: GET/POST <code>/track</code>, GET <code>/order/{id}</code></li>
+            <li>Payment upload: GET/POST <code>/order/{id}/payment</code></li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>API Endpoints (Admin + Utility)</h2>
+          <section>
+            <h3>Admin</h3>
+            <ul>
+              <li>GET <code>/admin</code> Dashboard</li>
+              <li>Orders: GET <code>/admin/orders</code>, GET <code>/admin/orders/{id}</code>, POST <code>/admin/orders/{id}/status</code>, POST <code>/admin/orders/{id}/confirm-payment</code></li>
+              <li>Products: GET <code>/admin/products</code>, GET <code>/admin/products/new</code>, POST <code>/admin/products</code>, GET <code>/admin/products/{id}/edit</code>, POST <code>/admin/products/{id}</code></li>
+              <li>Shipments: GET <code>/admin/shipments</code>, POST <code>/admin/shipments</code></li>
+              <li>Settings: GET/POST <code>/admin/settings</code></li>
+              <li>Customers: GET <code>/admin/customers</code></li>
+              <li>Tickets: GET <code>/admin/tickets</code></li>
+            </ul>
+          </section>
+          <section>
+            <h3>Utility</h3>
+            <ul>
+              <li>GET <code>/health</code> Health check</li>
+              <li>GET <code>/setup</code> Database setup</li>
+              <li>GET <code>/update-product-images</code></li>
+              <li>GET <code>/seed-software-products</code></li>
+              <li>GET <code>/setup-software-category</code></li>
+              <li>POST <code>/telegram-webhook</code></li>
+            </ul>
+          </section>
+        </section>
+
+        <section>
+          <h2>Deployment (Railway)</h2>
+          <ul>
+            <li>Auto-deploy from GitHub <code>main</code></li>
+            <li>MySQL provisioned by Railway</li>
+            <li>Configuration via environment variables</li>
+          </ul>
+          <pre><code class="language-text">DB_HOST=&lt;railway-mysql-host&gt;
+DB_PORT=3306
+DB_NAME=streicher
+DB_USER=&lt;username&gt;
+DB_PASS=&lt;password&gt;
+TELEGRAM_BOT_TOKEN=&lt;bot-token&gt;
+TELEGRAM_ADMIN_ID=&lt;admin-chat-id&gt;</code></pre>
+        </section>
+
+        <section>
+          <h2>Achievements</h2>
+          <section>
+            <h3>E-Commerce Platform</h3>
+            <ul>
+              <li>74+ products, 11 categories</li>
+              <li>Cart + checkout</li>
+              <li>Bank transfer + receipt upload</li>
+              <li>Order tracking</li>
+              <li>Multi-language (DE/EN), multi-currency (EUR/USD)</li>
+            </ul>
+          </section>
+          <section>
+            <h3>Admin Panel</h3>
+            <ul>
+              <li>Dashboard statistics and workflows</li>
+              <li>Order + payment confirmation + shipment tracking</li>
+              <li>Product CRUD, customers, settings, tickets</li>
+            </ul>
+          </section>
+          <section>
+            <h3>Software + Aviation + Communication</h3>
+            <ul>
+              <li>Digital delivery + software badges</li>
+              <li>Aviation category: 10 hardware + 3 software products</li>
+              <li>Telegram notifications + live chat + status notifications</li>
+            </ul>
+          </section>
+        </section>
+
+        <section>
+          <h2>File Structure</h2>
+          <pre><code class="language-text">Streicher/
+├── web/
+│   ├── index.php
+│   ├── assets/
+│   │   ├── css/style.css
+│   │   ├── js/main.js
+│   │   └── software-product.svg
+│   ├── images/
+│   │   ├── photos/
+│   │   └── {product-slug}/
+│   └── templates/
+│       ├── layout.php
+│       ├── home.php
+│       ├── catalog.php
+│       ├── product.php
+│       ├── cart.php
+│       ├── checkout.php
+│       ├── order_status.php
+│       ├── admin/
+│       └── pages/
+├── .env
+├── .gitignore
+├── README.md
+└── DOCUMENTATION.md</code></pre>
+        </section>
+
+        <section>
+          <h2>Support</h2>
+          <p>For technical support or questions:</p>
+          <ul>
+            <li>Email: <a href="mailto:store@streichergmbh.com">store@streichergmbh.com</a></li>
+            <li>Website: <a href="https://streichergmbh.com/contact" target="_blank" rel="noreferrer">https://streichergmbh.com/contact</a></li>
+          </ul>
+          <p class="muted">Documentation last updated: December 13, 2025</p>
+        </section>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        slideNumber: true,
+        plugins: [ RevealHighlight ],
+      });
+    </script>
+  </body>
+</html>

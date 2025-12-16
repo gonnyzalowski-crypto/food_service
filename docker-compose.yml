@@ -1,9 +1,7 @@
 services:
   # PHP application
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     ports:
       - "8000:8000"
     volumes:
@@ -17,13 +15,13 @@ services:
     environment:
       - DB_HOST=db
       - DB_PORT=3306
-      - DB_NAME=streicher
-      - DB_USER=streicher
+      - DB_NAME=gordon_food_service
+      - DB_USER=gfs
       - DB_PASS=secret
       - MAIL_HOST=mailpit
       - MAIL_PORT=1025
     networks:
-      - streicher-net
+      - gfs-net
 
   # MySQL database
   db:
@@ -32,14 +30,14 @@ services:
       - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: streicher
-      MYSQL_USER: streicher
+      MYSQL_DATABASE: gordon_food_service
+      MYSQL_USER: gfs
       MYSQL_PASSWORD: secret
     volumes:
       - db-data:/var/lib/mysql
       - ./migrations:/docker-entrypoint-initdb.d
     networks:
-      - streicher-net
+      - gfs-net
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
       interval: 5s
@@ -54,7 +52,7 @@ services:
       - "8025:8025"   # Web UI to view emails
       - "1025:1025"   # SMTP port
     networks:
-      - streicher-net
+      - gfs-net
 
   # phpMyAdmin - database management UI
   phpmyadmin:
@@ -63,17 +61,17 @@ services:
       - "8080:80"
     environment:
       PMA_HOST: db
-      PMA_USER: streicher
+      PMA_USER: gfs
       PMA_PASSWORD: secret
     depends_on:
       - db
     networks:
-      - streicher-net
+      - gfs-net
 
 volumes:
   db-data:
   vendor-data:
 
 networks:
-  streicher-net:
+  gfs-net:
     driver: bridge

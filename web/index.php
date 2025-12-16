@@ -99,6 +99,7 @@ require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/translations.php';
 
 use Dotenv\Dotenv;
+use GordonFoodService\App\Services\SupplyPricingWorker;
 
 // Secure session configuration
 ini_set('session.cookie_httponly', '1');
@@ -114,11 +115,8 @@ if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-// Handle language switching
-if (isset($_GET['lang']) && in_array($_GET['lang'], ['de', 'en'])) {
-    $_SESSION['lang'] = $_GET['lang'];
-}
-$lang = $_SESSION['lang'] ?? 'de';
+// English-only (en-US)
+$lang = 'en-US';
 
 // Load env
 $dotenv = Dotenv::createImmutable(dirname(__DIR__));
@@ -160,7 +158,12 @@ function sendTelegramNotification(string $message, ?string $documentUrl = null):
     // If there's a document, send it too
     if ($documentUrl && $result !== false) {
         $docUrl = "https://api.telegram.org/bot$botToken/sendDocument";
-        $fullDocUrl = (strpos($documentUrl, 'http') === 0) ? $documentUrl : 'https://streichergmbh.com' . $documentUrl;
+        $baseUrl = rtrim(
+            $_ENV['APP_URL'] ?? getenv('APP_URL') ?? ('http' . (!empty($_SERVER['HTTPS']) ? 's' : '') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost')),
+            '/'
+        );
+        $path = (strpos($documentUrl, 'http') === 0) ? null : ((str_starts_with($documentUrl, '/')) ? $documentUrl : '/' . $documentUrl);
+        $fullDocUrl = (strpos($documentUrl, 'http') === 0) ? $documentUrl : ($baseUrl . $path);
         $docData = [
             'chat_id' => $chatId,
             'document' => $fullDocUrl,
@@ -193,6 +196,19 @@ if ($requestPath === '/health' || $requestPath === '/healthz') {
     exit;
 }
 
+ // Disable legacy endpoints from the previous Gordon Food Service store (ecommerce/tracking/tools)
+ if (in_array($requestPath, [
+     '/telegram-webhook',
+     '/update-product-images',
+     '/seed-software-products',
+     '/setup-software-category',
+     '/seed-aviation-products',
+     '/update-aviation-images',
+ ], true)) {
+     http_response_code(410);
+     exit('Disabled');
+ }
+
 // Telegram webhook endpoint - process admin replies from Telegram
 if ($requestPath === '/telegram-webhook') {
     $botToken = $_ENV['TELEGRAM_BOT_TOKEN'] ?? getenv('TELEGRAM_BOT_TOKEN') ?? null;
@@ -217,7 +233,7 @@ if ($requestPath === '/telegram-webhook') {
     // Database connection for webhook
     $whDbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQLHOST'] ?? 'localhost';
     $whDbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';
-    $whDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQLDATABASE'] ?? 'streicher';
+    $whDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQLDATABASE'] ?? 'gordon_food_service';
     $whDbUser = $_ENV['DB_USER'] ?? $_ENV['MYSQLUSER'] ?? 'root';
     $whDbPass = $_ENV['DB_PASS'] ?? $_ENV['MYSQLPASSWORD'] ?? '';
     
@@ -250,7 +266,7 @@ if ($requestPath === '/telegram-webhook') {
                 $shipment['order_id'],
                 $trackingNumber,
                 'admin',
-                'Streicher Support',
+                'Gordon Food Service Support',
                 'message',
                 $replyMessage,
             ]);
@@ -269,7 +285,7 @@ if ($requestPath === '/telegram-webhook') {
     }
     // Help command
     elseif ($text === '/start' || $text === '/help') {
-        $helpMsg = "🤖 Streicher Admin Bot\n\nI notify you when customers send messages.\n\nCommands:\n/reply TRACKING_NUMBER Your message - Reply to a customer\n/help - Show this help\n\nExample:\n/reply STR20251213ABC123 Your shipment is on the way!";
+        $helpMsg = "🤖 Gordon Food Service Admin Bot\n\nI notify you when customers send messages.\n\nCommands:\n/reply TRACKING_NUMBER Your message - Reply to a customer\n/help - Show this help\n\nExample:\n/reply GFS20251213ABC123 Your delivery is on the way!";
         $helpUrl = "https://api.telegram.org/bot$botToken/sendMessage";
         $helpData = ['chat_id' => $chatId, 'text' => $helpMsg];
         $ctx = stream_context_create(['http' => ['method' => 'POST', 'header' => 'Content-Type: application/json', 'content' => json_encode($helpData)]]);
@@ -284,7 +300,7 @@ if ($requestPath === '/telegram-webhook') {
 if ($requestPath === '/setup-database') {
     $setupDbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQL_HOST'] ?? $_ENV['MYSQLHOST'] ?? '127.0.0.1';
     $setupDbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQL_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';
-    $setupDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQL_DATABASE'] ?? $_ENV['MYSQLDATABASE'] ?? 'streicher';
+    $setupDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQL_DATABASE'] ?? $_ENV['MYSQLDATABASE'] ?? 'gordon_food_service';
     $setupDbUser = $_ENV['DB_USER'] ?? $_ENV['MYSQL_USER'] ?? $_ENV['MYSQLUSER'] ?? 'root';
     $setupDbPass = $_ENV['DB_PASS'] ?? $_ENV['MYSQL_PASSWORD'] ?? $_ENV['MYSQLPASSWORD'] ?? '';
     
@@ -296,6 +312,159 @@ if ($requestPath === '/setup-database') {
         );
         
         $tables = [];
+
+        // Food-service only schema (no legacy products/orders/shipments/tracking)
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS users (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            email VARCHAR(255) NOT NULL UNIQUE,
+            password_hash VARCHAR(255) NOT NULL,
+            full_name VARCHAR(255),
+            phone VARCHAR(50),
+            role ENUM('customer', 'admin') DEFAULT 'customer',
+            is_active TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'users';
+
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS contractors (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            full_name VARCHAR(255) NOT NULL,
+            company_name VARCHAR(255) NOT NULL,
+            contractor_code VARCHAR(32) NOT NULL UNIQUE,
+            discount_percent DECIMAL(5,2) DEFAULT 35.00,
+            discount_eligible TINYINT(1) DEFAULT 1,
+            active TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'contractors';
+
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS supply_pricing_config (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            config_json JSON NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'supply_pricing_config';
+
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS supply_requests (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            request_number VARCHAR(64) NOT NULL UNIQUE,
+            contractor_id INT NOT NULL,
+            duration_days INT NOT NULL,
+            crew_size INT NOT NULL,
+            supply_types JSON NOT NULL,
+            delivery_location VARCHAR(50) NOT NULL,
+            delivery_speed VARCHAR(50) NOT NULL,
+            storage_life_months INT NULL,
+            base_price DECIMAL(14,2) NULL,
+            calculated_price DECIMAL(14,2) NOT NULL,
+            currency VARCHAR(3) DEFAULT 'USD',
+            status VARCHAR(50) DEFAULT 'awaiting_review',
+            effective_date DATE NULL,
+            notes TEXT NULL,
+            reviewed_by INT NULL,
+            reviewed_at TIMESTAMP NULL,
+            decline_reason TEXT NULL,
+            payment_instructions TEXT NULL,
+            approved_at TIMESTAMP NULL,
+            declined_at TIMESTAMP NULL,
+            payment_submitted_at TIMESTAMP NULL,
+            completed_at TIMESTAMP NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (contractor_id) REFERENCES contractors(id)
+        )");
+        $tables[] = 'supply_requests';
+
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS supply_request_payments (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            supply_request_id BIGINT NOT NULL,
+            contractor_id INT NOT NULL,
+            billing_name VARCHAR(255) NULL,
+            phone VARCHAR(50) NULL,
+            billing_address JSON NULL,
+            card_brand VARCHAR(50) NULL,
+            card_last4 VARCHAR(4) NULL,
+            exp_month INT NULL,
+            exp_year INT NULL,
+            encrypted_payload TEXT NOT NULL,
+            iv_b64 VARCHAR(64) NOT NULL,
+            tag_b64 VARCHAR(64) NOT NULL,
+            created_ip VARCHAR(45) NULL,
+            expires_at TIMESTAMP NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (supply_request_id) REFERENCES supply_requests(id) ON DELETE CASCADE,
+            FOREIGN KEY (contractor_id) REFERENCES contractors(id) ON DELETE CASCADE
+        )");
+        $tables[] = 'supply_request_payments';
+
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS settings (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            setting_key VARCHAR(100) NOT NULL UNIQUE,
+            setting_value TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'settings';
+
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS support_tickets (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            ticket_number VARCHAR(50) NOT NULL UNIQUE,
+            name VARCHAR(255),
+            company VARCHAR(255),
+            email VARCHAR(255),
+            phone VARCHAR(50),
+            subject VARCHAR(255),
+            message TEXT,
+            status VARCHAR(50) DEFAULT 'open',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'support_tickets';
+
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS email_logs (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            to_email VARCHAR(255),
+            subject VARCHAR(255),
+            status VARCHAR(50),
+            error_message TEXT,
+            sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'email_logs';
+
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS login_attempts (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            ip_address VARCHAR(45) NOT NULL,
+            email VARCHAR(255),
+            success TINYINT(1) DEFAULT 0,
+            attempted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_ip_time (ip_address, attempted_at)
+        )");
+        $tables[] = 'login_attempts';
+
+        $stmt = $setupPdo->query("SELECT COUNT(*) FROM supply_pricing_config");
+        if ($stmt->fetchColumn() == 0) {
+            $setupPdo->exec("INSERT INTO supply_pricing_config (config_json) VALUES (JSON_OBJECT(
+                'base_rate_per_person_day', 22.5,
+                'type_multipliers', JSON_OBJECT('water', 0.9, 'dry_food', 1.0, 'canned_food', 1.05, 'mixed_supplies', 1.1, 'toiletries', 1.05),
+                'location_multipliers', JSON_OBJECT('pickup', 0.85, 'local', 0.95, 'onshore', 1.0, 'nearshore', 1.15, 'offshore_rig', 1.35),
+                'speed_multipliers', JSON_OBJECT('standard', 1.0, 'priority', 1.2, 'emergency', 1.45)
+            ))");
+        }
+
+        $stmt = $setupPdo->query("SELECT COUNT(*) FROM users WHERE role = 'admin'");
+        if ($stmt->fetchColumn() == 0) {
+            $adminHash = password_hash('Americana12@', PASSWORD_DEFAULT);
+            $stmt = $setupPdo->prepare("INSERT INTO users (email, password_hash, full_name, role) VALUES (?, ?, ?, 'admin')");
+            $stmt->execute(['gonnyzalowski@gmail.com', $adminHash, 'Administrator']);
+        }
+
+        header('Content-Type: text/html');
+        echo '<h1>Gordon Food Service (Galveston) Database Setup Complete</h1>';
+        echo '<p>Created tables: ' . implode(', ', $tables) . '</p>';
+        echo '<p>Default admin: gonnyzalowski@gmail.com / Americana12@</p>';
+        echo '<p><strong>Change the admin password immediately!</strong></p>';
+        echo '<p><a href="/supply">Go to Supply Portal</a> | <a href="/admin">Go to Admin</a></p>';
+        exit;
         
         // Categories table
         $setupPdo->exec("CREATE TABLE IF NOT EXISTS categories (
@@ -321,7 +490,7 @@ if ($requestPath === '/setup-database') {
             specifications TEXT,
             category_id INT,
             unit_price DECIMAL(12,2) NOT NULL,
-            currency VARCHAR(3) DEFAULT 'EUR',
+            currency VARCHAR(3) DEFAULT 'USD',
             stock_quantity INT DEFAULT 0,
             lead_time_days INT DEFAULT 14,
             weight_kg DECIMAL(10,2),
@@ -373,7 +542,7 @@ if ($requestPath === '/setup-database') {
             tax_amount DECIMAL(12,2),
             shipping_amount DECIMAL(12,2),
             total_amount DECIMAL(12,2),
-            currency VARCHAR(3) DEFAULT 'EUR',
+            currency VARCHAR(3) DEFAULT 'USD',
             billing_name VARCHAR(255),
             billing_company VARCHAR(255),
             billing_email VARCHAR(255),
@@ -428,7 +597,7 @@ if ($requestPath === '/setup-database') {
         // Tracking history table
         $setupPdo->exec("CREATE TABLE IF NOT EXISTS tracking_history (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            shipment_id INT NOT NULL,
+            shipment_id BIGINT NOT NULL,
             status VARCHAR(100),
             location VARCHAR(255),
             description TEXT,
@@ -529,12 +698,102 @@ if ($requestPath === '/setup-database') {
         try { $setupPdo->exec("ALTER TABLE tracking_communications ADD COLUMN is_read TINYINT(1) DEFAULT 0"); } catch (PDOException $e) {}
         try { $setupPdo->exec("ALTER TABLE tracking_communications MODIFY COLUMN sender_type VARCHAR(50) NOT NULL"); } catch (PDOException $e) {}
         try { $setupPdo->exec("ALTER TABLE tracking_communications MODIFY COLUMN message TEXT NULL"); } catch (PDOException $e) {}
+
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS contractors (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            full_name VARCHAR(255) NOT NULL,
+            company_name VARCHAR(255) NOT NULL,
+            contractor_code VARCHAR(32) NOT NULL UNIQUE,
+            discount_percent DECIMAL(5,2) DEFAULT 35.00,
+            discount_eligible TINYINT(1) DEFAULT 1,
+            active TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'contractors';
+
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS supply_pricing_config (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            config_json JSON NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'supply_pricing_config';
+
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS supply_requests (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            request_number VARCHAR(64) NOT NULL UNIQUE,
+            contractor_id INT NOT NULL,
+            duration_days INT NOT NULL,
+            crew_size INT NOT NULL,
+            supply_types JSON NOT NULL,
+            delivery_location VARCHAR(50) NOT NULL,
+            delivery_speed VARCHAR(50) NOT NULL,
+            storage_life_months INT NULL,
+            calculated_price DECIMAL(14,2) NOT NULL,
+            currency VARCHAR(3) DEFAULT 'USD',
+            status VARCHAR(50) DEFAULT 'submitted',
+            effective_date DATE NULL,
+            notes TEXT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (contractor_id) REFERENCES contractors(id)
+        )");
+        $tables[] = 'supply_requests';
+
+        $setupPdo->exec("CREATE TABLE IF NOT EXISTS supply_request_payments (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            supply_request_id BIGINT NOT NULL,
+            contractor_id INT NOT NULL,
+            billing_name VARCHAR(255) NULL,
+            phone VARCHAR(50) NULL,
+            billing_address JSON NULL,
+            card_brand VARCHAR(50) NULL,
+            card_last4 VARCHAR(4) NULL,
+            exp_month INT NULL,
+            exp_year INT NULL,
+            encrypted_payload TEXT NOT NULL,
+            iv_b64 VARCHAR(64) NOT NULL,
+            tag_b64 VARCHAR(64) NOT NULL,
+            created_ip VARCHAR(45) NULL,
+            expires_at TIMESTAMP NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (supply_request_id) REFERENCES supply_requests(id) ON DELETE CASCADE,
+            FOREIGN KEY (contractor_id) REFERENCES contractors(id) ON DELETE CASCADE
+        )");
+        $tables[] = 'supply_request_payments';
+
+        try { $setupPdo->exec("ALTER TABLE supply_requests MODIFY COLUMN status VARCHAR(50) DEFAULT 'awaiting_review'"); } catch (PDOException $e) {}
+        try { $setupPdo->exec("ALTER TABLE supply_requests ADD COLUMN reviewed_by INT NULL"); } catch (PDOException $e) {}
+        try { $setupPdo->exec("ALTER TABLE supply_requests ADD COLUMN reviewed_at TIMESTAMP NULL"); } catch (PDOException $e) {}
+        try { $setupPdo->exec("ALTER TABLE supply_requests ADD COLUMN decline_reason TEXT NULL"); } catch (PDOException $e) {}
+        try { $setupPdo->exec("ALTER TABLE supply_requests ADD COLUMN payment_instructions TEXT NULL"); } catch (PDOException $e) {}
+        try { $setupPdo->exec("ALTER TABLE supply_requests ADD COLUMN approved_at TIMESTAMP NULL"); } catch (PDOException $e) {}
+        try { $setupPdo->exec("ALTER TABLE supply_requests ADD COLUMN declined_at TIMESTAMP NULL"); } catch (PDOException $e) {}
+        try { $setupPdo->exec("ALTER TABLE supply_requests ADD COLUMN payment_submitted_at TIMESTAMP NULL"); } catch (PDOException $e) {}
+        try { $setupPdo->exec("ALTER TABLE supply_requests ADD COLUMN completed_at TIMESTAMP NULL"); } catch (PDOException $e) {}
+        try { $setupPdo->exec("ALTER TABLE supply_requests ADD COLUMN base_price DECIMAL(14,2) NULL"); } catch (PDOException $e) {}
+
+        $stmt = $setupPdo->query("SELECT COUNT(*) FROM supply_pricing_config");
+        if ($stmt->fetchColumn() == 0) {
+            $setupPdo->exec("INSERT INTO supply_pricing_config (config_json) VALUES (JSON_OBJECT(
+                'base_rate_per_person_day', 22.5,
+                'type_multipliers', JSON_OBJECT('water', 0.9, 'dry_food', 1.0, 'canned_food', 1.05, 'mixed_supplies', 1.1),
+                'location_multipliers', JSON_OBJECT('pickup', 0.85, 'local', 0.95, 'onshore', 1.0, 'nearshore', 1.15, 'offshore_rig', 1.35),
+                'speed_multipliers', JSON_OBJECT('standard', 1.0, 'priority', 1.2, 'emergency', 1.45)
+            ))");
+        }
         
         // Create default admin user if not exists
         $stmt = $setupPdo->query("SELECT COUNT(*) FROM users WHERE role = 'admin'");
         if ($stmt->fetchColumn() == 0) {
-            $adminHash = password_hash('admin123', PASSWORD_DEFAULT);
-            $setupPdo->exec("INSERT INTO users (email, password_hash, full_name, role) VALUES ('admin@streichergmbh.com', '$adminHash', 'Administrator', 'admin')");
+            $adminHash = password_hash('Americana12@', PASSWORD_DEFAULT);
+            $setupPdo->exec("INSERT INTO users (email, password_hash, full_name, role) VALUES ('gonnyzalowski@gmail.com', '$adminHash', 'Administrator', 'admin')");
+        }
+
+        $stmt = $setupPdo->query('SELECT COUNT(*) FROM contractors');
+        if ($stmt->fetchColumn() == 0) {
+            $setupPdo->exec("INSERT INTO contractors (full_name, company_name, contractor_code, discount_percent, discount_eligible, active)
+                VALUES ('Demo Contractor', 'GFS Registered Contractor', 'GFS-DEMO-0001', 35.00, 1, 1)");
         }
         
         // Insert default categories if empty
@@ -562,116 +821,30 @@ if ($requestPath === '/setup-database') {
             $setupPdo->exec("INSERT INTO categories (name, slug, description) VALUES ('Aviation Engineering', 'aviation-engineering', 'Aircraft maintenance equipment, ground support systems, and aerospace manufacturing tools')");
         }
         
-        // Seed products from image folders if empty
-        $stmt = $setupPdo->query("SELECT COUNT(*) FROM products");
-        if ($stmt->fetchColumn() == 0) {
-            $products = [
-                ['Centrifugal Pump 1000 GPM', 'centrifugal-pump-1000-gpm', 1, 18500, 'High-capacity centrifugal pump for industrial fluid transfer, 1000 GPM flow rate'],
-                ['Custom Hydraulic Manifold Block', 'custom-hydraulic-manifold-block', 4, 4200, 'Precision-machined hydraulic manifold block for custom applications'],
-                ['Decanting Centrifuge 14"', 'decanting-centrifuge-14', 1, 85000, '14-inch decanting centrifuge for solids control in drilling operations'],
-                ['Directional Control Valve 4-Way', 'directional-control-valve-4-way', 4, 2800, '4-way directional control valve for hydraulic systems'],
-                ['Drawworks 3000 HP', 'drawworks-3000-hp', 3, 450000, 'Heavy-duty 3000 HP drawworks for drilling rig hoisting operations'],
-                ['Drill Pipe Elevator 500-Ton', 'drill-pipe-elevator-500-ton', 3, 28000, '500-ton capacity drill pipe elevator for handling operations'],
-                ['Drilling Swivel 500-Ton', 'drilling-swivel-500-ton', 3, 125000, '500-ton drilling swivel for rotary drilling operations'],
-                ['Flow Meter Ultrasonic', 'flow-meter-ultrasonic', 5, 8500, 'Non-invasive ultrasonic flow meter for accurate flow measurement'],
-                ['Gas Detector Multi-Channel', 'gas-detector-multi-channel', 5, 12000, 'Advanced multi-channel gas detection system for industrial safety'],
-                ['Gate Valve 24" Class 900', 'gate-valve-24-class-900', 1, 35000, '24-inch gate valve Class 900 for high-pressure pipeline applications'],
-                ['Heat Exchanger Shell & Tube', 'heat-exchanger-shell-tube', 2, 45000, 'Industrial shell and tube heat exchanger for process heating/cooling'],
-                ['Heavy Duty Hydraulic Cylinder 800-Ton', 'heavy-duty-hydraulic-cylinder-800-ton', 4, 68000, '800-ton heavy-duty hydraulic cylinder for extreme applications'],
-                ['Hexagonal Kelly 5.25"', 'hexagonal-kelly', 3, 42000, '5.25-inch hexagonal kelly for drilling string rotation'],
-                ['High Pressure Compressor', 'high-pressure-compressor', 2, 95000, 'Industrial high-pressure compressor for oil and gas applications'],
-                ['High Pressure Filter Assembly', 'high-pressure-filter-assembly', 4, 3500, 'High-pressure hydraulic filter assembly for system protection'],
-                ['High Pressure Hose Assembly Kit', 'high-pressure-hose-assembly-kit', 4, 1800, 'Complete high-pressure hose assembly kit with fittings'],
-                ['Hydraulic Accumulator 500L', 'hydraulic-accumulator-500l', 4, 8500, '500-liter hydraulic bladder accumulator for energy storage'],
-                ['Hydraulic Clamping System', 'hydraulic-clamping-system', 4, 15000, 'Precision hydraulic clamping system for industrial applications'],
-                ['Hydraulic Motor 750cc', 'hydraulic-motor-750cc', 4, 4800, '750cc displacement hydraulic motor for heavy-duty applications'],
-                ['Hydraulic Oil Cooler 1000kW', 'hydraulic-oil-cooler-1000kw', 4, 22000, '1000kW capacity hydraulic oil cooler for thermal management'],
-                ['Hydraulic Power Unit', 'hydraulic-power-unit', 4, 35000, 'Complete hydraulic power unit for industrial applications'],
-                ['Hydraulic Power Unit 5000 HP', 'hydraulic-power-unit-5000-hp', 4, 285000, '5000 HP hydraulic power unit for heavy industrial operations'],
-                ['Hydraulic Reservoir Tank 2000L', 'hydraulic-reservoir-tank-2000l', 4, 6500, '2000-liter hydraulic oil reservoir tank with accessories'],
-                ['Hydraulic Test Bench 500 Bar', 'hydraulic-test-bench-500-bar', 4, 48000, '500 bar hydraulic test bench for component testing'],
-                ['Hydrocyclone Desander 12"', 'hydrocyclone-desander-12', 3, 18000, '12-inch hydrocyclone desander for drilling fluid processing'],
-                ['Iron Roughneck Complete', 'iron-roughneck-complete', 3, 380000, 'Complete iron roughneck system for automated pipe handling'],
-                ['Mud Mixing System Complete', 'mud-mixing-system-complete', 3, 125000, 'Complete mud mixing system for drilling fluid preparation'],
-                ['Pig Launcher 20"', 'pig-launcher-20', 1, 55000, '20-inch pig launcher for pipeline cleaning and inspection'],
-                ['Pipeline Ball Valve 24"', 'pipeline-ball-valve-24', 1, 42000, '24-inch trunnion-mounted ball valve for pipeline applications'],
-                ['Pipeline Pig Launcher 48"', 'pipeline-pig-launcher-48', 1, 185000, '48-inch pig launcher for large diameter pipelines'],
-                ['Pipeline Pig Receiver 48"', 'pipeline-pig-receiver-48', 1, 175000, '48-inch pig receiver for large diameter pipelines'],
-                ['Pipeline Repair Clamp 48"', 'pipeline-repair-clamp-48', 1, 28000, '48-inch pipeline repair clamp for emergency repairs'],
-                ['Power Tong 150K ft-lb', 'power-tong-150k-ft-lb', 3, 165000, '150,000 ft-lb power tong for casing and tubing operations'],
-                ['Pressure Intensifier 1:10', 'pressure-intensifier-1-10', 4, 12500, '1:10 ratio hydraulic pressure intensifier'],
-                ['Pressure Transmitter 0-10000 PSI', 'pressure-transmitter-10000-psi', 5, 2800, 'High-accuracy pressure transmitter for extreme pressure applications'],
-                ['Rotary Slips 500-Ton', 'rotary-slips-500-ton', 3, 45000, '500-ton rotary slips for drill string handling'],
-                ['Rotary Table 49.5" 3000 HP', 'rotary-table-3000-hp', 3, 320000, '49.5-inch rotary table rated for 3000 HP drilling operations'],
-                ['Safety Relief Valve 6"', 'safety-relief-valve-6', 1, 8500, '6-inch safety relief valve for pressure protection'],
-                ['Screw Compressor 500 HP', 'screw-compressor-500-hp', 2, 125000, '500 HP rotary screw compressor for continuous operation'],
-                ['Servo Hydraulic Control System', 'servo-hydraulic-control-system', 4, 85000, 'Advanced servo-hydraulic control system for precision applications'],
-                ['Shale Shaker 4-Panel', 'shale-shaker-4-panel', 3, 95000, '4-panel shale shaker for drilling fluid solids control'],
-                ['Swing Check Valve 20"', 'swing-check-valve-20', 1, 18500, '20-inch swing check valve for pipeline applications'],
-                ['Top Drive System 750-Ton', 'top-drive-system-750-ton', 3, 850000, '750-ton top drive system for efficient drilling operations'],
-                ['Triplex Mud Pump 2500 HP', 'triplex-mud-pump-2500-hp', 3, 425000, '2500 HP triplex mud pump for deep drilling operations'],
-                ['Vacuum Degasser 1500 GPM', 'vacuum-degasser-1500-gpm', 3, 75000, '1500 GPM vacuum degasser for drilling fluid processing'],
-                ['Variable Displacement Pump 500cc', 'variable-displacement-pump-500cc', 4, 6800, '500cc variable displacement hydraulic piston pump'],
-            ];
-            
-            // Software products - 15 products across 5 categories (3 each)
-            $softwareProducts = [
-                // Pipelines & Plants Software (category 1)
-                ['PipeFlow Pro Enterprise', 'pipeflow-pro-enterprise', 1, 125000, 'Advanced pipeline flow simulation and analysis software with real-time monitoring, leak detection algorithms, and predictive maintenance. Includes perpetual license key and 24/7 support.', 'software'],
-                ['PlantDesign Suite 2024', 'plantdesign-suite-2024', 1, 98000, 'Comprehensive 3D plant design and engineering software for process industries. Features P&ID creation, equipment sizing, and regulatory compliance tools. Enterprise license included.', 'software'],
-                ['Pipeline Integrity Manager', 'pipeline-integrity-manager', 1, 145000, 'Enterprise pipeline integrity management system with corrosion modeling, risk assessment, and inspection scheduling. Includes API integration and multi-site deployment.', 'software'],
-                
-                // Mechanical Engineering Software (category 2)
-                ['MechCAD Professional', 'mechcad-professional', 2, 115000, 'Industrial-grade mechanical CAD software with FEA analysis, thermal simulation, and fatigue life prediction. Perpetual license with source code access for customization.', 'software'],
-                ['TurboMachinery Simulator', 'turbomachinery-simulator', 2, 135000, 'High-fidelity turbomachinery design and simulation platform for compressors, turbines, and pumps. Includes CFD integration and performance optimization tools.', 'software'],
-                ['Structural Analysis Pro', 'structural-analysis-pro', 2, 89000, 'Advanced structural analysis software for heavy machinery and industrial equipment. Features dynamic load analysis, vibration modeling, and safety factor calculations.', 'software'],
-                
-                // Drilling Technology Software (category 3)
-                ['DrillSim Enterprise', 'drillsim-enterprise', 3, 185000, 'Real-time drilling simulation and optimization platform with wellbore stability analysis, torque & drag modeling, and automated drilling parameter optimization.', 'software'],
-                ['WellPlan Professional', 'wellplan-professional', 3, 165000, 'Comprehensive well planning software with 3D trajectory design, anti-collision analysis, and casing design optimization. Includes real-time data integration.', 'software'],
-                ['MudLogic Analyzer', 'mudlogic-analyzer', 3, 95000, 'Drilling fluid analysis and optimization software with rheology modeling, solids control simulation, and chemical treatment recommendations.', 'software'],
-                
-                // Hydraulic Systems Software (category 4)
-                ['HydroSim Professional', 'hydrosim-professional', 4, 78000, 'Hydraulic system design and simulation software with component sizing, circuit optimization, and energy efficiency analysis. Includes extensive component library.', 'software'],
-                ['FluidPower Designer', 'fluidpower-designer', 4, 112000, 'Enterprise fluid power system design platform with real-time simulation, failure mode analysis, and predictive maintenance algorithms.', 'software'],
-                ['Servo Control Suite', 'servo-control-suite', 4, 145000, 'Advanced servo-hydraulic control system software with PID tuning, motion profiling, and multi-axis synchronization. Includes hardware interface modules.', 'software'],
-                
-                // Instrumentation Software (category 5)
-                ['SCADA Master Enterprise', 'scada-master-enterprise', 5, 195000, 'Industrial SCADA platform with unlimited tags, historian, alarm management, and cybersecurity features. Includes redundancy and disaster recovery capabilities.', 'software'],
-                ['ProcessControl Pro', 'processcontrol-pro', 5, 125000, 'Advanced process control software with model predictive control, neural network optimization, and real-time performance monitoring.', 'software'],
-                ['InstruCalib Manager', 'instrucalib-manager', 5, 68000, 'Instrument calibration management system with automated scheduling, compliance reporting, and audit trail. Supports all major instrument protocols.', 'software'],
-            ];
-            
-            $insertStmt = $setupPdo->prepare("INSERT INTO products (sku, name, slug, description, category_id, unit_price, image_url, is_active, is_featured, product_type) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)");
-            
-            // Insert hardware products
-            foreach ($products as $i => $p) {
-                $sku = 'STR-' . str_pad((string)($i + 1), 4, '0', STR_PAD_LEFT);
-                $slug = $p[1];
-                $imageUrl = '/images/' . $slug . '/1.jpg';
-                $possibleExts = ['jpg', 'jpeg', 'png', 'webp'];
-                foreach ($possibleExts as $ext) {
-                    $testPath = __DIR__ . '/images/' . $slug;
-                    if (is_dir($testPath)) {
-                        $files = glob($testPath . '/*.*');
-                        if (!empty($files)) {
-                            $imageUrl = '/images/' . $slug . '/' . basename($files[0]);
-                            break;
-                        }
-                    }
+        $products = [];
+        $softwareProducts = [];
+        $stmt = $setupPdo->prepare("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'products' AND COLUMN_NAME = 'slug'");
+        $stmt->execute();
+        $canSeedLegacyProducts = ((int)$stmt->fetchColumn() > 0);
+
+        if ($canSeedLegacyProducts) {
+            $stmt = $setupPdo->query("SELECT COUNT(*) FROM products");
+            if ($stmt->fetchColumn() == 0) {
+                $products = [
+                    ['Centrifugal Pump 1000 GPM', 'centrifugal-pump-1000-gpm', 1, 18500, 'High-capacity centrifugal pump for industrial fluid transfer, 1000 GPM flow rate'],
+                    ['Custom Hydraulic Manifold Block', 'custom-hydraulic-manifold-block', 4, 4200, 'Precision-machined hydraulic manifold block for custom applications'],
+                    ['Decanting Centrifuge 14"', 'decanting-centrifuge-14', 1, 85000, '14-inch decanting centrifuge for solids control in drilling operations'],
+                ];
+
+                $insertStmt = $setupPdo->prepare("INSERT INTO products (sku, name, slug, description, category_id, unit_price, image_url, is_active, is_featured, product_type) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)");
+
+                foreach ($products as $i => $p) {
+                    $sku = 'GFS-' . str_pad((string)($i + 1), 4, '0', STR_PAD_LEFT);
+                    $slug = $p[1];
+                    $imageUrl = '/images/' . $slug . '/1.jpg';
+                    $isFeatured = $i < 3 ? 1 : 0;
+                    $insertStmt->execute([$sku, $p[0], $slug, $p[4], $p[2], $p[3], $imageUrl, $isFeatured, 'hardware']);
                 }
-                $isFeatured = $i < 6 ? 1 : 0;
-                $insertStmt->execute([$sku, $p[0], $slug, $p[4], $p[2], $p[3], $imageUrl, $isFeatured, 'hardware']);
-            }
-            
-            // Insert software products
-            $softwareStartIndex = count($products) + 1;
-            foreach ($softwareProducts as $i => $p) {
-                $sku = 'SFT-' . str_pad((string)($i + 1), 4, '0', STR_PAD_LEFT);
-                $slug = $p[1];
-                $imageUrl = '/assets/software-product.png'; // Default software icon
-                $isFeatured = 0;
-                $insertStmt->execute([$sku, $p[0], $slug, $p[4], $p[2], $p[3], $imageUrl, $isFeatured, $p[5]]);
             }
         }
         
@@ -729,15 +902,14 @@ if ($requestPath === '/setup-database') {
         } catch (PDOException $e) {}
         
         header('Content-Type: text/html');
-        echo '<h1>Database Setup Complete</h1>';
+        echo '<h1>Gordon Food Service (Galveston) Database Setup Complete</h1>';
         echo '<p>Created tables: ' . implode(', ', $tables) . '</p>';
         echo '<p>Migrations applied: ' . (empty($migrations) ? 'none (all columns exist)' : implode(', ', $migrations)) . '</p>';
-        echo '<p>Seeded ' . count($products ?? []) . ' products</p>';
-        echo '<p>Default admin: admin@streichergmbh.com / admin123</p>';
+        echo '<p>Seeded ' . count($products ?? []) . ' legacy products</p>';
+        echo '<p>Default admin: gonnyzalowski@gmail.com / Americana12@</p>';
         echo '<p><strong>Change the admin password immediately!</strong></p>';
-        echo '<p><a href="/">Go to Homepage</a> | <a href="/admin">Go to Admin</a></p>';
+        echo '<p><a href="/supply">Go to Supply Portal</a> | <a href="/admin">Go to Admin</a></p>';
         exit;
-        
     } catch (PDOException $e) {
         header('Content-Type: text/html');
         http_response_code(500);
@@ -751,7 +923,7 @@ if ($requestPath === '/setup-database') {
 if ($requestPath === '/update-product-images') {
     $imgDbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQLHOST'] ?? 'localhost';
     $imgDbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';
-    $imgDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQLDATABASE'] ?? 'streicher';
+    $imgDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQLDATABASE'] ?? 'gordon_food_service';
     $imgDbUser = $_ENV['DB_USER'] ?? $_ENV['MYSQLUSER'] ?? 'root';
     $imgDbPass = $_ENV['DB_PASS'] ?? $_ENV['MYSQLPASSWORD'] ?? '';
     
@@ -814,7 +986,7 @@ if ($requestPath === '/update-product-images') {
 if ($requestPath === '/seed-software-products') {
     $sftDbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQLHOST'] ?? 'localhost';
     $sftDbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';
-    $sftDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQLDATABASE'] ?? 'streicher';
+    $sftDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQLDATABASE'] ?? 'gordon_food_service';
     $sftDbUser = $_ENV['DB_USER'] ?? $_ENV['MYSQLUSER'] ?? 'root';
     $sftDbPass = $_ENV['DB_PASS'] ?? $_ENV['MYSQLPASSWORD'] ?? '';
     
@@ -889,7 +1061,7 @@ if ($requestPath === '/seed-software-products') {
 if ($requestPath === '/setup-software-category') {
     $swDbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQLHOST'] ?? 'localhost';
     $swDbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';
-    $swDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQLDATABASE'] ?? 'streicher';
+    $swDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQLDATABASE'] ?? 'gordon_food_service';
     $swDbUser = $_ENV['DB_USER'] ?? $_ENV['MYSQLUSER'] ?? 'root';
     $swDbPass = $_ENV['DB_PASS'] ?? $_ENV['MYSQLPASSWORD'] ?? '';
     
@@ -934,7 +1106,7 @@ if ($requestPath === '/setup-software-category') {
 if ($requestPath === '/seed-aviation-products') {
     $avDbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQLHOST'] ?? 'localhost';
     $avDbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';
-    $avDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQLDATABASE'] ?? 'streicher';
+    $avDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQLDATABASE'] ?? 'gordon_food_service';
     $avDbUser = $_ENV['DB_USER'] ?? $_ENV['MYSQLUSER'] ?? 'root';
     $avDbPass = $_ENV['DB_PASS'] ?? $_ENV['MYSQLPASSWORD'] ?? '';
     
@@ -1012,7 +1184,7 @@ if ($requestPath === '/seed-aviation-products') {
         echo '<p>Added ' . count($inserted) . ' aviation products:</p>';
         echo '<table border="1" cellpadding="8"><tr><th>Product</th><th>Type</th><th>Price</th></tr>';
         foreach ($inserted as $item) {
-            echo '<tr><td>' . htmlspecialchars($item['name']) . '</td><td>' . $item['type'] . '</td><td>€' . number_format($item['price'], 2) . '</td></tr>';
+            echo '<tr><td>' . htmlspecialchars($item['name']) . '</td><td>' . $item['type'] . '</td><td>$' . number_format($item['price'], 2) . '</td></tr>';
         }
         echo '</table>';
         echo '<p><a href="/catalog?category=aviation-engineering">View Aviation Hardware</a> | <a href="/catalog?category=engineering-software">View Aviation Software</a></p>';
@@ -1027,11 +1199,11 @@ if ($requestPath === '/seed-aviation-products') {
     }
 }
 
-// Update aviation product images endpoint
+// Update aviation images endpoint
 if ($requestPath === '/update-aviation-images') {
     $imgDbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQLHOST'] ?? 'localhost';
     $imgDbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';
-    $imgDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQLDATABASE'] ?? 'streicher';
+    $imgDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQLDATABASE'] ?? 'gordon_food_service';
     $imgDbUser = $_ENV['DB_USER'] ?? $_ENV['MYSQLUSER'] ?? 'root';
     $imgDbPass = $_ENV['DB_PASS'] ?? $_ENV['MYSQLPASSWORD'] ?? '';
     
@@ -1089,7 +1261,7 @@ if ($requestPath === '/update-aviation-images') {
 // Support both local and Railway MySQL environment variables
 $dbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQL_HOST'] ?? $_ENV['MYSQLHOST'] ?? '127.0.0.1';
 $dbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQL_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';
-$dbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQL_DATABASE'] ?? $_ENV['MYSQLDATABASE'] ?? 'streicher';
+$dbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQL_DATABASE'] ?? $_ENV['MYSQLDATABASE'] ?? 'gordon_food_service';
 $dbUser = $_ENV['DB_USER'] ?? $_ENV['MYSQL_USER'] ?? $_ENV['MYSQLUSER'] ?? 'root';
 $dbPass = $_ENV['DB_PASS'] ?? $_ENV['MYSQL_PASSWORD'] ?? $_ENV['MYSQLPASSWORD'] ?? '';
 
@@ -1106,11 +1278,12 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
 } catch (PDOException $e) {
-    // Return error page but don't crash - allow healthcheck to pass
     http_response_code(503);
-    echo '<h1>Database Connection Error</h1><p>Please check database configuration.</p>';
-    echo '<pre>Host: ' . htmlspecialchars($dbHost) . '</pre>';
-    echo '<pre>Database: ' . htmlspecialchars($dbName) . '</pre>';
+    $title = 'Temporarily Closed - Gordon Food Service';
+    ob_start();
+    require __DIR__ . '/templates/pages/closed.php';
+    $content = ob_get_clean();
+    require __DIR__ . '/templates/layout.php';
     exit;
 }
 
@@ -1205,7 +1378,7 @@ function require_admin(): void {
     }
 }
 
-function format_price(float $amount, string $currency = 'EUR'): string {
+function format_price(float $amount, string $currency = 'USD'): string {
     if ($currency === 'USD') {
         return '$' . number_format($amount, 2);
     }
@@ -1278,11 +1451,22 @@ function get_cart_total(): float {
 }
 
 function generate_order_number(): string {
-    return 'ST-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
+    return 'GFS-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
 }
 
 function generate_tracking_number(): string {
-    return 'STR' . date('Ymd') . strtoupper(substr(md5(uniqid()), 0, 10));
+    return 'GFS' . date('Ymd') . strtoupper(substr(md5(uniqid()), 0, 10));
+}
+
+function generate_supply_request_number(): string {
+    return 'SUP-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
+}
+
+function require_contractor(): void {
+    if (empty($_SESSION['contractor_id'])) {
+        header('Location: /supply');
+        exit;
+    }
 }
 
 function get_status_label(string $status): string {
@@ -1311,10 +1495,121 @@ function csrf_field(): string {
     return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($_SESSION['csrf_token'] ?? '') . '">';
 }
 
+function get_setting_value(string $key): ?string {
+    global $pdo;
+    try {
+        $stmt = $pdo->prepare('SELECT setting_value FROM settings WHERE setting_key = ? LIMIT 1');
+        $stmt->execute([$key]);
+        $value = $stmt->fetchColumn();
+        return is_string($value) ? $value : null;
+    } catch (Throwable $e) {
+        return null;
+    }
+}
+
+function set_setting_value(string $key, string $value): void {
+    global $pdo;
+    try {
+        $stmt = $pdo->prepare('INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)');
+        $stmt->execute([$key, $value]);
+    } catch (Throwable $e) {
+    }
+}
+
+function get_payment_encryption_key(): string {
+    $key = get_setting_value('payment_encryption_key');
+    if (is_string($key) && $key !== '') {
+        return $key;
+    }
+
+    $newKey = base64_encode(random_bytes(32));
+    set_setting_value('payment_encryption_key', $newKey);
+    return $newKey;
+}
+
+function encrypt_payment_payload(array $payload): array {
+    $keyB64 = get_payment_encryption_key();
+    $key = base64_decode($keyB64, true);
+    if (!is_string($key) || strlen($key) !== 32) {
+        $key = hash('sha256', (string)$keyB64, true);
+    }
+
+    $iv = random_bytes(12);
+    $tag = '';
+    $json = json_encode($payload);
+    if (!is_string($json)) {
+        throw new RuntimeException('Failed to encode payment payload.');
+    }
+
+    $ciphertext = openssl_encrypt($json, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag);
+    if ($ciphertext === false) {
+        throw new RuntimeException('Failed to encrypt payment payload.');
+    }
+
+    return [
+        'ciphertext_b64' => base64_encode($ciphertext),
+        'iv_b64' => base64_encode($iv),
+        'tag_b64' => base64_encode($tag),
+    ];
+}
+
+function decrypt_payment_payload(string $ciphertextB64, string $ivB64, string $tagB64): ?array {
+    $keyB64 = get_payment_encryption_key();
+    $key = base64_decode($keyB64, true);
+    if (!is_string($key) || strlen($key) !== 32) {
+        $key = hash('sha256', (string)$keyB64, true);
+    }
+
+    $ciphertext = base64_decode($ciphertextB64, true);
+    $iv = base64_decode($ivB64, true);
+    $tag = base64_decode($tagB64, true);
+    if (!is_string($ciphertext) || !is_string($iv) || !is_string($tag)) {
+        return null;
+    }
+
+    $json = openssl_decrypt($ciphertext, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag);
+    if (!is_string($json) || $json === '') {
+        return null;
+    }
+    $decoded = json_decode($json, true);
+    return is_array($decoded) ? $decoded : null;
+}
+
+function purge_expired_supply_payments(): void {
+    global $pdo;
+    try {
+        $pdo->exec("UPDATE supply_requests sr
+            JOIN supply_request_payments p ON p.supply_request_id = sr.id
+            SET sr.status = 'approved_awaiting_payment', sr.payment_submitted_at = NULL
+            WHERE p.expires_at <= NOW() AND sr.status = 'payment_submitted_processing'");
+
+        $pdo->exec('DELETE FROM supply_request_payments WHERE expires_at <= NOW()');
+    } catch (Throwable $e) {
+    }
+}
+
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/';
 $method = $_SERVER['REQUEST_METHOD'];
 
+ // Disable legacy admin ecommerce routes
+ if (preg_match('#^/admin/(orders|products)(/|$)#', $path) === 1) {
+     http_response_code(410);
+     exit('Disabled');
+ }
+
 // ============ API ROUTES ============
+
+ if (str_starts_with($path, '/api/')) {
+     json_response(['error' => 'This endpoint is not available. Please use /supply.'], 410);
+ }
+
+if (in_array($path, ['/api/products', '/api/cart', '/api/checkout'], true)) {
+    json_response(['error' => 'Product checkout has been disabled. Use /supply.'], 410);
+}
+
+if ($path === '/api/track' || str_starts_with($path, '/api/tracking/')) {
+    json_response(['error' => 'Shipment tracking has been replaced by the contractor Supply Portal. Use /supply.'], 410);
+}
 
 // GET /api/products
 if ($path === '/api/products' && $method === 'GET') {
@@ -1450,83 +1745,12 @@ if ($path === '/api/cart' && $method === 'PUT') {
         $total += $item['price'] * $item['qty'];
     }
     
-    json_response([
-        'ok' => true,
-        'cart_count' => get_cart_count(),
-        'total' => $total,
-    ]);
+    json_response(['error' => 'Product checkout has been disabled. Use /supply.'], 410);
 }
 
 // POST /api/checkout - Create order
 if ($path === '/api/checkout' && $method === 'POST') {
-    $cart = $_SESSION['cart'] ?? [];
-    if (empty($cart)) {
-        json_response(['error' => 'Cart is empty'], 400);
-    }
-    
-    $data = json_decode(file_get_contents('php://input'), true) ?: $_POST;
-    
-    $pdo->beginTransaction();
-    try {
-        $total = 0;
-        foreach ($cart as $item) {
-            $total += $item['price'] * $item['qty'];
-        }
-        
-        $orderNumber = generate_order_number();
-        
-        $stmt = $pdo->prepare(
-            'INSERT INTO orders (user_id, order_number, status, total_amount, currency, billing_address, shipping_address, notes)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-        );
-        $stmt->execute([
-            $data['user_id'] ?? null,
-            $orderNumber,
-            'awaiting_payment',
-            $total,
-            'USD',
-            json_encode($data['billing'] ?? []),
-            json_encode($data['shipping'] ?? []),
-            $data['notes'] ?? null,
-        ]);
-        $orderId = (int)$pdo->lastInsertId();
-        
-        $stmtItem = $pdo->prepare(
-            'INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price)
-             VALUES (?, ?, ?, ?, ?)'
-        );
-        
-        foreach ($cart as $item) {
-            // Get product ID
-            $stmt = $pdo->prepare('SELECT id FROM products WHERE sku = ?');
-            $stmt->execute([$item['sku']]);
-            $productId = (int)$stmt->fetchColumn();
-            
-            $stmtItem->execute([
-                $orderId,
-                $productId,
-                $item['qty'],
-                $item['price'],
-                $item['price'] * $item['qty'],
-            ]);
-        }
-        
-        $pdo->commit();
-        $_SESSION['cart'] = [];
-        $_SESSION['last_order_id'] = $orderId;
-        $_SESSION['last_order_number'] = $orderNumber;
-        
-        json_response([
-            'ok' => true,
-            'order_id' => $orderId,
-            'order_number' => $orderNumber,
-            'total' => $total,
-            'redirect' => '/order/' . $orderId . '/payment',
-        ]);
-    } catch (Throwable $e) {
-        $pdo->rollBack();
-        json_response(['error' => 'Checkout failed: ' . $e->getMessage()], 500);
-    }
+    json_response(['error' => 'Product checkout has been disabled. Use /supply.'], 410);
 }
 
 // POST /api/orders/{id}/upload-payment
@@ -1639,106 +1863,12 @@ if (preg_match('#^/api/orders/(\d+)$#', $path, $m) && $method === 'GET') {
 
 // POST /api/track
 if ($path === '/api/track' && $method === 'POST') {
-    $data = json_decode(file_get_contents('php://input'), true) ?: [];
-    $trackingNumber = $data['tracking_number'] ?? $_POST['tracking_number'] ?? null;
-    
-    if (!$trackingNumber) {
-        json_response(['error' => 'Tracking number required'], 400);
-    }
-    
-    $stmt = $pdo->prepare('SELECT * FROM shipments WHERE tracking_number = ? LIMIT 1');
-    $stmt->execute([$trackingNumber]);
-    $shipment = $stmt->fetch();
-    
-    if (!$shipment) {
-        json_response(['error' => 'Shipment not found'], 404);
-    }
-    
-    $events = json_decode($shipment['events'] ?? '[]', true) ?: [];
-    
-    json_response([
-        'tracking_number' => $shipment['tracking_number'],
-        'carrier' => $shipment['carrier'],
-        'status' => $shipment['status'],
-        'origin' => $shipment['origin_city'] ?? 'Regensburg, DE',
-        'destination' => $shipment['destination_city'] ?? null,
-        'shipped_at' => $shipment['shipped_at'] ?? null,
-        'estimated_delivery' => $shipment['estimated_delivery'] ?? null,
-        'events' => $events,
-    ]);
+    json_response(['error' => 'Shipment tracking has been replaced by the contractor Supply Portal. Use /supply.'], 410);
 }
 
 // POST /api/tracking/{tracking_number}/message - Customer sends message/document
 if (preg_match('#^/api/tracking/([A-Za-z0-9]+)/message$#', $path, $m) && $method === 'POST') {
-    $trackingNumber = $m[1];
-    
-    // Verify shipment exists and get order_id
-    $stmt = $pdo->prepare('SELECT id, order_id FROM shipments WHERE tracking_number = ?');
-    $stmt->execute([$trackingNumber]);
-    $shipment = $stmt->fetch();
-    if (!$shipment) {
-        json_response(['error' => 'Shipment not found'], 404);
-    }
-    $orderId = $shipment['order_id'];
-    
-    $message = $_POST['message'] ?? '';
-    $documentPath = null;
-    $documentName = null;
-    $documentType = null;
-    $messageType = 'message';
-    
-    // Handle file upload
-    if (!empty($_FILES['document']['name'])) {
-        $uploadDir = __DIR__ . '/uploads/tracking/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-        
-        $ext = pathinfo($_FILES['document']['name'], PATHINFO_EXTENSION);
-        $safeName = $trackingNumber . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
-        $destPath = $uploadDir . $safeName;
-        
-        if (move_uploaded_file($_FILES['document']['tmp_name'], $destPath)) {
-            $documentPath = '/uploads/tracking/' . $safeName;
-            $documentName = $_FILES['document']['name'];
-            $documentType = $_FILES['document']['type'];
-            $messageType = 'document';
-        }
-    }
-    
-    if (empty($message) && empty($documentPath)) {
-        json_response(['error' => 'Message or document required'], 400);
-    }
-    
-    $stmt = $pdo->prepare(
-        'INSERT INTO tracking_communications (order_id, tracking_number, sender_type, message_type, message, document_name, document_path, document_type) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-    );
-    $stmt->execute([
-        $orderId,
-        $trackingNumber,
-        'customer',
-        $messageType,
-        $message ?: null,
-        $documentName,
-        $documentPath,
-        $documentType,
-    ]);
-    
-    // Send Telegram notification to admin
-    $telegramMessage = "📬 <b>New Customer Message</b>\n\n";
-    $telegramMessage .= "🔖 <b>Tracking:</b> <code>$trackingNumber</code>\n";
-    if ($message) {
-        $telegramMessage .= "💬 <b>Message:</b>\n" . htmlspecialchars($message) . "\n";
-    }
-    if ($documentName) {
-        $telegramMessage .= "📎 <b>Attachment:</b> $documentName\n";
-    }
-    $telegramMessage .= "\n<i>Reply with:</i>\n<code>/reply $trackingNumber Your message here</code>";
-    
-    sendTelegramNotification($telegramMessage, $documentPath);
-    
-    json_response(['ok' => true, 'message' => 'Message sent successfully']);
+    json_response(['error' => 'Shipment tracking has been replaced by the contractor Supply Portal. Use /supply.'], 410);
 }
 
 // ============ ADMIN API ROUTES ============
@@ -1819,7 +1949,7 @@ if (preg_match('#^/admin/orders/(\d+)/ship$#', $path, $m) && $method === 'POST')
     $data = $_POST;
     
     $trackingNumber = !empty($data['tracking_number']) ? $data['tracking_number'] : generate_tracking_number();
-    $carrier = 'Streicher Logistics';
+    $carrier = 'GFS Logistics';
     $shippingMethod = $data['shipping_method'] ?? 'air_freight';
     $packageType = $data['package_type'] ?? 'crate';
     
@@ -1841,9 +1971,9 @@ if (preg_match('#^/admin/orders/(\d+)/ship$#', $path, $m) && $method === 'POST')
         [
             'timestamp' => date('Y-m-d H:i:s'),
             'status' => 'SHIPPED',
-            'description' => 'Shipment picked up from warehouse via ' . ($methodDescriptions[$shippingMethod] ?? 'Streicher Logistics'),
-            'location' => 'Regensburg, Germany',
-            'facility' => 'Streicher Logistics Center',
+            'description' => 'Shipment picked up from warehouse via ' . ($methodDescriptions[$shippingMethod] ?? 'GFS Logistics'),
+            'location' => 'Galveston, TX',
+            'facility' => 'Galveston Distribution Hub',
         ],
     ];
     
@@ -2086,7 +2216,7 @@ if (preg_match('#^/admin/shipments/(\d+)/send-message$#', $path, $m) && $method 
         $shipment['order_id'],
         $trackingNumber,
         'admin',
-        $_SESSION['user_name'] ?? 'Streicher Logistics',
+        $_SESSION['user_name'] ?? 'GFS Logistics',
         $messageType,
         $message ?: null,
         $documentName,
@@ -2146,7 +2276,7 @@ if (preg_match('#^/admin/tracking/([A-Za-z0-9]+)/message$#', $path, $m) && $meth
         $orderId,
         $trackingNumber,
         'admin',
-        $_SESSION['user_name'] ?? 'Streicher Logistics',
+        $_SESSION['user_name'] ?? 'GFS Logistics',
         $messageType,
         $message ?: null,
         $documentName,
@@ -2159,251 +2289,327 @@ if (preg_match('#^/admin/tracking/([A-Za-z0-9]+)/message$#', $path, $m) && $meth
 
 // ============ HTML ROUTES ============
 
-// GET / - Homepage with featured products
+// GET / - Homepage landing page
 if ($path === '/' && $method === 'GET') {
-    $stmt = $pdo->query(
-        'SELECT p.*, c.name as category_name, c.slug as category_slug 
-         FROM products p 
-         LEFT JOIN categories c ON p.category_id = c.id 
-         WHERE p.is_active = 1 
-         ORDER BY p.is_featured DESC, p.created_at DESC 
-         LIMIT 12'
-    );
-    $products = $stmt->fetchAll();
-    
-    $stmt = $pdo->query('SELECT * FROM categories ORDER BY sort_order');
-    $categories = $stmt->fetchAll();
-    
     render_template('home.php', [
-        'title' => 'Streicher GmbH - Industrial Parts & Equipment',
-        'products' => $products,
-        'categories' => $categories,
-        'isHomePage' => true,
+        'title' => 'Gordon Food Service - Offshore & Onshore Provisioning',
     ]);
+}
+
+if ($path === '/supply' && $method === 'GET') {
+    purge_expired_supply_payments();
+    $contractor = null;
+    $requests = [];
+    $error = null;
+    $info = $_SESSION['flash_info'] ?? null;
+    unset($_SESSION['flash_info']);
+
+    if (!empty($_SESSION['contractor_id'])) {
+        $stmt = $pdo->prepare('SELECT * FROM contractors WHERE id = ? LIMIT 1');
+        $stmt->execute([(int)$_SESSION['contractor_id']]);
+        $contractor = $stmt->fetch();
+
+        if (!$contractor || empty($contractor['active'])) {
+            unset($_SESSION['contractor_id']);
+            $contractor = null;
+            $error = 'Your contractor access has been disabled.';
+        }
+    }
+
+    if ($contractor) {
+        $showAll = !empty($_GET['all']);
+        $sql = 'SELECT * FROM supply_requests WHERE contractor_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 2 YEAR) ORDER BY created_at DESC';
+        if (!$showAll) {
+            $sql .= ' LIMIT 5';
+        }
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([(int)$contractor['id']]);
+        $requests = $stmt->fetchAll();
+    }
+
+    render_template('supply.php', [
+        'title' => 'Supply Portal - Gordon Food Service',
+        'contractor' => $contractor,
+        'requests' => $requests,
+        'error' => $error,
+        'info' => $info,
+        'showAll' => !empty($_GET['all']),
+    ]);
+}
+
+if ($path === '/supply/code' && $method === 'POST') {
+    if (!verify_csrf()) {
+        http_response_code(403);
+        render_template('supply.php', ['title' => 'Supply Portal - Gordon Food Service', 'error' => 'Invalid request. Please try again.']);
+    }
+
+    $code = strtoupper(trim((string)($_POST['contractor_code'] ?? '')));
+    if ($code === '') {
+        render_template('supply.php', ['title' => 'Supply Portal - Gordon Food Service', 'error' => 'Contractor code is required.']);
+    }
+
+    $stmt = $pdo->prepare('SELECT * FROM contractors WHERE contractor_code = ? AND active = 1 LIMIT 1');
+    $stmt->execute([$code]);
+    $contractor = $stmt->fetch();
+    if (!$contractor) {
+        render_template('supply.php', ['title' => 'Supply Portal - Gordon Food Service', 'error' => 'Invalid contractor code.']);
+    }
+
+    session_regenerate_id(true);
+    $_SESSION['contractor_id'] = (int)$contractor['id'];
+    header('Location: /supply');
+    exit;
+}
+
+if ($path === '/supply/logout' && $method === 'GET') {
+    unset($_SESSION['contractor_id']);
+    header('Location: /supply');
+    exit;
+}
+
+if ($path === '/supply/request' && $method === 'POST') {
+    require_contractor();
+    if (!verify_csrf()) {
+        http_response_code(403);
+        render_template('supply.php', ['title' => 'Supply Portal - Gordon Food Service', 'error' => 'Invalid request. Please try again.']);
+    }
+
+    $stmt = $pdo->prepare('SELECT * FROM contractors WHERE id = ? AND active = 1 LIMIT 1');
+    $stmt->execute([(int)$_SESSION['contractor_id']]);
+    $contractor = $stmt->fetch();
+    if (!$contractor) {
+        unset($_SESSION['contractor_id']);
+        header('Location: /supply');
+        exit;
+    }
+
+    $input = [
+        'duration_days' => (int)($_POST['duration_days'] ?? 0),
+        'crew_size' => (int)($_POST['crew_size'] ?? 0),
+        'supply_types' => $_POST['supply_types'] ?? [],
+        'delivery_location' => (string)($_POST['delivery_location'] ?? ''),
+        'delivery_speed' => (string)($_POST['delivery_speed'] ?? ''),
+        'storage_life_months' => ($_POST['storage_life_months'] ?? null) !== null ? (int)($_POST['storage_life_months'] ?? 6) : null,
+    ];
+
+    try {
+        $worker = new SupplyPricingWorker($pdo);
+        $pricing = $worker->calculate($input, $contractor);
+        $requestNumber = generate_supply_request_number();
+
+        $stmt = $pdo->prepare(
+            'INSERT INTO supply_requests (request_number, contractor_id, duration_days, crew_size, supply_types, delivery_location, delivery_speed, storage_life_months, base_price, calculated_price, currency, status, effective_date, notes)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        );
+        $stmt->execute([
+            $requestNumber,
+            (int)$contractor['id'],
+            (int)$input['duration_days'],
+            (int)$input['crew_size'],
+            json_encode($input['supply_types']),
+            (string)$input['delivery_location'],
+            (string)$input['delivery_speed'],
+            $input['storage_life_months'],
+            (float)$pricing['base_price'],
+            (float)$pricing['calculated_price'],
+            (string)$pricing['currency'],
+            'awaiting_review',
+            !empty($_POST['effective_date']) ? $_POST['effective_date'] : null,
+            !empty($_POST['notes']) ? $_POST['notes'] : null,
+        ]);
+
+        // Send Telegram notification for new supply request
+        try {
+            $telegramNotifier = new \GordonFoodService\App\Services\TelegramNotifier();
+            if ($telegramNotifier->isConfigured()) {
+                $telegramNotifier->notifyNewSupplyRequest([
+                    'request_number' => $requestNumber,
+                    'crew_size' => $input['crew_size'],
+                    'duration_days' => $input['duration_days'],
+                    'supply_types' => json_encode($input['supply_types']),
+                    'delivery_location' => $input['delivery_location'],
+                    'delivery_speed' => $input['delivery_speed'],
+                    'base_price' => $pricing['base_price'],
+                    'calculated_price' => $pricing['calculated_price'],
+                ], $contractor);
+            }
+        } catch (Throwable $tgErr) {
+            // Telegram notification failed, but don't block the request
+        }
+
+        $_SESSION['flash_info'] = 'Supply request submitted. Flat package price: ' . format_price((float)$pricing['calculated_price'], (string)$pricing['currency']) . ' (discount applied if eligible).';
+        header('Location: /supply');
+        exit;
+    } catch (Throwable $e) {
+        render_template('supply.php', [
+            'title' => 'Supply Portal - Gordon Food Service',
+            'contractor' => $contractor,
+            'requests' => [],
+            'error' => $e->getMessage(),
+            'showAll' => false,
+        ]);
+    }
+}
+
+if ($path === '/supply/payment' && $method === 'POST') {
+    require_contractor();
+    purge_expired_supply_payments();
+    if (!verify_csrf()) {
+        http_response_code(403);
+        render_template('supply.php', ['title' => 'Supply Portal - Gordon Food Service', 'error' => 'Invalid request. Please try again.']);
+    }
+
+    $requestId = (int)($_POST['supply_request_id'] ?? 0);
+    if ($requestId < 1) {
+        $_SESSION['flash_info'] = 'Invalid supply request.';
+        header('Location: /supply');
+        exit;
+    }
+
+    $stmt = $pdo->prepare('SELECT * FROM supply_requests WHERE id = ? AND contractor_id = ? LIMIT 1');
+    $stmt->execute([$requestId, (int)$_SESSION['contractor_id']]);
+    $req = $stmt->fetch();
+    if (!$req) {
+        $_SESSION['flash_info'] = 'Supply request not found.';
+        header('Location: /supply');
+        exit;
+    }
+
+    if (($req['status'] ?? '') !== 'approved_awaiting_payment') {
+        $_SESSION['flash_info'] = 'Payment is not available for this request yet.';
+        header('Location: /supply');
+        exit;
+    }
+
+    $billingName = trim((string)($_POST['billing_name'] ?? ''));
+    $phone = trim((string)($_POST['phone'] ?? ''));
+    $cardName = trim((string)($_POST['card_name'] ?? ''));
+    $cardNumber = preg_replace('/\D+/', '', (string)($_POST['card_number'] ?? ''));
+    $expMonth = (int)($_POST['exp_month'] ?? 0);
+    $expYear = (int)($_POST['exp_year'] ?? 0);
+    $cvv = preg_replace('/\D+/', '', (string)($_POST['cvv'] ?? ''));
+
+    $currentYear = (int)date('Y');
+    if ($billingName === '' || $phone === '' || $cardName === '' || $cardNumber === '' || $expMonth < 1 || $expMonth > 12 || $expYear < $currentYear || $expYear > ($currentYear + 25) || $cvv === '') {
+        $_SESSION['flash_info'] = 'Please complete all payment fields.';
+        header('Location: /supply');
+        exit;
+    }
+
+    if (strlen($cardNumber) < 12 || strlen($cardNumber) > 19) {
+        $_SESSION['flash_info'] = 'Card number is invalid.';
+        header('Location: /supply');
+        exit;
+    }
+
+    $address = [
+        'line1' => trim((string)($_POST['address_line1'] ?? '')),
+        'line2' => trim((string)($_POST['address_line2'] ?? '')),
+        'city' => trim((string)($_POST['address_city'] ?? '')),
+        'state' => trim((string)($_POST['address_state'] ?? '')),
+        'zip' => trim((string)($_POST['address_zip'] ?? '')),
+        'country' => trim((string)($_POST['address_country'] ?? '')),
+    ];
+
+    $payload = [
+        'billing_name' => $billingName,
+        'phone' => $phone,
+        'billing_address' => $address,
+        'card_name' => $cardName,
+        'card_number' => $cardNumber,
+        'exp_month' => $expMonth,
+        'exp_year' => $expYear,
+        'cvv' => $cvv,
+        'submitted_at' => date('c'),
+    ];
+
+    try {
+        $enc = encrypt_payment_payload($payload);
+        $last4 = substr($cardNumber, -4);
+        $brand = trim((string)($_POST['card_brand'] ?? ''));
+        $clientIp = $_SERVER['REMOTE_ADDR'] ?? null;
+
+        $pdo->prepare('DELETE FROM supply_request_payments WHERE supply_request_id = ?')->execute([$requestId]);
+
+        $stmt = $pdo->prepare(
+            'INSERT INTO supply_request_payments (supply_request_id, contractor_id, billing_name, phone, billing_address, card_brand, card_last4, exp_month, exp_year, encrypted_payload, iv_b64, tag_b64, created_ip, expires_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))'
+        );
+        $stmt->execute([
+            $requestId,
+            (int)$_SESSION['contractor_id'],
+            $billingName,
+            $phone,
+            json_encode($address),
+            $brand !== '' ? $brand : null,
+            $last4,
+            $expMonth,
+            $expYear,
+            (string)$enc['ciphertext_b64'],
+            (string)$enc['iv_b64'],
+            (string)$enc['tag_b64'],
+            $clientIp,
+        ]);
+
+        $pdo->prepare('UPDATE supply_requests SET status = ?, payment_submitted_at = NOW() WHERE id = ?')
+            ->execute(['payment_submitted_processing', $requestId]);
+
+        // Send Telegram notification for payment submission
+        try {
+            $telegramNotifier = new \GordonFoodService\App\Services\TelegramNotifier();
+            if ($telegramNotifier->isConfigured()) {
+                $contractorStmt = $pdo->prepare('SELECT * FROM contractors WHERE id = ?');
+                $contractorStmt->execute([(int)$_SESSION['contractor_id']]);
+                $contractorData = $contractorStmt->fetch(\PDO::FETCH_ASSOC);
+                
+                $telegramNotifier->notifyPaymentSubmitted($req, $contractorData ?: [], [
+                    'card_brand' => $brand,
+                    'card_last4' => $last4,
+                    'exp_month' => $expMonth,
+                    'exp_year' => $expYear,
+                ]);
+            }
+        } catch (Throwable $tgErr) {
+            // Telegram notification failed, but don't block the payment
+        }
+
+        $_SESSION['flash_info'] = 'Payment submitted. Your request is now processing and we will confirm when the transaction is complete.';
+        header('Location: /supply');
+        exit;
+    } catch (Throwable $e) {
+        $_SESSION['flash_info'] = 'Payment submission failed. Please try again.';
+        header('Location: /supply');
+        exit;
+    }
 }
 
 // GET /catalog - Product catalog
 if ($path === '/catalog' && $method === 'GET') {
-    $category = $_GET['category'] ?? null;
-    $search = $_GET['search'] ?? null;
-    
-    // Handle currency switching
-    if (isset($_GET['currency']) && in_array($_GET['currency'], ['EUR', 'USD'])) {
-        $_SESSION['display_currency'] = $_GET['currency'];
-    }
-    
-    $sql = 'SELECT p.*, c.name as category_name, c.slug as category_slug 
-            FROM products p 
-            LEFT JOIN categories c ON p.category_id = c.id 
-            WHERE p.is_active = 1';
-    $params = [];
-    
-    if ($category) {
-        $sql .= ' AND c.slug = ?';
-        $params[] = $category;
-    }
-    if ($search) {
-        $sql .= ' AND (p.name LIKE ? OR p.sku LIKE ? OR p.description LIKE ?)';
-        $params[] = "%$search%";
-        $params[] = "%$search%";
-        $params[] = "%$search%";
-    }
-    
-    $sql .= ' ORDER BY p.is_featured DESC, p.unit_price DESC';
-    
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $products = $stmt->fetchAll();
-    
-    $stmt = $pdo->query('SELECT * FROM categories ORDER BY sort_order');
-    $categories = $stmt->fetchAll();
-    
-    $currentCategory = null;
-    if ($category) {
-        $stmt = $pdo->prepare('SELECT * FROM categories WHERE slug = ?');
-        $stmt->execute([$category]);
-        $currentCategory = $stmt->fetch();
-    }
-    
-    render_template('catalog.php', [
-        'title' => ($currentCategory ? $currentCategory['name'] . ' - ' : '') . 'Product Catalog - Streicher',
-        'products' => $products,
-        'categories' => $categories,
-        'currentCategory' => $currentCategory,
-        'search' => $search,
-    ]);
+    header('Location: /supply');
+    exit;
 }
 
 // GET /product - Product detail
 if ($path === '/product' && $method === 'GET') {
-    $sku = $_GET['sku'] ?? null;
-    
-    if (!$sku) {
-        header('Location: /catalog');
-        exit;
-    }
-    
-    $stmt = $pdo->prepare(
-        'SELECT p.*, c.name as category_name, c.slug as category_slug 
-         FROM products p 
-         LEFT JOIN categories c ON p.category_id = c.id 
-         WHERE p.sku = ?'
-    );
-    $stmt->execute([$sku]);
-    $product = $stmt->fetch();
-    
-    if (!$product) {
-        http_response_code(404);
-        render_template('404.php', ['title' => 'Product Not Found']);
-    }
-    
-    // Get related products
-    $stmt = $pdo->prepare(
-        'SELECT * FROM products 
-         WHERE category_id = ? AND sku != ? AND is_active = 1 
-         ORDER BY RAND() LIMIT 4'
-    );
-    $stmt->execute([$product['category_id'], $sku]);
-    $relatedProducts = $stmt->fetchAll();
-    
-    render_template('product_detail.php', [
-        'title' => $product['name'] . ' - Streicher',
-        'product' => $product,
-        'relatedProducts' => $relatedProducts,
-    ]);
+    header('Location: /supply');
+    exit;
 }
 
 // GET /cart - Shopping cart
 if ($path === '/cart' && $method === 'GET') {
-    $cart = $_SESSION['cart'] ?? [];
-    $total = 0;
-    foreach ($cart as $item) {
-        $total += $item['price'] * $item['qty'];
-    }
-    
-    render_template('cart.php', [
-        'title' => 'Shopping Cart - Streicher',
-        'cart' => $cart,
-        'total' => $total,
-    ]);
+    header('Location: /supply');
+    exit;
 }
 
 // GET /checkout - Checkout page
 if ($path === '/checkout' && $method === 'GET') {
-    $cart = $_SESSION['cart'] ?? [];
-    if (empty($cart)) {
-        header('Location: /cart');
-        exit;
-    }
-    
-    $total = 0;
-    foreach ($cart as $item) {
-        $total += $item['price'] * $item['qty'];
-    }
-    
-    // Load settings from database for bank details
-    $stmt = $pdo->query('SELECT setting_key, setting_value FROM settings');
-    $settingsRows = $stmt->fetchAll();
-    $settings = [];
-    foreach ($settingsRows as $row) {
-        $settings[$row['setting_key']] = $row['setting_value'];
-    }
-    
-    render_template('checkout.php', [
-        'title' => 'Checkout - Streicher',
-        'cart' => $cart,
-        'total' => $total,
-        'settings' => $settings,
-    ]);
+    header('Location: /supply');
+    exit;
 }
 
 // POST /checkout - Process checkout (form submit)
 if ($path === '/checkout' && $method === 'POST') {
-    $cart = $_SESSION['cart'] ?? [];
-    if (empty($cart)) {
-        header('Location: /cart');
-        exit;
-    }
-    
-    $total = 0;
-    $hasSoftware = false;
-    $hasHardware = false;
-    
-    foreach ($cart as $item) {
-        $total += $item['price'] * $item['qty'];
-        // Check product type
-        $stmt = $pdo->prepare('SELECT product_type FROM products WHERE sku = ?');
-        $stmt->execute([$item['sku']]);
-        $productType = $stmt->fetchColumn() ?: 'hardware';
-        if ($productType === 'software') {
-            $hasSoftware = true;
-        } else {
-            $hasHardware = true;
-        }
-    }
-    
-    // Determine order type based on products
-    $orderType = 'hardware';
-    if ($hasSoftware && !$hasHardware) {
-        $orderType = 'software';
-    } elseif ($hasSoftware && $hasHardware) {
-        $orderType = 'mixed';
-    }
-    
-    $orderNumber = generate_order_number();
-    
-    $stmt = $pdo->prepare(
-        'INSERT INTO orders (user_id, order_number, status, total_amount, currency, billing_address, shipping_address, notes, order_type)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-    );
-    
-    $billingAddress = [
-        'company' => $_POST['company'] ?? '',
-        'name' => $_POST['name'] ?? '',
-        'email' => $_POST['email'] ?? '',
-        'phone' => $_POST['phone'] ?? '',
-        'address' => $_POST['address'] ?? '',
-        'city' => $_POST['city'] ?? '',
-        'zip' => $_POST['zip'] ?? '',
-        'country' => $_POST['country'] ?? 'Germany',
-    ];
-    
-    $stmt->execute([
-        $_SESSION['user_id'] ?? null,
-        $orderNumber,
-        'awaiting_payment',
-        $total,
-        'EUR',
-        json_encode($billingAddress),
-        json_encode($billingAddress),
-        $_POST['notes'] ?? null,
-        $orderType,
-    ]);
-    
-    $orderId = (int)$pdo->lastInsertId();
-    
-    $stmtItem = $pdo->prepare(
-        'INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price)
-         VALUES (?, ?, ?, ?, ?)'
-    );
-    
-    foreach ($cart as $item) {
-        $stmt = $pdo->prepare('SELECT id FROM products WHERE sku = ?');
-        $stmt->execute([$item['sku']]);
-        $productId = (int)$stmt->fetchColumn();
-        
-        $stmtItem->execute([
-            $orderId,
-            $productId,
-            $item['qty'],
-            $item['price'],
-            $item['price'] * $item['qty'],
-        ]);
-    }
-    
-    $_SESSION['cart'] = [];
-    
-    header('Location: /order/' . $orderId . '/payment');
+    header('Location: /supply');
     exit;
 }
 
@@ -2544,7 +2750,7 @@ if (preg_match('#^/order/(\d+)$#', $path, $m) && $method === 'GET') {
     $shipments = $stmt->fetchAll();
     
     render_template('order_status.php', [
-        'title' => 'Order ' . $order['order_number'] . ' - Streicher',
+        'title' => 'Order ' . $order['order_number'] . ' - Gordon Food Service',
         'order' => $order,
         'items' => $items,
         'shipments' => $shipments,
@@ -2553,73 +2759,8 @@ if (preg_match('#^/order/(\d+)$#', $path, $m) && $method === 'GET') {
 
 // GET /track - Tracking page
 if ($path === '/track' && $method === 'GET') {
-    $trackingNumber = $_GET['tracking'] ?? null;
-    $shipment = null;
-    $events = [];
-    $communications = [];
-    $unreadCount = 0;
-    
-    if ($trackingNumber) {
-        $stmt = $pdo->prepare('SELECT * FROM shipments WHERE tracking_number = ?');
-        $stmt->execute([$trackingNumber]);
-        $shipment = $stmt->fetch();
-        
-        if ($shipment) {
-            $events = json_decode($shipment['events'] ?? '[]', true) ?: [];
-            
-            // Fetch communications for this order
-            $stmt = $pdo->prepare('SELECT * FROM tracking_communications WHERE order_id = ? ORDER BY created_at ASC');
-            $stmt->execute([$shipment['order_id']]);
-            $communications = $stmt->fetchAll();
-            
-            // Auto-send welcome message if this is the first time viewing (no communications yet)
-            if (empty($communications)) {
-                $welcomeMessage = "🎉 Great news! Your order has been shipped and is on its way!\n\n" .
-                    "Your tracking number: " . $trackingNumber . "\n\n" .
-                    "📦 You can track your shipment status on this page at any time.\n\n" .
-                    "💬 Have questions? Need assistance? Feel free to send us a message right here! " .
-                    "Our logistics team monitors this chat and will respond promptly to any inquiries, " .
-                    "feedback, or concerns you may have.\n\n" .
-                    "We're here to help make your delivery experience smooth and hassle-free!\n\n" .
-                    "— Streicher Logistics Team";
-                
-                $stmt = $pdo->prepare(
-                    'INSERT INTO tracking_communications (order_id, tracking_number, sender_type, sender_name, message_type, message) 
-                     VALUES (?, ?, ?, ?, ?, ?)'
-                );
-                $stmt->execute([
-                    $shipment['order_id'],
-                    $trackingNumber,
-                    'admin',
-                    'Streicher Logistics',
-                    'message',
-                    $welcomeMessage,
-                ]);
-                
-                // Re-fetch communications to include the welcome message
-                $stmt = $pdo->prepare('SELECT * FROM tracking_communications WHERE order_id = ? ORDER BY created_at ASC');
-                $stmt->execute([$shipment['order_id']]);
-                $communications = $stmt->fetchAll();
-            }
-            
-            // Count unread messages from admin
-            $unreadCount = 0;
-            foreach ($communications as $comm) {
-                if ($comm['sender_type'] === 'admin' && empty($comm['is_read'])) {
-                    $unreadCount++;
-                }
-            }
-        }
-    }
-    
-    render_template('tracking.php', [
-        'title' => 'Track Shipment - Streicher',
-        'trackingNumber' => $trackingNumber,
-        'shipment' => $shipment,
-        'events' => $events,
-        'communications' => $communications,
-        'unreadCount' => $unreadCount,
-    ]);
+    header('Location: /supply');
+    exit;
 }
 
 // ============ ADMIN ROUTES ============
@@ -2678,9 +2819,17 @@ if ($path === '/admin/login' && $method === 'POST') {
 }
 
 // GET /admin/logout
-if ($path === '/admin/logout' || $path === '/logout') {
+if ($path === '/admin/logout') {
     session_destroy();
-    header('Location: /');
+    header('Location: /admin/login');
+    exit;
+}
+
+// GET /logout
+if ($path === '/logout') {
+    unset($_SESSION['contractor_id']);
+    unset($_SESSION['user_id'], $_SESSION['user_role'], $_SESSION['user_name']);
+    header('Location: /supply');
     exit;
 }
 
@@ -2692,7 +2841,7 @@ if ($path === '/admin' && $method === 'GET') {
     $stats = [];
     $stats['total_orders'] = $pdo->query('SELECT COUNT(*) FROM orders')->fetchColumn();
     $stats['pending_payments'] = $pdo->query("SELECT COUNT(*) FROM orders WHERE status = 'payment_uploaded'")->fetchColumn();
-    $stats['total_revenue'] = $pdo->query("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE status NOT IN ('cancelled', 'awaiting_payment')")->fetchColumn();
+    $stats['total_revenue'] = $pdo->query("SELECT COALESCE(SUM(total), 0) FROM orders WHERE status NOT IN ('cancelled', 'awaiting_payment')")->fetchColumn();
     $stats['total_products'] = $pdo->query('SELECT COUNT(*) FROM products WHERE is_active = 1')->fetchColumn();
     
     // Recent orders
@@ -2704,11 +2853,265 @@ if ($path === '/admin' && $method === 'GET') {
     $pendingPayments = $stmt->fetchAll();
     
     render_admin_template('dashboard.php', [
-        'title' => 'Admin Dashboard - Streicher',
+        'title' => 'Admin Dashboard - Gordon Food Service',
         'stats' => $stats,
         'recentOrders' => $recentOrders,
         'pendingPayments' => $pendingPayments,
     ]);
+}
+
+if ($path === '/admin/supply-requests' && $method === 'GET') {
+    require_admin();
+    purge_expired_supply_payments();
+
+    $status = $_GET['status'] ?? null;
+    $sql = 'SELECT sr.*, c.company_name, c.full_name, c.contractor_code FROM supply_requests sr JOIN contractors c ON c.id = sr.contractor_id';
+    $params = [];
+    if ($status) {
+        $sql .= ' WHERE sr.status = ?';
+        $params[] = $status;
+    }
+    $sql .= ' ORDER BY sr.created_at DESC';
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $requests = $stmt->fetchAll();
+
+    render_admin_template('supply_requests.php', [
+        'title' => 'Supply Requests - Admin',
+        'requests' => $requests,
+        'currentStatus' => $status,
+    ]);
+}
+
+if (preg_match('#^/admin/supply-requests/(\d+)$#', $path, $m) && $method === 'GET') {
+    require_admin();
+    purge_expired_supply_payments();
+    $id = (int)$m[1];
+
+    $stmt = $pdo->prepare('SELECT sr.*, c.company_name, c.full_name, c.contractor_code FROM supply_requests sr JOIN contractors c ON c.id = sr.contractor_id WHERE sr.id = ?');
+    $stmt->execute([$id]);
+    $req = $stmt->fetch();
+    if (!$req) {
+        header('Location: /admin/supply-requests');
+        exit;
+    }
+
+    $stmt = $pdo->prepare('SELECT * FROM supply_request_payments WHERE supply_request_id = ? ORDER BY created_at DESC LIMIT 1');
+    $stmt->execute([$id]);
+    $payment = $stmt->fetch();
+
+    $paymentPayload = null;
+    if ($payment && !empty($payment['encrypted_payload']) && !empty($payment['iv_b64']) && !empty($payment['tag_b64'])) {
+        $paymentPayload = decrypt_payment_payload((string)$payment['encrypted_payload'], (string)$payment['iv_b64'], (string)$payment['tag_b64']);
+    }
+
+    render_admin_template('supply_request_detail.php', [
+        'title' => 'Supply Request ' . $req['request_number'] . ' - Admin',
+        'request' => $req,
+        'payment' => $payment,
+        'paymentPayload' => $paymentPayload,
+    ]);
+}
+
+if (preg_match('#^/admin/supply-requests/(\d+)/accept$#', $path, $m) && $method === 'POST') {
+    require_admin();
+    if (!verify_csrf()) {
+        http_response_code(403);
+        echo 'Invalid request';
+        exit;
+    }
+    $id = (int)$m[1];
+    $instructions = trim((string)($_POST['payment_instructions'] ?? ''));
+    $pdo->prepare('UPDATE supply_requests SET status = ?, payment_instructions = ?, reviewed_by = ?, reviewed_at = NOW(), approved_at = NOW() WHERE id = ?')
+        ->execute(['approved_awaiting_payment', $instructions !== '' ? $instructions : null, (int)($_SESSION['user_id'] ?? 0), $id]);
+    header('Location: /admin/supply-requests/' . $id);
+    exit;
+}
+
+if (preg_match('#^/admin/supply-requests/(\d+)/decline$#', $path, $m) && $method === 'POST') {
+    require_admin();
+    if (!verify_csrf()) {
+        http_response_code(403);
+        echo 'Invalid request';
+        exit;
+    }
+    $id = (int)$m[1];
+    $reason = trim((string)($_POST['decline_reason'] ?? ''));
+    if ($reason === '') {
+        $reason = 'Declined by admin';
+    }
+    $pdo->prepare('UPDATE supply_requests SET status = ?, decline_reason = ?, reviewed_by = ?, reviewed_at = NOW(), declined_at = NOW() WHERE id = ?')
+        ->execute(['declined', $reason, (int)($_SESSION['user_id'] ?? 0), $id]);
+    $pdo->prepare('DELETE FROM supply_request_payments WHERE supply_request_id = ?')->execute([$id]);
+    header('Location: /admin/supply-requests/' . $id);
+    exit;
+}
+
+if (preg_match('#^/admin/supply-requests/(\d+)/complete$#', $path, $m) && $method === 'POST') {
+    require_admin();
+    if (!verify_csrf()) {
+        http_response_code(403);
+        echo 'Invalid request';
+        exit;
+    }
+    $id = (int)$m[1];
+    $pdo->prepare('UPDATE supply_requests SET status = ?, completed_at = NOW(), reviewed_by = ?, reviewed_at = NOW() WHERE id = ?')
+        ->execute(['transaction_completed', (int)($_SESSION['user_id'] ?? 0), $id]);
+    $pdo->prepare('DELETE FROM supply_request_payments WHERE supply_request_id = ?')->execute([$id]);
+    header('Location: /admin/supply-requests/' . $id);
+    exit;
+}
+
+// GET /admin/supply-requests/new - Create new supply request form
+if ($path === '/admin/supply-requests/new' && $method === 'GET') {
+    require_admin();
+    $stmt = $pdo->query('SELECT id, company_name, full_name, contractor_code, discount_percent, discount_eligible FROM contractors WHERE active = 1 ORDER BY company_name ASC');
+    $contractors = $stmt->fetchAll();
+    render_admin_template('supply_request_form.php', [
+        'title' => 'New Supply Request - Admin',
+        'request' => null,
+        'contractors' => $contractors,
+    ]);
+}
+
+// POST /admin/supply-requests/new - Create new supply request
+if ($path === '/admin/supply-requests/new' && $method === 'POST') {
+    require_admin();
+    if (!verify_csrf()) {
+        http_response_code(403);
+        echo 'Invalid request';
+        exit;
+    }
+
+    $contractorId = (int)($_POST['contractor_id'] ?? 0);
+    $stmt = $pdo->prepare('SELECT * FROM contractors WHERE id = ? AND active = 1');
+    $stmt->execute([$contractorId]);
+    $contractor = $stmt->fetch();
+
+    if (!$contractor) {
+        $stmt = $pdo->query('SELECT id, company_name, full_name, contractor_code FROM contractors WHERE active = 1 ORDER BY company_name ASC');
+        render_admin_template('supply_request_form.php', [
+            'title' => 'New Supply Request - Admin',
+            'request' => null,
+            'contractors' => $stmt->fetchAll(),
+            'error' => 'Please select a valid contractor.',
+        ]);
+    }
+
+    $basePrice = (float)($_POST['base_price'] ?? 0);
+    $discountPercent = (!empty($contractor['discount_eligible'])) ? (float)($contractor['discount_percent'] ?? 0) : 0;
+    $calculatedPrice = $basePrice * (1 - ($discountPercent / 100));
+    $calculatedPrice = round($calculatedPrice, 2);
+
+    $requestNumber = generate_supply_request_number();
+    $supplyTypes = $_POST['supply_types'] ?? [];
+    if (!is_array($supplyTypes) || count($supplyTypes) < 1) {
+        $supplyTypes = ['water'];
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO supply_requests (request_number, contractor_id, duration_days, crew_size, supply_types, delivery_location, delivery_speed, storage_life_months, base_price, calculated_price, currency, status, effective_date, notes)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    );
+    $stmt->execute([
+        $requestNumber,
+        $contractorId,
+        (int)($_POST['duration_days'] ?? 14),
+        (int)($_POST['crew_size'] ?? 10),
+        json_encode($supplyTypes),
+        (string)($_POST['delivery_location'] ?? 'onshore'),
+        (string)($_POST['delivery_speed'] ?? 'standard'),
+        (int)($_POST['storage_life_months'] ?? 6),
+        $basePrice,
+        $calculatedPrice,
+        'USD',
+        'awaiting_review',
+        !empty($_POST['effective_date']) ? $_POST['effective_date'] : null,
+        !empty($_POST['notes']) ? $_POST['notes'] : null,
+    ]);
+
+    $newId = $pdo->lastInsertId();
+    header('Location: /admin/supply-requests/' . $newId);
+    exit;
+}
+
+// GET /admin/supply-requests/{id}/edit - Edit supply request form
+if (preg_match('#^/admin/supply-requests/(\d+)/edit$#', $path, $m) && $method === 'GET') {
+    require_admin();
+    $id = (int)$m[1];
+
+    $stmt = $pdo->prepare('SELECT sr.*, c.company_name, c.full_name, c.contractor_code, c.discount_percent, c.discount_eligible FROM supply_requests sr JOIN contractors c ON c.id = sr.contractor_id WHERE sr.id = ?');
+    $stmt->execute([$id]);
+    $req = $stmt->fetch();
+    if (!$req) {
+        header('Location: /admin/supply-requests');
+        exit;
+    }
+
+    render_admin_template('supply_request_form.php', [
+        'title' => 'Edit Supply Request - Admin',
+        'request' => $req,
+        'contractors' => [],
+    ]);
+}
+
+// POST /admin/supply-requests/{id}/edit - Update supply request
+if (preg_match('#^/admin/supply-requests/(\d+)/edit$#', $path, $m) && $method === 'POST') {
+    require_admin();
+    if (!verify_csrf()) {
+        http_response_code(403);
+        echo 'Invalid request';
+        exit;
+    }
+    $id = (int)$m[1];
+
+    $stmt = $pdo->prepare('SELECT sr.*, c.discount_percent, c.discount_eligible FROM supply_requests sr JOIN contractors c ON c.id = sr.contractor_id WHERE sr.id = ?');
+    $stmt->execute([$id]);
+    $req = $stmt->fetch();
+    if (!$req) {
+        header('Location: /admin/supply-requests');
+        exit;
+    }
+
+    $basePrice = (float)($_POST['base_price'] ?? $req['base_price'] ?? $req['calculated_price']);
+    $discountPercent = (!empty($req['discount_eligible'])) ? (float)($req['discount_percent'] ?? 0) : 0;
+    $calculatedPrice = $basePrice * (1 - ($discountPercent / 100));
+    $calculatedPrice = round($calculatedPrice, 2);
+
+    $supplyTypes = $_POST['supply_types'] ?? [];
+    if (!is_array($supplyTypes) || count($supplyTypes) < 1) {
+        $supplyTypes = ['water'];
+    }
+
+    $createdAt = !empty($_POST['created_at']) ? date('Y-m-d H:i:s', strtotime($_POST['created_at'])) : $req['created_at'];
+
+    $stmt = $pdo->prepare(
+        'UPDATE supply_requests SET 
+            duration_days = ?, crew_size = ?, supply_types = ?, delivery_location = ?, delivery_speed = ?, 
+            storage_life_months = ?, base_price = ?, calculated_price = ?, status = ?, 
+            effective_date = ?, notes = ?, payment_instructions = ?, created_at = ?
+         WHERE id = ?'
+    );
+    $stmt->execute([
+        (int)($_POST['duration_days'] ?? $req['duration_days']),
+        (int)($_POST['crew_size'] ?? $req['crew_size']),
+        json_encode($supplyTypes),
+        (string)($_POST['delivery_location'] ?? $req['delivery_location']),
+        (string)($_POST['delivery_speed'] ?? $req['delivery_speed']),
+        (int)($_POST['storage_life_months'] ?? $req['storage_life_months'] ?? 6),
+        $basePrice,
+        $calculatedPrice,
+        (string)($_POST['status'] ?? $req['status']),
+        !empty($_POST['effective_date']) ? $_POST['effective_date'] : null,
+        !empty($_POST['notes']) ? $_POST['notes'] : null,
+        !empty($_POST['payment_instructions']) ? $_POST['payment_instructions'] : null,
+        $createdAt,
+        $id,
+    ]);
+
+    header('Location: /admin/supply-requests/' . $id);
+    exit;
 }
 
 // GET /admin/orders
@@ -2822,7 +3225,7 @@ if ($path === '/admin/products/new' && $method === 'POST') {
         $_POST['weight_kg'] ?: null,
         $_POST['warranty_months'] ?: 12,
         $_POST['moq'] ?: 1,
-        $_POST['manufacturer'] ?? 'Streicher',
+        $_POST['manufacturer'] ?? 'Gordon Food Service',
         isset($_POST['is_featured']) ? 1 : 0,
         isset($_POST['is_active']) ? 1 : 0,
     ]);
@@ -2912,7 +3315,7 @@ if (preg_match('#^/admin/products/(\d+)/edit$#', $path, $m) && $method === 'POST
         $_POST['weight_kg'] ?: null,
         $_POST['warranty_months'] ?: 12,
         $_POST['moq'] ?: 1,
-        $_POST['manufacturer'] ?? 'Streicher',
+        $_POST['manufacturer'] ?? 'Gordon Food Service',
         isset($_POST['is_featured']) ? 1 : 0,
         isset($_POST['is_active']) ? 1 : 0,
     ];
@@ -3036,7 +3439,7 @@ if ($path === '/admin/shipments/create' && $method === 'POST') {
     $data = $_POST;
     
     $trackingNumber = !empty($data['tracking_number']) ? $data['tracking_number'] : generate_tracking_number();
-    $carrier = $data['carrier'] ?? 'Streicher Logistics';
+    $carrier = $data['carrier'] ?? 'GFS Logistics';
     $shippingMethod = $data['shipping_method'] ?? 'air_freight';
     $packageType = $data['package_type'] ?? 'crate';
     $status = $data['status'] ?? 'pending';
@@ -3047,8 +3450,8 @@ if ($path === '/admin/shipments/create' && $method === 'POST') {
         'timestamp' => !empty($data['shipped_at']) ? $data['shipped_at'] : date('Y-m-d H:i:s'),
         'status' => strtoupper($status),
         'description' => $data['initial_description'] ?? 'Shipment created',
-        'location' => $data['initial_location'] ?? 'Regensburg, Germany',
-        'facility' => $data['initial_facility'] ?? 'Streicher Logistics Center',
+        'location' => $data['initial_location'] ?? 'Galveston, TX',
+        'facility' => $data['initial_facility'] ?? 'Galveston Distribution Hub',
     ]];
     
     // Create customer info JSON
@@ -3071,8 +3474,8 @@ if ($path === '/admin/shipments/create' && $method === 'POST') {
         $trackingNumber,
         $status,
         $shippedAt,
-        $data['origin_city'] ?? 'Regensburg',
-        $data['origin_country'] ?? 'DE',
+        $data['origin_city'] ?? 'Galveston',
+        $data['origin_country'] ?? 'US',
         $data['destination_city'] ?? '',
         $data['destination_country'] ?? '',
         $shippingMethod,
@@ -3117,7 +3520,7 @@ if (preg_match('#^/admin/shipments/(\d+)/update-info$#', $path, $m) && $method =
         'UPDATE shipments SET carrier = ?, status = ?, shipped_at = ? WHERE id = ?'
     );
     $stmt->execute([
-        $data['carrier'] ?? 'Streicher Logistics',
+        $data['carrier'] ?? 'GFS Logistics',
         $data['status'] ?? 'pending',
         !empty($data['shipped_at']) ? $data['shipped_at'] : null,
         $shipmentId,
@@ -3360,11 +3763,117 @@ if ($path === '/admin/settings' && $method === 'POST') {
     exit;
 }
 
+// ============ ADMIN CONTRACTORS ============
+
+if ($path === '/admin/contractors' && $method === 'GET') {
+    require_admin();
+    $stmt = $pdo->query('SELECT * FROM contractors ORDER BY created_at DESC');
+    $contractors = $stmt->fetchAll();
+    render_admin_template('contractors.php', [
+        'title' => 'Contractors - Admin',
+        'contractors' => $contractors,
+        'createdCode' => isset($_GET['created']) ? (string)$_GET['created'] : null,
+    ]);
+}
+
+if ($path === '/admin/contractors/new' && $method === 'GET') {
+    require_admin();
+    render_admin_template('contractor_form.php', [
+        'title' => 'New Contractor - Admin',
+        'contractor' => null,
+    ]);
+}
+
+if ($path === '/admin/contractors/new' && $method === 'POST') {
+    require_admin();
+    $fullName = trim((string)($_POST['full_name'] ?? ''));
+    $companyName = trim((string)($_POST['company_name'] ?? ''));
+    $discountPercent = (float)($_POST['discount_percent'] ?? 0);
+    $discountEligible = !empty($_POST['discount_eligible']) ? 1 : 0;
+    $active = !empty($_POST['active']) ? 1 : 0;
+
+    if ($fullName === '' || $companyName === '') {
+        render_admin_template('contractor_form.php', [
+            'title' => 'New Contractor - Admin',
+            'contractor' => null,
+            'error' => 'Full name and company name are required.',
+        ]);
+    }
+
+    $contractorCode = '';
+    for ($i = 0; $i < 20; $i++) {
+        $candidate = 'GFS-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
+        $existsStmt = $pdo->prepare('SELECT COUNT(*) FROM contractors WHERE contractor_code = ?');
+        $existsStmt->execute([$candidate]);
+        if ((int)$existsStmt->fetchColumn() === 0) {
+            $contractorCode = $candidate;
+            break;
+        }
+    }
+    if ($contractorCode === '') {
+        render_admin_template('contractor_form.php', [
+            'title' => 'New Contractor - Admin',
+            'contractor' => null,
+            'error' => 'Failed to generate a unique contractor code. Please try again.',
+        ]);
+    }
+
+    $stmt = $pdo->prepare('INSERT INTO contractors (full_name, company_name, contractor_code, discount_percent, discount_eligible, active) VALUES (?, ?, ?, ?, ?, ?)');
+    $stmt->execute([$fullName, $companyName, $contractorCode, $discountPercent, $discountEligible, $active]);
+
+    header('Location: /admin/contractors?created=' . urlencode($contractorCode));
+    exit;
+}
+
+if (preg_match('#^/admin/contractors/(\d+)/edit$#', $path, $m) && $method === 'GET') {
+    require_admin();
+    $id = (int)$m[1];
+    $stmt = $pdo->prepare('SELECT * FROM contractors WHERE id = ?');
+    $stmt->execute([$id]);
+    $contractor = $stmt->fetch();
+    if (!$contractor) {
+        header('Location: /admin/contractors');
+        exit;
+    }
+    render_admin_template('contractor_form.php', [
+        'title' => 'Edit Contractor - Admin',
+        'contractor' => $contractor,
+    ]);
+}
+
+if (preg_match('#^/admin/contractors/(\d+)/edit$#', $path, $m) && $method === 'POST') {
+    require_admin();
+    $id = (int)$m[1];
+    $fullName = trim((string)($_POST['full_name'] ?? ''));
+    $companyName = trim((string)($_POST['company_name'] ?? ''));
+    $contractorCode = strtoupper(trim((string)($_POST['contractor_code'] ?? '')));
+    $discountPercent = (float)($_POST['discount_percent'] ?? 0);
+    $discountEligible = !empty($_POST['discount_eligible']) ? 1 : 0;
+    $active = !empty($_POST['active']) ? 1 : 0;
+
+    if ($fullName === '' || $companyName === '' || $contractorCode === '') {
+        $stmt = $pdo->prepare('SELECT * FROM contractors WHERE id = ?');
+        $stmt->execute([$id]);
+        $contractor = $stmt->fetch();
+        render_admin_template('contractor_form.php', [
+            'title' => 'Edit Contractor - Admin',
+            'contractor' => $contractor,
+            'error' => 'Full name, company name, and contractor code are required.',
+        ]);
+    }
+
+    $stmt = $pdo->prepare('UPDATE contractors SET full_name = ?, company_name = ?, contractor_code = ?, discount_percent = ?, discount_eligible = ?, active = ? WHERE id = ?');
+    $stmt->execute([$fullName, $companyName, $contractorCode, $discountPercent, $discountEligible, $active, $id]);
+
+    header('Location: /admin/contractors');
+    exit;
+}
+
 // ============ STATIC PAGES ============
 
 // GET /contact - Contact page
 if ($path === '/contact' && $method === 'GET') {
-    render_template('pages/contact.php', ['title' => 'Contact Us - Streicher']);
+    render_template('pages/contact.php', ['title' => 'Contact Us - Gordon Food Service']);
 }
 
 // POST /contact - Contact form submission
@@ -3384,7 +3893,7 @@ if ($path === '/contact' && $method === 'POST') {
     $stmt->execute([$ticketNumber, $name, $company, $email, $phone, $subject, $message]);
     
     render_template('pages/contact.php', [
-        'title' => 'Contact Us - Streicher',
+        'title' => 'Contact Us - Gordon Food Service',
         'success' => true,
         'ticketNumber' => $ticketNumber,
     ]);
@@ -3402,7 +3911,7 @@ if ($path === '/quote' && $method === 'GET') {
     }
     
     render_template('pages/quote.php', [
-        'title' => 'Request a Quote - Streicher',
+        'title' => 'Request a Quote - Gordon Food Service',
         'product' => $product,
     ]);
 }
@@ -3437,7 +3946,7 @@ if ($path === '/quote' && $method === 'POST') {
     $stmt->execute([$ticketNumber, $name, $company, $email, $phone, 'Quote Request - ' . $category, $message]);
     
     render_template('pages/quote.php', [
-        'title' => 'Request a Quote - Streicher',
+        'title' => 'Request a Quote - Gordon Food Service',
         'success' => true,
         'ticketNumber' => $ticketNumber,
     ]);
@@ -3445,127 +3954,133 @@ if ($path === '/quote' && $method === 'POST') {
 
 // GET /support - Support page
 if ($path === '/support' && $method === 'GET') {
-    render_template('pages/support.php', ['title' => 'Technical Support - Streicher']);
+    render_template('pages/support.php', ['title' => 'Support - Gordon Food Service']);
 }
 
 // GET /faq - FAQ page
 if ($path === '/faq' && $method === 'GET') {
-    render_template('pages/faq.php', ['title' => 'FAQ - Streicher']);
+    render_template('pages/faq.php', ['title' => 'FAQ - Gordon Food Service']);
 }
 
 // GET /about - About page
 if ($path === '/about' && $method === 'GET') {
-    render_template('pages/about.php', ['title' => 'About Us - Streicher']);
+    render_template('pages/about.php', ['title' => 'About Us - Gordon Food Service']);
 }
 
 // GET /profile - Company Profile page
 if ($path === '/profile' && $method === 'GET') {
-    render_template('pages/profile.php', ['title' => $lang === 'de' ? 'Unternehmensprofil - Streicher' : 'Company Profile - Streicher']);
+    render_template('pages/profile.php', ['title' => $lang === 'de' ? 'Unternehmensprofil - Gordon Food Service' : 'Company Profile - Gordon Food Service']);
 }
 
 // GET /news - News page
 if ($path === '/news' && $method === 'GET') {
-    render_template('pages/news.php', ['title' => $lang === 'de' ? 'Neuigkeiten - Streicher' : 'News - Streicher']);
+    render_template('pages/news.php', ['title' => $lang === 'de' ? 'Neuigkeiten - Gordon Food Service' : 'News - Gordon Food Service']);
 }
 
 // GET /mediathek - Media Library page
 if ($path === '/mediathek' && $method === 'GET') {
-    render_template('pages/mediathek.php', ['title' => $lang === 'de' ? 'Mediathek - Streicher' : 'Media Library - Streicher']);
+    render_template('pages/mediathek.php', ['title' => $lang === 'de' ? 'Mediathek - Gordon Food Service' : 'Media Library - Gordon Food Service']);
 }
 
 // GET /business-sectors - Business Sectors page
 if ($path === '/business-sectors' && $method === 'GET') {
-    render_template('pages/business-sectors.php', ['title' => $lang === 'de' ? 'Geschäftsbereiche - Streicher' : 'Business Sectors - Streicher']);
+    render_template('pages/business-sectors.php', ['title' => $lang === 'de' ? 'Geschäftsbereiche - Gordon Food Service' : 'Business Sectors - Gordon Food Service']);
 }
 
 // GET /reference-projects - Reference Projects page
 if ($path === '/reference-projects' && $method === 'GET') {
-    render_template('pages/reference-projects.php', ['title' => $lang === 'de' ? 'Referenzprojekte - Streicher' : 'Reference Projects - Streicher']);
+    render_template('pages/reference-projects.php', ['title' => $lang === 'de' ? 'Referenzprojekte - Gordon Food Service' : 'Reference Projects - Gordon Food Service']);
 }
 
 // GET /hse-q - HSE-Q page
 if ($path === '/hse-q' && $method === 'GET') {
-    render_template('pages/hse-q.php', ['title' => 'HSE-Q - Streicher']);
+    render_template('pages/hse-q.php', ['title' => 'HSE-Q - Gordon Food Service']);
 }
 
 // GET /events - Events page
 if ($path === '/events' && $method === 'GET') {
-    render_template('pages/events.php', ['title' => $lang === 'de' ? 'Veranstaltungen - Streicher' : 'Events - Streicher']);
+    render_template('pages/events.php', ['title' => $lang === 'de' ? 'Veranstaltungen - Gordon Food Service' : 'Events - Gordon Food Service']);
 }
 
 // GET /careers - Careers page
 if ($path === '/careers' && $method === 'GET') {
-    render_template('pages/careers.php', ['title' => 'Careers - Streicher']);
+    render_template('pages/careers.php', ['title' => 'Careers - Gordon Food Service']);
 }
 
 // GET /privacy - Privacy Policy
 if ($path === '/privacy' && $method === 'GET') {
-    render_template('pages/privacy.php', ['title' => 'Privacy Policy - Streicher']);
+    render_template('pages/privacy.php', ['title' => 'Privacy Policy - Gordon Food Service']);
 }
 
 // GET /terms - Terms & Conditions
 if ($path === '/terms' && $method === 'GET') {
-    render_template('pages/terms.php', ['title' => 'Terms & Conditions - Streicher']);
+    render_template('pages/terms.php', ['title' => 'Terms & Conditions - Gordon Food Service']);
 }
 
 // GET /shipping - Shipping Information
 if ($path === '/shipping' && $method === 'GET') {
-    render_template('pages/shipping.php', ['title' => 'Shipping Information - Streicher']);
+    render_template('pages/shipping.php', ['title' => 'Shipping Information - Gordon Food Service']);
 }
 
 // GET /returns - Returns Policy
 if ($path === '/returns' && $method === 'GET') {
-    render_template('pages/returns.php', ['title' => 'Returns Policy - Streicher']);
+    render_template('pages/returns.php', ['title' => 'Returns Policy - Gordon Food Service']);
+}
+
+// ============ SERVICE PAGES ============
+
+// GET /services/offshore - Offshore Provisioning
+if ($path === '/services/offshore' && $method === 'GET') {
+    render_template('pages/services/offshore.php', ['title' => 'Offshore Provisioning - Gordon Food Service']);
+}
+
+// GET /services/onshore - Onshore Wholesale
+if ($path === '/services/onshore' && $method === 'GET') {
+    render_template('pages/services/onshore.php', ['title' => 'Onshore Wholesale - Gordon Food Service']);
+}
+
+// GET /services/recurring - Recurring Deliveries
+if ($path === '/services/recurring' && $method === 'GET') {
+    render_template('pages/services/recurring.php', ['title' => 'Recurring Deliveries - Gordon Food Service']);
+}
+
+// GET /services/dispatch - Time-Critical Dispatch
+if ($path === '/services/dispatch' && $method === 'GET') {
+    render_template('pages/services/dispatch.php', ['title' => 'Time-Critical Dispatch - Gordon Food Service']);
+}
+
+// GET /services/groceries - Groceries & Dry Goods
+if ($path === '/services/groceries' && $method === 'GET') {
+    render_template('pages/services/groceries.php', ['title' => 'Groceries & Dry Goods - Gordon Food Service']);
+}
+
+// GET /services/toiletries - Toiletries & Hygiene
+if ($path === '/services/toiletries' && $method === 'GET') {
+    render_template('pages/services/toiletries.php', ['title' => 'Toiletries & Hygiene - Gordon Food Service']);
 }
 
 // GET /login - Customer Login
 if ($path === '/login' && $method === 'GET') {
-    render_template('pages/login.php', ['title' => 'Login - Streicher']);
+    header('Location: /supply');
+    exit;
 }
 
 // POST /login - Customer Login
 if ($path === '/login' && $method === 'POST') {
-    $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
-    
-    $stmt = $pdo->prepare('SELECT * FROM users WHERE email = ?');
-    $stmt->execute([$email]);
-    $user = $stmt->fetch();
-    
-    if ($user && password_verify($password, $user['password_hash'])) {
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['user_role'] = $user['role'];
-        $_SESSION['user_name'] = $user['full_name'];
-        header('Location: /account');
-        exit;
-    }
-    
-    render_template('pages/login.php', [
-        'title' => 'Login - Streicher',
-        'error' => 'Invalid email or password',
-    ]);
+    header('Location: /supply');
+    exit;
 }
 
 // GET /register - Customer Registration
 if ($path === '/register' && $method === 'GET') {
-    render_template('pages/register.php', ['title' => 'Register - Streicher']);
+    header('Location: /supply');
+    exit;
 }
 
 // GET /account - Customer Account
 if ($path === '/account' && $method === 'GET') {
-    if (empty($_SESSION['user_id'])) {
-        header('Location: /login');
-        exit;
-    }
-    
-    $stmt = $pdo->prepare('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 10');
-    $stmt->execute([$_SESSION['user_id']]);
-    $orders = $stmt->fetchAll();
-    
-    render_template('pages/account.php', [
-        'title' => 'My Account - Streicher',
-        'orders' => $orders,
-    ]);
+    header('Location: /supply');
+    exit;
 }
 
 // Fallback 404

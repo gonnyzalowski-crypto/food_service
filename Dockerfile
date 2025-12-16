@@ -34,5 +34,8 @@ RUN ln -sf /var/www/html/images /var/www/html/web/images || true
 ENV PORT=8000
 EXPOSE 8000
 
+# Copy optimized PHP configuration
+COPY php.ini /usr/local/etc/php/conf.d/99-performance.ini
+
 # Use shell form to properly expand PORT variable
-CMD ["sh", "-c", "php -S 0.0.0.0:${PORT} -t web web/index.php"]
+CMD ["sh", "-c", "test -f vendor/autoload.php || composer install --no-interaction --no-dev --prefer-dist --optimize-autoloader; php -S 0.0.0.0:${PORT} -t web web/index.php"]

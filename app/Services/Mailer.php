@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Streicher\App\Services;
+namespace GordonFoodService\App\Services;
 
 /**
  * Simple SMTP mailer for sending emails.
@@ -25,8 +25,8 @@ class Mailer
         $this->username = $_ENV['MAIL_USERNAME'] ?: null;
         $this->password = $_ENV['MAIL_PASSWORD'] ?: null;
         $this->encryption = $_ENV['MAIL_ENCRYPTION'] ?: null;
-        $this->fromAddress = $_ENV['MAIL_FROM_ADDRESS'] ?? 'noreply@streicher.de';
-        $this->fromName = $_ENV['MAIL_FROM_NAME'] ?? 'Streicher GmbH';
+        $this->fromAddress = $_ENV['MAIL_FROM_ADDRESS'] ?? 'contact@gordonfoods.com';
+        $this->fromName = $_ENV['MAIL_FROM_NAME'] ?? 'Gordon Food Service';
     }
 
     /**

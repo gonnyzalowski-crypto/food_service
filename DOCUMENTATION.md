@@ -1,10 +1,11 @@
-# Streicher GmbH E-Commerce Platform Documentation
+# Gordon Food Service (Galveston) - Platform Documentation
 
 ## Overview
 
-The Streicher GmbH E-Commerce Platform is a full-featured industrial equipment and software sales website built for a German engineering company. The platform supports B2B sales of heavy industrial equipment and enterprise software solutions.
+Gordon Food Service (Galveston) is a B2B offshore and onshore food provisioning platform serving the Gulf Coast energy industry. The platform enables registered contractors to request supply packages for offshore rigs, vessels, and onshore operations with automated pricing, contractor discounts, and a streamlined admin review workflow.
 
-**Live URL:** https://streichergmbh.com
+**Location:** 28th–36th St Port/Harborside industrial zone, Galveston, TX  
+**Contact:** contact@gordonfoods.com | +1 213-653-0266
 
 ---
 
@@ -12,16 +13,16 @@ The Streicher GmbH E-Commerce Platform is a full-featured industrial equipment a
 
 1. [Technology Stack](#technology-stack)
 2. [Features Overview](#features-overview)
-3. [Product Categories](#product-categories)
-4. [User Features](#user-features)
+3. [Supply Services](#supply-services)
+4. [Contractor Portal](#contractor-portal)
 5. [Admin Features](#admin-features)
-6. [Order Flow](#order-flow)
+6. [Supply Request Flow](#supply-request-flow)
 7. [Payment System](#payment-system)
-8. [Notification System](#notification-system)
+8. [Pricing Engine](#pricing-engine)
 9. [Database Schema](#database-schema)
 10. [API Endpoints](#api-endpoints)
 11. [Deployment](#deployment)
-12. [Achievements](#achievements)
+12. [Visual Design](#visual-design)
 
 ---
 
@@ -29,220 +30,172 @@ The Streicher GmbH E-Commerce Platform is a full-featured industrial equipment a
 
 | Component | Technology |
 |-----------|------------|
-| Backend | PHP 8.x |
-| Database | MySQL (Railway) |
+| Backend | PHP 8.1 with Composer (PSR-4 autoloading) |
+| Database | MySQL 8.0 |
 | Frontend | HTML5, CSS3, JavaScript |
-| Hosting | Railway.app |
-| Version Control | GitHub |
-| CI/CD | Railway Auto-Deploy |
+| Containerization | Docker Compose |
+| Namespace | `GordonFoodService\App` |
 
 ---
 
 ## Features Overview
 
 ### Public Features
-- **Multi-language Support**: German (DE) and English (EN)
-- **Multi-currency Display**: EUR and USD with live exchange rates
-- **Product Catalog**: 74+ products across 11 categories
-- **Product Search**: Full-text search across products
-- **Category Filtering**: Browse by product category
-- **Shopping Cart**: Session-based cart management
-- **Order Tracking**: Track orders by order number
-- **Quote Requests**: Request custom quotes for bulk orders
+- **Landing Page**: Modern hero section with food service imagery
+- **Supply Portal**: Contractor-code gated access to supply requests
 - **Contact Forms**: Customer inquiry system
-- **Live Chat**: Real-time customer support messaging
+- **Responsive Design**: Mobile-friendly Teal+Coral+Cream color scheme
 
 ### Business Features
-- **Hardware Products**: 56 industrial equipment items (including 10 aviation)
-- **Software Products**: 18 enterprise software licenses (including 3 aviation)
-- **Digital Delivery**: Software orders with license key delivery via email
-- **Bank Transfer Payments**: Wire transfer with receipt upload
-- **Order Management**: Full order lifecycle management
-- **Shipment Tracking**: Integration with shipping carriers
+- **Supply Packages**: Water, dry food, canned food, mixed supplies
+- **Contractor Discounts**: Up to 35% off for registered contractors
+- **Automated Pricing**: Based on crew size, duration, delivery location, and speed
+- **Admin Review Workflow**: Accept/decline supply requests with payment instructions
+- **Encrypted Payment Collection**: AES-256-GCM encrypted card data with 24h expiry
 
 ---
 
-## Product Categories
+## Supply Services
 
-### Hardware Categories (6)
-1. **Pipelines & Plants** - Pipeline construction and plant equipment
-2. **Mechanical Engineering** - Mechanical engineering equipment
-3. **Drilling Technology** - Drilling rigs and equipment
-4. **Hydraulic Systems** - Hydraulic power units and components
-5. **Instrumentation** - Measurement and control instruments
-6. **Aviation Engineering** - Aircraft maintenance equipment, ground support systems (10 products, $52K-$180K)
+### Supply Types
+1. **Water** - Potable water and beverages (0.9x multiplier)
+2. **Dry Food** - Extended shelf-life provisions (1.0x multiplier)
+3. **Canned Food** - Bulk canned goods (1.05x multiplier)
+4. **Mixed Supplies** - Custom-configured packages (1.1x multiplier)
 
-### Additional Categories (3)
-7. **Electrical Engineering** - Electrical systems and components
-8. **Civil Engineering** - Civil and structural engineering equipment
-9. **Raw Materials** - Raw and construction materials
+### Delivery Locations
+- **Pickup** - 0.85x multiplier
+- **Local** - 0.95x multiplier
+- **Onshore** - 1.0x multiplier
+- **Nearshore** - 1.15x multiplier
+- **Offshore Rig** - 1.35x multiplier
 
-### Software Category (1)
-10. **Engineering Software** - Enterprise software solutions (18 products)
-    - Pipeline simulation software
-    - CAD/CAM solutions
-    - SCADA systems
-    - Process control software
-    - Drilling simulation platforms
-    - Aviation software (AeroCAD Pro Suite, FlightSim Certification, AeroMaint MRO Manager)
+### Delivery Speeds
+- **Standard** - 1.0x multiplier
+- **Priority** - 1.2x multiplier
+- **Emergency** - 1.45x multiplier
 
 ---
 
-## User Features
+## Contractor Portal
 
-### Account Management
-- User registration and login
-- Password reset functionality
-- Profile management
-- Order history
+### Access (`/supply`)
+- Enter contractor code (e.g., `GFS-DEMO-0001`)
+- View supply request history with Price and Discounted Price columns
+- Submit new supply requests
+- Pay for approved requests via encrypted card submission
 
-### Shopping Experience
-- Browse products by category
-- Search products by name/description
-- View product details with images
-- Add products to cart
-- Adjust quantities
-- Proceed to checkout
-
-### Order Tracking
-- Track orders by order number
-- View order status updates
-- Download invoices
-- Communication with support
-
-### Support
-- FAQ section
-- Contact form
-- Live chat messaging
-- Returns and warranty information
+### Supply Request Form
+- Crew size (number of personnel)
+- Duration (days)
+- Supply types (checkboxes)
+- Delivery location
+- Delivery speed
+- Storage life preference
+- Effective date
+- Notes (rig name, dock instructions, etc.)
 
 ---
 
 ## Admin Features
 
 ### Dashboard (`/admin`)
-- Overview statistics (orders, revenue, products)
+- Overview statistics
 - Recent orders list
 - Quick action buttons
-- Order status breakdown
 
-### Order Management (`/admin/orders`)
-- View all orders
-- Filter by status
-- Update order status
-- Confirm payments
-- Create shipments
-- Add tracking numbers
+### Supply Requests (`/admin/supply-requests`)
+- View all supply requests with status filtering
+- **Price** and **Discounted Price** columns
+- Accept/decline requests with payment instructions
+- View encrypted payment details (card last 4, expiry)
+- Mark transactions as completed
 
-### Product Management (`/admin/products`)
-- Add new products
-- Edit existing products
-- Manage product images
-- Set pricing
-- Manage stock levels
-- Toggle product visibility
+### Supply Request Create/Edit (`/admin/supply-requests/new`, `/admin/supply-requests/{id}/edit`)
+- **Create new requests** for any contractor
+- **Edit all fields**: crew, duration, supplies, delivery, storage life
+- **Price override**: Edit base price, system auto-calculates discounted price
+- **Backdate**: Change `created_at` timestamp
+- **Status changes**: Even for completed/declined requests
+- **Payment instructions**: Custom instructions shown to contractor
 
-### Customer Management (`/admin/customers`)
-- View customer list
-- Customer order history
-- Customer communication
-
-### Shipment Management (`/admin/shipments`)
-- Create shipments
-- Add tracking information
-- Update shipment status
-
-### Support Tickets (`/admin/tickets`)
-- View customer inquiries
-- Respond to tickets
-- Close resolved tickets
+### Contractors (`/admin/contractors`)
+- **List all contractors** with company, contact, code, discount, status
+- **Create new contractor**: Auto-generates unique code (e.g., `GFS-C7FB0405`)
+- **Edit contractor**: Name, company, code, discount percent, active status
 
 ### Settings (`/admin/settings`)
-- **Company Information**: Name, VAT ID, Address
-- **Bank Details**: Bank name, IBAN, BIC/SWIFT (displayed on checkout)
-- **Contact Information**: Support email, phone, sales email
-- **Tax & Shipping**: VAT rate, currency, free shipping threshold
-- **Notification Settings**: Email notifications for orders/payments
-- **Admin Users**: Manage admin accounts
+- Company information
+- Contact details
+- Notification preferences
 
 ---
 
-## Order Flow
+## Supply Request Flow
 
-### Hardware Orders
 ```
-1. Customer adds products to cart
-2. Customer proceeds to checkout
-3. Customer fills billing/shipping information
-4. Order created with status: "Awaiting Payment"
-5. Customer receives bank details
-6. Customer makes bank transfer
-7. Customer uploads payment receipt
-8. Status changes to: "Payment Uploaded"
-9. Admin reviews and confirms payment
-10. Status changes to: "Payment Confirmed"
-11. Admin creates shipment with tracking
-12. Status changes to: "Shipped"
-13. Customer receives tracking information
-14. Status changes to: "Delivered" upon delivery
-```
-
-### Software Orders
-```
-1. Customer adds software products to cart
-2. Customer proceeds to checkout
-3. Customer fills billing information (no shipping needed)
-4. Order created with type: "software"
-5. Customer receives bank details
-6. Customer makes bank transfer
-7. Customer uploads payment receipt
-8. Admin reviews and confirms payment
-9. Admin sends license key via email
-10. Status changes to: "License Sent" / "Delivered"
-11. Customer receives software instructions via email
+1. Contractor enters code at /supply
+2. Contractor fills supply request form
+3. Request created with status: "Awaiting Review"
+4. Admin reviews request at /admin/supply-requests/{id}
+5. Admin accepts with payment instructions OR declines with reason
+6. Status changes to: "Approved (Awaiting Payment)" or "Declined"
+7. Contractor sees Pay button in Supply Portal
+8. Contractor submits card details (encrypted, 24h expiry)
+9. Status changes to: "Payment Processing"
+10. Admin views decrypted card details
+11. Admin processes payment externally
+12. Admin marks as "Transaction Completed"
+13. Encrypted payment data is purged
 ```
 
 ---
 
 ## Payment System
 
-### Supported Payment Methods
-- **Bank Transfer / Wire Payment**
-  - Customer receives bank details at checkout
-  - Bank details are configurable in admin settings
-  - Customer uploads payment receipt/confirmation
-  - Admin manually verifies payment
+### Encrypted Card Collection
+- **AES-256-GCM encryption** with random IV
+- **Encryption key** stored in `settings` table
+- **24-hour expiry** - data auto-purged after expiry
+- **Admin-only decryption** for manual processing
 
-### Bank Details Configuration
-Admin can configure:
-- Bank Name (e.g., "Commerzbank AG Frankfurt")
-- Account Holder (e.g., "Streicher GmbH")
-- IBAN (e.g., "DE91 5004 0000 0123 4567 89")
-- BIC/SWIFT (e.g., "COBADEFFXXX")
+### Card Data Collected
+- Cardholder name
+- Card number (stored encrypted)
+- Expiry month/year
+- CVV (stored encrypted)
+- Billing address
+- Phone number
 
-### Payment Receipt Upload
-- Supported formats: PDF, JPG, PNG
-- Maximum file size: 10MB
-- Stored securely on server
-- Linked to order for admin review
+### Payment Statuses
+1. `awaiting_review` - Initial submission
+2. `approved_awaiting_payment` - Admin accepted, awaiting card
+3. `payment_submitted_processing` - Card submitted, admin processing
+4. `transaction_completed` - Payment processed successfully
+5. `declined` - Request declined by admin
 
 ---
 
-## Notification System
+## Pricing Engine
 
-### Telegram Integration
-- Admin receives Telegram notifications for:
-  - New customer messages
-  - Payment uploads
-  - New orders
-- Admin can reply to customers via Telegram
-- Replies are sent to customer's email
+### SupplyPricingWorker
+Located at `app/Services/SupplyPricingWorker.php`
 
-### Email Notifications
-- Order confirmation emails
-- Payment confirmation emails
-- Shipment notifications with tracking
-- Software license delivery emails
+### Calculation Formula
+```
+base_price = base_rate × crew_size × duration_days × type_multiplier × location_multiplier × speed_multiplier
+discounted_price = base_price × (1 - contractor_discount_percent / 100)
+```
+
+### Configuration (`supply_pricing_config` table)
+- `base_rate_per_person_day`: $22.50
+- `type_multipliers`: JSON object
+- `location_multipliers`: JSON object
+- `speed_multipliers`: JSON object
+
+### Price Display
+- **Price**: Original base price before discount
+- **Discounted Price**: Final price after contractor discount applied
 
 ---
 
@@ -250,40 +203,35 @@ Admin can configure:
 
 ### Core Tables
 
-#### `users`
-- id, email, password_hash, full_name, phone, role, is_active, created_at
+#### `contractors`
+- id, full_name, company_name, contractor_code (unique)
+- discount_percent, discount_eligible, active
+- created_at, updated_at
 
-#### `products`
-- id, sku, name, slug, description, specifications
-- category_id, unit_price, currency, stock_quantity
-- lead_time_days, weight_kg, dimensions
-- image_url, **product_type** (hardware/software)
-- is_active, is_featured, created_at, updated_at
+#### `supply_pricing_config`
+- id, config_json (multipliers), created_at, updated_at
 
-#### `categories`
-- id, name, slug, description, image_url, parent_id, sort_order
+#### `supply_requests`
+- id, request_number (unique), contractor_id
+- duration_days, crew_size, supply_types (JSON)
+- delivery_location, delivery_speed, storage_life_months
+- **base_price**, calculated_price, currency
+- status, effective_date, notes
+- reviewed_by, reviewed_at, decline_reason
+- payment_instructions, approved_at, declined_at
+- payment_submitted_at, completed_at
+- created_at, updated_at
 
-#### `orders`
-- id, order_number, user_id, status, **order_type** (hardware/software/mixed)
-- subtotal, tax_amount, shipping_amount, total_amount, currency
-- billing_address (JSON), shipping_address (JSON)
-- notes, created_at, updated_at
-
-#### `order_items`
-- id, order_id, product_id, sku, name, quantity, unit_price, total_price
-
-#### `shipments`
-- id, order_id, carrier, tracking_number, status
-- shipped_at, delivered_at, created_at
-
-#### `payment_uploads`
-- id, order_id, file_path, file_name, status, notes, created_at
-
-#### `tracking_communications`
-- id, tracking_number, sender_type, message, created_at
+#### `supply_request_payments`
+- id, supply_request_id, contractor_id
+- billing_name, phone, billing_address (JSON)
+- card_brand, card_last4, exp_month, exp_year
+- encrypted_payload, iv_b64, tag_b64
+- created_ip, expires_at, created_at
 
 #### `settings`
 - id, setting_key, setting_value, updated_at
+- Includes `payment_encryption_key` for AES-256-GCM
 
 ---
 
@@ -292,188 +240,135 @@ Admin can configure:
 ### Public Endpoints
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/` | Home page |
-| GET | `/catalog` | Product catalog |
-| GET | `/catalog?category={slug}` | Category filtered catalog |
-| GET | `/product?sku={sku}` | Product detail page |
-| GET | `/cart` | Shopping cart |
-| POST | `/cart/add` | Add to cart |
-| POST | `/cart/update` | Update cart quantity |
-| POST | `/cart/remove` | Remove from cart |
-| GET | `/checkout` | Checkout page |
-| POST | `/checkout` | Process checkout |
-| GET | `/track` | Order tracking page |
-| POST | `/track` | Track order by number |
-| GET | `/order/{id}` | Order status page |
-| GET | `/order/{id}/payment` | Payment upload page |
-| POST | `/order/{id}/payment` | Upload payment receipt |
+| GET | `/` | Landing page |
+| GET | `/supply` | Supply Portal |
+| POST | `/supply` | Submit supply request |
+| POST | `/supply/payment` | Submit encrypted payment |
+| GET | `/contact` | Contact page |
+| POST | `/contact` | Submit contact form |
 
 ### Admin Endpoints
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/admin` | Admin dashboard |
-| GET | `/admin/orders` | Order management |
-| GET | `/admin/orders/{id}` | Order detail |
-| POST | `/admin/orders/{id}/status` | Update order status |
-| POST | `/admin/orders/{id}/confirm-payment` | Confirm payment |
-| GET | `/admin/products` | Product management |
-| GET | `/admin/products/new` | Add product form |
-| POST | `/admin/products` | Create product |
-| GET | `/admin/products/{id}/edit` | Edit product form |
-| POST | `/admin/products/{id}` | Update product |
-| GET | `/admin/shipments` | Shipment management |
-| POST | `/admin/shipments` | Create shipment |
+| GET | `/admin/supply-requests` | Supply request list |
+| GET | `/admin/supply-requests/new` | New supply request form |
+| POST | `/admin/supply-requests/new` | Create supply request |
+| GET | `/admin/supply-requests/{id}` | Supply request detail |
+| GET | `/admin/supply-requests/{id}/edit` | Edit supply request form |
+| POST | `/admin/supply-requests/{id}/edit` | Update supply request |
+| POST | `/admin/supply-requests/{id}/accept` | Accept request |
+| POST | `/admin/supply-requests/{id}/decline` | Decline request |
+| POST | `/admin/supply-requests/{id}/complete` | Mark completed |
+| GET | `/admin/contractors` | Contractor list |
+| GET | `/admin/contractors/new` | New contractor form |
+| POST | `/admin/contractors/new` | Create contractor |
+| GET | `/admin/contractors/{id}/edit` | Edit contractor form |
+| POST | `/admin/contractors/{id}/edit` | Update contractor |
 | GET | `/admin/settings` | Settings page |
 | POST | `/admin/settings` | Save settings |
-| GET | `/admin/customers` | Customer list |
-| GET | `/admin/tickets` | Support tickets |
 
 ### Utility Endpoints
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/health` | Health check |
-| GET | `/setup` | Database setup |
-| GET | `/update-product-images` | Update product image URLs |
-| GET | `/seed-software-products` | Seed software products |
-| GET | `/setup-software-category` | Setup software category |
-| POST | `/telegram-webhook` | Telegram bot webhook |
+| GET | `/setup-database` | Database setup/migration |
 
 ---
 
 ## Deployment
 
-### Railway Deployment
-The application is deployed on Railway.app with:
-- Automatic deployments from GitHub main branch
-- MySQL database provisioned by Railway
-- Environment variables for configuration
+### Docker Compose
+```yaml
+services:
+  app:        # PHP 8.1 application on port 8000
+  db:         # MySQL 8.0 on port 3306
+  mailpit:    # Email testing on port 8025
+  phpmyadmin: # Database UI on port 8080
+```
 
 ### Environment Variables
 ```
-DB_HOST=<railway-mysql-host>
+DB_HOST=db
 DB_PORT=3306
-DB_NAME=streicher
-DB_USER=<username>
-DB_PASS=<password>
-TELEGRAM_BOT_TOKEN=<bot-token>
-TELEGRAM_ADMIN_ID=<admin-chat-id>
+DB_NAME=gordon_food_service
+DB_USER=gfs
+DB_PASS=secret
+MAIL_HOST=mailpit
+MAIL_PORT=1025
 ```
 
-### Deployment Process
-1. Push changes to GitHub main branch
-2. Railway automatically detects changes
-3. Railway builds and deploys the application
-4. Database migrations run automatically on `/setup`
+### Default Admin Credentials
+- **Email:** admin@gordonfoods.com
+- **Password:** admin123
+
+### Demo Contractor Code
+- **Code:** GFS-DEMO-0001
 
 ---
 
-## Achievements
+## Visual Design
 
-### E-Commerce Platform
-- ✅ Full product catalog with 74+ products
-- ✅ 11 product categories including Engineering Software and Aviation Engineering
-- ✅ Shopping cart and checkout system
-- ✅ Bank transfer payment with receipt upload
-- ✅ Order tracking system
-- ✅ Multi-language support (DE/EN)
-- ✅ Multi-currency display (EUR/USD)
+### Color Palette (Teal + Coral + Cream)
+- **Primary (Deep Ink):** #0B1220
+- **Accent (Teal):** #0F766E
+- **Highlight (Coral):** #F97316
+- **Background (Cream):** #FAF7F2
 
-### Admin Panel
-- ✅ Comprehensive dashboard with statistics
-- ✅ Order management with status workflow
-- ✅ Payment confirmation system
-- ✅ Shipment creation with tracking
-- ✅ Product management (CRUD)
-- ✅ Customer management
-- ✅ Configurable settings (banking, company info)
-- ✅ Support ticket system
+### Typography
+- **Body:** Inter
+- **Headings:** Plus Jakarta Sans
 
-### Software Products
-- ✅ 18 enterprise software products added (including 3 aviation software)
-- ✅ Separate "Engineering Software" category
-- ✅ Software badge on product cards
-- ✅ Different order flow for digital delivery
-- ✅ License delivery via email workflow
-- ✅ Featured in landing page, profile, business sectors
-
-### Aviation Engineering
-- ✅ 10 aviation hardware products ($52K-$180K)
-- ✅ 3 aviation software products ($35K-$145K)
-- ✅ Separate "Aviation Engineering" category with ✈️ icon
-- ✅ Featured in landing page, business sectors, profile page
-- ✅ 2 aviation reference projects (Airbus A320, Lufthansa Technik)
-- ✅ Products include: Engine Test Stands, Wing Assembly Jigs, Autoclaves, Avionics Test Systems
-
-### Communication
-- ✅ Telegram notifications for admin
-- ✅ Admin can reply via Telegram
-- ✅ Live chat messaging system
-- ✅ Order status notifications
-
-### UI/UX
-- ✅ Modern, responsive design
-- ✅ Mobile-friendly layout
-- ✅ Professional German engineering aesthetic
-- ✅ Clear navigation and breadcrumbs
-- ✅ Product images with gallery view
-- ✅ Currency toggle (EUR/USD)
-- ✅ Language toggle (DE/EN)
-
-### Security
-- ✅ Password hashing
-- ✅ Session management
-- ✅ Admin authentication
-- ✅ CSRF protection
-- ✅ Input sanitization
-- ✅ Secure file uploads
-
-### Performance
-- ✅ Optimized database queries
-- ✅ Image optimization
-- ✅ Efficient session handling
-- ✅ Fast page loads
+### Landing Page Sections
+1. **Hero**: Full-width with background image, stats, CTAs
+2. **Trust Bar**: USDA Certified, HACCP Compliant, Coast Guard Approved, 24/7 Dispatch
+3. **Services Cards**: Fresh & Frozen, Dry & Canned, Water & Beverages, Mixed Packages
+4. **Gallery**: Warehouse and food imagery grid
+5. **Why Choose Us**: Feature list with icons
+6. **CTA Banner**: Access Supply Portal call-to-action
 
 ---
 
 ## File Structure
 
 ```
-Streicher/
+Gordon_Food_Service_Galveston-TX/
+├── app/
+│   └── Services/
+│       └── SupplyPricingWorker.php    # Pricing calculation engine
 ├── web/
-│   ├── index.php              # Main application entry point
+│   ├── index.php                       # Main router (3800+ lines)
 │   ├── assets/
-│   │   ├── css/
-│   │   │   └── style.css      # Main stylesheet
-│   │   ├── js/
-│   │   │   └── main.js        # JavaScript functionality
-│   │   └── software-product.svg # Software product icon
-│   ├── images/
-│   │   ├── photos/            # Site photos
-│   │   └── {product-slug}/    # Product images
+│   │   └── styles.css                  # Global CSS with design system
 │   └── templates/
-│       ├── layout.php         # Main layout template
-│       ├── home.php           # Home page
-│       ├── catalog.php        # Product catalog
-│       ├── product.php        # Product detail
-│       ├── cart.php           # Shopping cart
-│       ├── checkout.php       # Checkout page
-│       ├── order_status.php   # Order tracking
-│       ├── admin/             # Admin templates
-│       └── pages/             # Static pages
-├── .env                       # Environment variables
-├── .gitignore                 # Git ignore rules
-├── README.md                  # Project readme
-└── DOCUMENTATION.md           # This file
+│       ├── layout.php                  # Public layout
+│       ├── home.php                    # Landing page
+│       ├── supply.php                  # Contractor portal
+│       └── admin/
+│           ├── layout.php              # Admin layout
+│           ├── supply_requests.php     # Supply request list
+│           ├── supply_request_detail.php
+│           ├── supply_request_form.php # Create/edit form
+│           ├── contractors.php         # Contractor list
+│           └── contractor_form.php     # Create/edit form
+├── migrations/
+│   ├── 001_initial_schema.sql
+│   ├── 002_order_flow.sql
+│   └── 003_offshore_supply.sql
+├── docker-compose.yml
+├── composer.json
+├── .env
+└── DOCUMENTATION.md
 ```
 
 ---
 
 ## Support
 
-For technical support or questions about this platform:
-- **Email:** store@streichergmbh.com
-- **Website:** https://streichergmbh.com/contact
+For technical support or questions:
+- **Email:** contact@gordonfoods.com
+- **Phone:** +1 213-653-0266
+- **Location:** Galveston, TX
 
 ---
 
-*Documentation last updated: December 13, 2025*
+*Documentation last updated: December 15, 2025*
