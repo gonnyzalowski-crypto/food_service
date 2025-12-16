@@ -110,7 +110,6 @@ vendor/
 random.*
 
 # Backend PHP files (not needed for GitHub Pages)
-web/index.php
 docs/index.php
 docs/email_service.php
 docs/telegram_webhook.php

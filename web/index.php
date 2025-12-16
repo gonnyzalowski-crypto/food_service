@@ -800,25 +800,25 @@ if ($requestPath === '/setup-database') {
         $stmt = $setupPdo->query("SELECT COUNT(*) FROM categories");
         if ($stmt->fetchColumn() == 0) {
             $setupPdo->exec("INSERT INTO categories (name, slug, description) VALUES 
-                ('Pipelines & Plants', 'pipelines-plants', 'Pipeline construction and plant equipment'),
-                ('Mechanical Engineering', 'mechanical-engineering', 'Mechanical engineering equipment'),
-                ('Drilling Technology', 'drilling-technology', 'Drilling rigs and equipment'),
-                ('Hydraulic Systems', 'hydraulic-systems', 'Hydraulic power units and components'),
-                ('Instrumentation', 'instrumentation', 'Measurement and control instruments'),
-                ('Engineering Software', 'engineering-software', 'Enterprise software solutions for industrial engineering, simulation, and process control')
+                ('Fresh Produce', 'fresh-produce', 'Fresh fruits and vegetables for offshore provisioning'),
+                ('Meat & Poultry', 'meat-poultry', 'Fresh and frozen meat products'),
+                ('Seafood', 'seafood', 'Fresh and frozen fish and seafood products'),
+                ('Dairy & Eggs', 'dairy-eggs', 'Milk, cheese, yogurt, and egg products'),
+                ('Bakery', 'bakery', 'Bread, pastries, and baked goods'),
+                ('Beverages', 'beverages', 'Water, juices, and other beverages')
             ");
         }
         
-        // Add Engineering Software category if missing
-        $stmt = $setupPdo->query("SELECT COUNT(*) FROM categories WHERE slug = 'engineering-software'");
+        // Add Dry Goods category if missing
+        $stmt = $setupPdo->query("SELECT COUNT(*) FROM categories WHERE slug = 'dry-goods'");
         if ($stmt->fetchColumn() == 0) {
-            $setupPdo->exec("INSERT INTO categories (name, slug, description) VALUES ('Engineering Software', 'engineering-software', 'Enterprise software solutions for industrial engineering, simulation, and process control')");
+            $setupPdo->exec("INSERT INTO categories (name, slug, description) VALUES ('Dry Goods', 'dry-goods', 'Rice, pasta, flour, and other dry food items')");
         }
         
-        // Add Aviation Engineering category if missing
-        $stmt = $setupPdo->query("SELECT COUNT(*) FROM categories WHERE slug = 'aviation-engineering'");
+        // Add Frozen Foods category if missing
+        $stmt = $setupPdo->query("SELECT COUNT(*) FROM categories WHERE slug = 'frozen-foods'");
         if ($stmt->fetchColumn() == 0) {
-            $setupPdo->exec("INSERT INTO categories (name, slug, description) VALUES ('Aviation Engineering', 'aviation-engineering', 'Aircraft maintenance equipment, ground support systems, and aerospace manufacturing tools')");
+            $setupPdo->exec("INSERT INTO categories (name, slug, description) VALUES ('Frozen Foods', 'frozen-foods', 'Frozen meals and ingredients')");
         }
         
         $products = [];
@@ -831,9 +831,9 @@ if ($requestPath === '/setup-database') {
             $stmt = $setupPdo->query("SELECT COUNT(*) FROM products");
             if ($stmt->fetchColumn() == 0) {
                 $products = [
-                    ['Centrifugal Pump 1000 GPM', 'centrifugal-pump-1000-gpm', 1, 18500, 'High-capacity centrifugal pump for industrial fluid transfer, 1000 GPM flow rate'],
-                    ['Custom Hydraulic Manifold Block', 'custom-hydraulic-manifold-block', 4, 4200, 'Precision-machined hydraulic manifold block for custom applications'],
-                    ['Decanting Centrifuge 14"', 'decanting-centrifuge-14', 1, 85000, '14-inch decanting centrifuge for solids control in drilling operations'],
+                    ['Fresh Vegetable Mix (10kg)', 'fresh-vegetable-mix-10kg', 1, 45.99, 'Assorted fresh vegetables including tomatoes, lettuce, carrots, and onions - perfect for offshore provisioning'],
+                    ['Premium Beef Selection (5kg)', 'premium-beef-selection-5kg', 2, 89.99, 'High-quality beef cuts including steaks and ground beef - frozen for long-term storage'],
+                    ['Bottled Water Case (24x500ml)', 'bottled-water-case-24x500ml', 6, 12.99, '24 bottles of purified drinking water - essential for offshore operations'],
                 ];
 
                 $insertStmt = $setupPdo->prepare("INSERT INTO products (sku, name, slug, description, category_id, unit_price, image_url, is_active, is_featured, product_type) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)");

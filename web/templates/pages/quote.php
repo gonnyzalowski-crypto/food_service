@@ -82,14 +82,14 @@
           <label class="form-label">Product Category *</label>
           <select name="category" class="form-control" required>
             <option value="">Select category</option>
-            <option value="hydraulic">Hydraulic Systems</option>
-            <option value="drilling">Drilling Equipment</option>
-            <option value="pipeline">Pipeline Components</option>
-            <option value="compressors">Compressors</option>
-            <option value="pumps">Pumping Systems</option>
-            <option value="safety">Safety Equipment</option>
-            <option value="instrumentation">Instrumentation</option>
-            <option value="spare-parts">Spare Parts</option>
+            <option value="fresh_produce">Fresh Produce</option>
+            <option value="meat_poultry">Meat & Poultry</option>
+            <option value="seafood">Seafood</option>
+            <option value="dairy_eggs">Dairy & Eggs</option>
+            <option value="bakery">Bakery</option>
+            <option value="beverages">Beverages</option>
+            <option value="dry_goods">Dry Goods</option>
+            <option value="frozen_foods">Frozen Foods</option>
             <option value="multiple">Multiple Categories</option>
           </select>
         </div>

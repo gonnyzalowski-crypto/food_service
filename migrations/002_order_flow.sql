@@ -149,11 +149,13 @@ CREATE TABLE IF NOT EXISTS order_activity (
 
 -- Insert default categories
 INSERT INTO categories (name, slug, description, sort_order) VALUES
-('Hydraulic Systems', 'hydraulic-systems', 'Industrial hydraulic pumps, valves, cylinders, and complete systems', 1),
-('Drilling Equipment', 'drilling-equipment', 'Rotary drilling rigs, mud pumps, and drilling accessories', 2),
-('Pipeline Components', 'pipeline-components', 'Valves, fittings, flanges, and pipeline accessories', 3),
-('Compressors', 'compressors', 'Industrial gas and air compressors for oil & gas applications', 4),
-('Pumping Systems', 'pumping-systems', 'Centrifugal, reciprocating, and specialty pumps', 5),
-('Safety Equipment', 'safety-equipment', 'Blowout preventers, safety valves, and emergency systems', 6),
-('Instrumentation', 'instrumentation', 'Pressure gauges, flow meters, and control systems', 7),
-('Spare Parts', 'spare-parts', 'Replacement parts, seals, gaskets, and maintenance kits', 8);
+('Fresh Produce', 'fresh-produce', 'Fresh fruits and vegetables for offshore provisioning', 1),
+('Meat & Poultry', 'meat-poultry', 'Fresh and frozen meat products', 2),
+('Seafood', 'seafood', 'Fresh and frozen fish and seafood products', 3),
+('Dairy & Eggs', 'dairy-eggs', 'Milk, cheese, yogurt, and egg products', 4),
+('Bakery', 'bakery', 'Bread, pastries, and baked goods', 5),
+('Beverages', 'beverages', 'Water, juices, and other beverages', 6),
+('Dry Goods', 'dry-goods', 'Rice, pasta, flour, and other dry food items', 7),
+('Frozen Foods', 'frozen-foods', 'Frozen meals and ingredients', 8),
+('Cleaning Supplies', 'cleaning-supplies', 'Sanitation and cleaning products', 9),
+('Paper Products', 'paper-products', 'Paper towels, tissues, and disposable items', 10);
