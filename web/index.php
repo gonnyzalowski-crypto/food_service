@@ -1278,13 +1278,45 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
 } catch (PDOException $e) {
-    http_response_code(503);
-    $title = 'Temporarily Closed - Gordon Food Service';
-    ob_start();
-    require __DIR__ . '/templates/pages/closed.php';
-    $content = ob_get_clean();
-    require __DIR__ . '/templates/layout.php';
-    exit;
+    // Try to create database first, then reconnect
+    try {
+        // Connect without database name
+        $setupDsn = sprintf('mysql:host=%s;port=%s;charset=utf8mb4', $dbHost, $dbPort);
+        $setupPdo = new PDO($setupDsn, $dbUser, $dbPass, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        ]);
+        
+        // Create database if it doesn't exist
+        $setupPdo->exec("CREATE DATABASE IF NOT EXISTS `$dbName` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+        
+        // Now try to connect to the database
+        $pdo = new PDO($dsn, $dbUser, $dbPass, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]);
+        
+        // Run database setup if tables don't exist
+        $stmt = $pdo->query("SHOW TABLES");
+        if ($stmt->rowCount() == 0) {
+            // Run setup script
+            $setupScript = __DIR__ . '/../setup_database.php';
+            if (file_exists($setupScript)) {
+                // Include setup script but don't output to browser
+                ob_start();
+                include $setupScript;
+                ob_clean();
+            }
+        }
+        
+    } catch (PDOException $setupError) {
+        http_response_code(503);
+        $title = 'Temporarily Closed - Gordon Food Service';
+        ob_start();
+        require __DIR__ . '/templates/pages/closed.php';
+        $content = ob_get_clean();
+        require __DIR__ . '/templates/layout.php';
+        exit;
+    }
 }
 
 // ============ SERVE STATIC FILES ============
