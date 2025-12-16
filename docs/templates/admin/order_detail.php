@@ -355,7 +355,7 @@ $shipping = json_decode($order['shipping_address'] ?? '{}', true) ?: [];
     <?php if ($order['status'] === 'payment_confirmed' && empty($shipments)): ?>
     <div class="card mb-4" id="ship">
       <div class="card-header">
-        <h3 class="card-title">🚛 Create Shipment - Streicher Logistics</h3>
+        <h3 class="card-title">🚛 Create Shipment - Gordon Food Service Logistics</h3>
       </div>
       <div class="card-body">
         <form action="/admin/orders/<?= $order['id'] ?>/ship" method="POST">
@@ -363,7 +363,7 @@ $shipping = json_decode($order['shipping_address'] ?? '{}', true) ?: [];
             <div class="form-group">
               <label class="form-label">Carrier</label>
               <select name="carrier" class="form-control">
-                <option value="Streicher Logistics" selected>🚛 Streicher Logistics</option>
+                <option value="Gordon Food Service Logistics" selected>🚛 Gordon Food Service Logistics</option>
               </select>
             </div>
             <div class="form-group">

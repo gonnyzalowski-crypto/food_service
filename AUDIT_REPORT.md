@@ -1,4 +1,4 @@
-# Streicher GmbH - Security, UX & Functionality Audit Report
+# Gordon Food Service GmbH - Security, UX & Functionality Audit Report
 
 ## Date: December 12, 2025 (Updated)
 
@@ -86,7 +86,7 @@
 - Removed from catalog sidebar as requested
 
 ### 4. Contact Info Updated ✅ FIXED
-- All emails updated to streichergmbh.com
+- All emails updated to Gordon Food Servicegmbh.com
 - Phone number removed from header
 
 ---
@@ -97,7 +97,7 @@
 ```
 DB_HOST=your_mysql_host
 DB_PORT=3306
-DB_NAME=streicher
+DB_NAME=Gordon Food Service
 DB_USER=your_user
 DB_PASS=your_password
 MAIL_HOST=smtp.sendgrid.net (optional)

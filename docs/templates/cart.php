@@ -107,7 +107,7 @@
           Our sales team is available 24/7 to assist you.
         </p>
         <div style="font-size: 0.9rem;">
-          ✉️ store@streichergmbh.com
+          ✉️ store@Gordon Food Servicegmbh.com
         </div>
       </div>
     </div>

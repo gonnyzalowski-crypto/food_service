@@ -1,7 +1,7 @@
 <?php
 /**
  * Script to update product images with relevant industrial equipment photos
- * Run this inside Docker: docker exec -it streicher-web php /var/www/scripts/update_product_images.php
+ * Run this inside Docker: docker exec -it Gordon Food Service-web php /var/www/scripts/update_product_images.php
  */
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -15,7 +15,7 @@ $dsn = sprintf(
     'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
     $_ENV['DB_HOST'] ?? 'db',
     $_ENV['DB_PORT'] ?? '3306',
-    $_ENV['DB_NAME'] ?? 'streicher'
+    $_ENV['DB_NAME'] ?? 'Gordon Food Service'
 );
 
 try {

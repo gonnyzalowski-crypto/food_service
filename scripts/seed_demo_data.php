@@ -17,7 +17,7 @@ $dsn = sprintf(
     'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
     $_ENV['DB_HOST'] ?? '127.0.0.1',
     $_ENV['DB_PORT'] ?? '3306',
-    $_ENV['DB_NAME'] ?? 'streicher'
+    $_ENV['DB_NAME'] ?? 'Gordon Food Service'
 );
 
 try {
@@ -78,7 +78,7 @@ $products = [
         'short_desc' => 'Hochleistungs-Hydraulikpumpe für industrielle Anwendungen. Max. Druck: 350 bar.',
         'unit_price' => 1299.00,
         'moq'        => 1,
-        'manufacturer' => 'Streicher',
+        'manufacturer' => 'Gordon Food Service',
         'attributes' => json_encode([
             'max_pressure' => '350 bar',
             'flow_rate'    => '50 l/min',
@@ -91,7 +91,7 @@ $products = [
         'short_desc' => 'Präzisions-Steuerventil für Öl- und Gasanlagen. DN50, PN40.',
         'unit_price' => 459.50,
         'moq'        => 2,
-        'manufacturer' => 'Streicher',
+        'manufacturer' => 'Gordon Food Service',
         'attributes' => json_encode([
             'dn'       => 'DN50',
             'pn'       => 'PN40',
@@ -104,7 +104,7 @@ $products = [
         'short_desc' => 'Kompletter Dichtungssatz für HP-500 Pumpen. Enthält O-Ringe, Wellendichtungen.',
         'unit_price' => 89.90,
         'moq'        => 5,
-        'manufacturer' => 'Streicher',
+        'manufacturer' => 'Gordon Food Service',
         'attributes' => json_encode([
             'compatible_with' => 'PUMP-HYD-001',
             'material'        => 'Viton/NBR'
@@ -116,7 +116,7 @@ $products = [
         'short_desc' => 'Hochleistungs-Ölfilter für Hydrauliksysteme. Filterfeinheit: 10 µm.',
         'unit_price' => 124.00,
         'moq'        => 3,
-        'manufacturer' => 'Streicher',
+        'manufacturer' => 'Gordon Food Service',
         'attributes' => json_encode([
             'filter_rating' => '10 µm',
             'flow_rate'     => '250 l/min',
@@ -214,7 +214,7 @@ echo "  - Demo shipment: JJD000390012345678 (DHL)\n";
 echo "\nDemo data seeded successfully!\n";
 echo "\nYou can now test:\n";
 echo "  - Admin login: http://localhost:8000/admin/login\n";
-echo "    Email: admin@streicher.de / Password: admin123\n";
+echo "    Email: admin@Gordon Food Service.de / Password: admin123\n";
 echo "  - Product page: http://localhost:8000/product?sku=PUMP-HYD-001\n";
 echo "  - Tracking: http://localhost:8000/track?tracking=JJD000390012345678\n";
 echo "  - Mailpit (emails): http://localhost:8025\n";

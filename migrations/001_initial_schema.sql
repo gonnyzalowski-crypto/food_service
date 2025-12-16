@@ -1,4 +1,4 @@
--- Streicher B2B Shop - Initial Schema
+-- Gordon Food Service B2B Shop - Initial Schema
 -- MySQL / MariaDB
 
 SET NAMES utf8mb4;

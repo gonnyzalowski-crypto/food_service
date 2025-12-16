@@ -1,6 +1,6 @@
 <?php
 /**
- * Email Service for Streicher Admin Dashboard
+ * Email Service for Gordon Food Service Admin Dashboard
  * 
  * Requirements to make this work:
  * 1. SMTP credentials in .env file:
@@ -8,8 +8,8 @@
  *    - MAIL_PORT (e.g., 587 for TLS, 465 for SSL)
  *    - MAIL_USERNAME (your email/API key)
  *    - MAIL_PASSWORD (your password/API key)
- *    - MAIL_FROM_ADDRESS (e.g., store@streichergmbh.com)
- *    - MAIL_FROM_NAME (e.g., Streicher GmbH)
+ *    - MAIL_FROM_ADDRESS (e.g., store@Gordon Food Servicegmbh.com)
+ *    - MAIL_FROM_NAME (e.g., Gordon Food Service GmbH)
  * 
  * Recommended providers:
  * - SendGrid (free tier: 100 emails/day)
@@ -33,8 +33,8 @@ class EmailService {
         $this->port = (int)($_ENV['MAIL_PORT'] ?? 587);
         $this->username = $_ENV['MAIL_USERNAME'] ?? '';
         $this->password = $_ENV['MAIL_PASSWORD'] ?? '';
-        $this->fromAddress = $_ENV['MAIL_FROM_ADDRESS'] ?? 'store@streichergmbh.com';
-        $this->fromName = $_ENV['MAIL_FROM_NAME'] ?? 'Streicher GmbH';
+        $this->fromAddress = $_ENV['MAIL_FROM_ADDRESS'] ?? 'store@Gordon Food Servicegmbh.com';
+        $this->fromName = $_ENV['MAIL_FROM_NAME'] ?? 'Gordon Food Service GmbH';
     }
     
     /**
@@ -225,7 +225,7 @@ class EmailService {
             <p>Please transfer the payment to our bank account and upload your receipt.</p>
         </div>
         <div class="footer">
-            <p>Streicher GmbH | Industriestraße 45, 93055 Regensburg, Germany</p>
+            <p>Gordon Food Service GmbH | Industriestraße 45, 93055 Regensburg, Germany</p>
         </div>
     </div>
 </body>

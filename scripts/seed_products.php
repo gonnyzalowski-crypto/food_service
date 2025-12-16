@@ -17,7 +17,7 @@ $dsn = sprintf(
     'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
     $_ENV['DB_HOST'] ?? '127.0.0.1',
     $_ENV['DB_PORT'] ?? '3306',
-    $_ENV['DB_NAME'] ?? 'streicher'
+    $_ENV['DB_NAME'] ?? 'Gordon Food Service'
 );
 
 try {
@@ -66,9 +66,9 @@ $products = [
     [
         'sku' => 'HYD-PWR-5000',
         'category' => 'hydraulic-systems',
-        'name' => 'Streicher HPU-5000 Hydraulic Power Unit',
+        'name' => 'Gordon Food Service HPU-5000 Hydraulic Power Unit',
         'short_desc' => 'High-performance 500 HP hydraulic power unit with variable displacement pumps and integrated cooling system.',
-        'description' => 'The Streicher HPU-5000 is our flagship hydraulic power unit designed for demanding offshore and onshore drilling operations. This fully integrated system delivers exceptional performance with its twin variable displacement axial piston pumps, capable of generating up to 5,000 PSI working pressure with flow rates up to 200 GPM.',
+        'description' => 'The Gordon Food Service HPU-5000 is our flagship hydraulic power unit designed for demanding offshore and onshore drilling operations. This fully integrated system delivers exceptional performance with its twin variable displacement axial piston pumps, capable of generating up to 5,000 PSI working pressure with flow rates up to 200 GPM.',
         'long_description' => "The HPU-5000 represents the pinnacle of hydraulic power technology, engineered specifically for the most demanding industrial applications in the oil and gas sector.\n\n**Key Features:**\n- Twin Rexroth A4VSO variable displacement pumps\n- 500 HP electric motor with soft-start capability\n- Integrated 1,000-gallon reservoir with level monitoring\n- Advanced filtration system (3-micron absolute)\n- PLC-based control system with touchscreen HMI\n- Remote monitoring via Modbus TCP/IP\n- Explosion-proof design (ATEX Zone 1 certified)\n\n**Applications:**\n- Offshore drilling platforms\n- Land-based drilling rigs\n- Heavy-lift cranes\n- BOP control systems\n- Pipeline construction equipment\n\n**Certifications:**\n- API 16D compliant\n- DNV-GL Type Approved\n- ATEX/IECEx certified\n- CE marked",
         'unit_price' => 127500.00,
         'features' => ['500 HP motor', '5000 PSI max pressure', '200 GPM flow rate', 'ATEX Zone 1', 'Remote monitoring'],
@@ -115,7 +115,7 @@ $products = [
         'category' => 'drilling-equipment',
         'name' => 'Triplex Mud Pump 2500 HP',
         'short_desc' => 'High-pressure triplex mud pump for deep well drilling operations with 7,500 PSI capability.',
-        'description' => 'The Streicher TMP-2500 triplex mud pump delivers exceptional performance for deep drilling operations. Featuring a robust power end with forged steel crankshaft and precision fluid end components.',
+        'description' => 'The Gordon Food Service TMP-2500 triplex mud pump delivers exceptional performance for deep drilling operations. Featuring a robust power end with forged steel crankshaft and precision fluid end components.',
         'long_description' => "The TMP-2500 is engineered for continuous operation in the most challenging drilling environments, from arctic conditions to desert heat.\n\n**Power End Features:**\n- Forged alloy steel crankshaft\n- Precision ground crosshead guides\n- Forced lubrication system\n- Heavy-duty roller bearings\n\n**Fluid End Features:**\n- Bi-metal liners (chrome carbide)\n- Tungsten carbide valve seats\n- Quick-change module design\n- Multiple liner sizes available\n\n**Control System:**\n- VFD motor control\n- Real-time pressure monitoring\n- Stroke counter with data logging\n- Remote diagnostic capability",
         'unit_price' => 285000.00,
         'features' => ['2500 HP', '7500 PSI max', 'Triplex design', 'VFD control', 'Arctic rated'],
@@ -531,7 +531,7 @@ foreach ($products as $p) {
         'warranty_months' => $p['warranty_months'],
         'lead_time_days' => $p['lead_time_days'],
         'moq' => $p['moq'],
-        'manufacturer' => 'Streicher',
+        'manufacturer' => 'Gordon Food Service',
         'is_featured' => $count < 6 ? 1 : 0,  // First 6 are featured
         'is_active' => 1,
     ]);

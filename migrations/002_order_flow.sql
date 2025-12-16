@@ -1,4 +1,4 @@
--- Streicher B2B Shop - Order Flow Enhancement
+-- Gordon Food Service B2B Shop - Order Flow Enhancement
 -- Adds payment uploads, detailed order statuses, and tracking events
 
 -- Modify orders table to support full workflow

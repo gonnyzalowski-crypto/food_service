@@ -4,7 +4,7 @@
       <div style="text-align: center; margin-bottom: 32px;">
         <div class="logo-icon" style="width: 64px; height: 64px; font-size: 2rem; margin: 0 auto 16px;">S</div>
         <h1 style="margin: 0 0 8px 0; font-size: 1.5rem;">Welcome Back</h1>
-        <p style="margin: 0; color: #64748b;">Sign in to your Streicher account</p>
+        <p style="margin: 0; color: #64748b;">Sign in to your Gordon Food Service account</p>
       </div>
       
       <?php if (!empty($error)): ?>

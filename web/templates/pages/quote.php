@@ -170,7 +170,7 @@
         </p>
         <div>
           <strong>✉️ Email</strong><br>
-          <span style="color: #64748b;">store@streichergmbh.com</span>
+          <span style="color: #64748b;">store@Gordon Food Servicegmbh.com</span>
         </div>
         <div style="margin-top: 12px;">
           <a href="/contact" class="btn btn-outline btn-sm">Contact Sales Team</a>

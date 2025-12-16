@@ -98,7 +98,7 @@ $packageTypeDisplay = $packageTypes[$shipment['package_type'] ?? 'crate'] ?? '�
       <?= htmlspecialchars($shipment['tracking_number']) ?>
       <button type="button" onclick="copyToClipboard('<?= htmlspecialchars($shipment['tracking_number']) ?>', this)" style="background: rgba(255,255,255,0.2); border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; color: white; font-size: 0.75rem;">📋 Copy</button>
     </div>
-    <div class="tracking-carrier"><?= htmlspecialchars($shipment['carrier'] ?? 'Streicher Logistics') ?></div>
+    <div class="tracking-carrier"><?= htmlspecialchars($shipment['carrier'] ?? 'Gordon Food Service Logistics') ?></div>
   </div>
   
   <!-- Status Banner -->
@@ -175,7 +175,7 @@ $packageTypeDisplay = $packageTypes[$shipment['package_type'] ?? 'crate'] ?? '�
       </div>
       <div>
         <div style="color: #64748b; font-size: 0.85rem; margin-bottom: 4px;">Carrier</div>
-        <div style="font-weight: 600;">🚛 Streicher Logistics</div>
+        <div style="font-weight: 600;">🚛 Gordon Food Service Logistics</div>
       </div>
     </div>
   </div>
@@ -280,7 +280,7 @@ $packageTypeDisplay = $packageTypes[$shipment['package_type'] ?? 'crate'] ?? '�
         <div>
           <div style="font-size: 1.5rem; margin-bottom: 8px;">✉️</div>
           <div style="font-weight: 500;">Email Support</div>
-          <div style="color: #64748b; font-size: 0.9rem;">store@streichergmbh.com</div>
+          <div style="color: #64748b; font-size: 0.9rem;">store@Gordon Food Servicegmbh.com</div>
         </div>
         <div>
           <div style="font-size: 1.5rem; margin-bottom: 8px;">💬</div>
@@ -319,7 +319,7 @@ $packageTypeDisplay = $packageTypes[$shipment['package_type'] ?? 'crate'] ?? '�
           <div class="message-header">
             <span class="message-sender">
               <?php if ($comm['sender_type'] === 'admin'): ?>
-                🏢 Streicher Logistics
+                🏢 Gordon Food Service Logistics
               <?php elseif ($comm['sender_type'] === 'system'): ?>
                 🤖 System
               <?php else: ?>

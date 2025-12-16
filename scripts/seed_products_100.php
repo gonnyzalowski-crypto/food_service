@@ -14,7 +14,7 @@ $dsn = sprintf(
     'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
     $_ENV['DB_HOST'] ?? '127.0.0.1',
     $_ENV['DB_PORT'] ?? '3306',
-    $_ENV['DB_NAME'] ?? 'streicher'
+    $_ENV['DB_NAME'] ?? 'Gordon Food Service'
 );
 
 $pdo = new PDO($dsn, $_ENV['DB_USER'] ?? 'root', $_ENV['DB_PASS'] ?? '', [
@@ -528,7 +528,7 @@ foreach ($products as $i => $p) {
     
     // Generate specifications
     $specs = [
-        'Manufacturer' => 'Streicher GmbH',
+        'Manufacturer' => 'Gordon Food Service GmbH',
         'Country of Origin' => 'Germany',
         'Certification' => 'ISO 9001:2015, API',
         'Lead Time' => '8-12 weeks',
@@ -551,7 +551,7 @@ foreach ($products as $i => $p) {
         rand(50, 5000),
         24,
         1,
-        'Streicher',
+        'Gordon Food Service',
         $isFeatured,
         1
     ]);

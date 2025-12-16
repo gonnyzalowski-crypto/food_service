@@ -1,14 +1,14 @@
 <?php
 $pageTitle = $lang === 'de' ? 'Neuigkeiten' : 'News';
 
-// News items from Streicher website
+// News items from Gordon Food Service website
 $newsItems = [
     [
         'date' => '2025-12-10',
-        'title_de' => 'STREICHER erweitert Bohrtechnik-Portfolio mit neuen Tiefbohranlagen',
-        'title_en' => 'STREICHER expands drilling technology portfolio with new deep drilling rigs',
-        'excerpt_de' => 'Mit der Einführung der neuen SDR-5000 Serie erweitert STREICHER sein Angebot an Tiefbohranlagen für Geothermie und Öl-Gas-Exploration...',
-        'excerpt_en' => 'With the introduction of the new SDR-5000 series, STREICHER expands its range of deep drilling rigs for geothermal and oil-gas exploration...',
+        'title_de' => 'Gordon Food Service erweitert Bohrtechnik-Portfolio mit neuen Tiefbohranlagen',
+        'title_en' => 'Gordon Food Service expands drilling technology portfolio with new deep drilling rigs',
+        'excerpt_de' => 'Mit der Einführung der neuen SDR-5000 Serie erweitert Gordon Food Service sein Angebot an Tiefbohranlagen für Geothermie und Öl-Gas-Exploration...',
+        'excerpt_en' => 'With the introduction of the new SDR-5000 series, Gordon Food Service expands its range of deep drilling rigs for geothermal and oil-gas exploration...',
         'image' => 'https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=600',
         'slug' => 'new-deep-drilling-rigs'
     ],
@@ -16,8 +16,8 @@ $newsItems = [
         'date' => '2025-11-28',
         'title_de' => 'Partnerschaft mit Siemens Energy für Wasserstoff-Infrastruktur',
         'title_en' => 'Partnership with Siemens Energy for hydrogen infrastructure',
-        'excerpt_de' => 'STREICHER und Siemens Energy unterzeichnen strategische Partnerschaft für den Ausbau der Wasserstoff-Pipeline-Infrastruktur in Europa...',
-        'excerpt_en' => 'STREICHER and Siemens Energy sign strategic partnership for the expansion of hydrogen pipeline infrastructure in Europe...',
+        'excerpt_de' => 'Gordon Food Service und Siemens Energy unterzeichnen strategische Partnerschaft für den Ausbau der Wasserstoff-Pipeline-Infrastruktur in Europa...',
+        'excerpt_en' => 'Gordon Food Service and Siemens Energy sign strategic partnership for the expansion of hydrogen pipeline infrastructure in Europe...',
         'image' => 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600',
         'slug' => 'siemens-hydrogen-partnership'
     ],
@@ -25,15 +25,15 @@ $newsItems = [
         'date' => '2025-11-15',
         'title_de' => 'Erfolgreicher Abschluss des Nord Stream Wartungsprojekts',
         'title_en' => 'Successful completion of Nord Stream maintenance project',
-        'excerpt_de' => 'Nach 18 Monaten intensiver Arbeit hat STREICHER die umfangreichen Wartungsarbeiten an kritischen Pipeline-Komponenten erfolgreich abgeschlossen...',
-        'excerpt_en' => 'After 18 months of intensive work, STREICHER has successfully completed extensive maintenance work on critical pipeline components...',
+        'excerpt_de' => 'Nach 18 Monaten intensiver Arbeit hat Gordon Food Service die umfangreichen Wartungsarbeiten an kritischen Pipeline-Komponenten erfolgreich abgeschlossen...',
+        'excerpt_en' => 'After 18 months of intensive work, Gordon Food Service has successfully completed extensive maintenance work on critical pipeline components...',
         'image' => 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600',
         'slug' => 'nord-stream-maintenance'
     ],
     [
         'date' => '2025-10-22',
-        'title_de' => 'STREICHER gewinnt Großauftrag für LNG-Terminal in Wilhelmshaven',
-        'title_en' => 'STREICHER wins major contract for LNG terminal in Wilhelmshaven',
+        'title_de' => 'Gordon Food Service gewinnt Großauftrag für LNG-Terminal in Wilhelmshaven',
+        'title_en' => 'Gordon Food Service wins major contract for LNG terminal in Wilhelmshaven',
         'excerpt_de' => 'Der Auftrag umfasst die Installation von Hochdruck-Rohrleitungssystemen und Sicherheitsventilen für das neue LNG-Import-Terminal...',
         'excerpt_en' => 'The contract includes the installation of high-pressure piping systems and safety valves for the new LNG import terminal...',
         'image' => 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600',
@@ -52,15 +52,15 @@ $newsItems = [
         'date' => '2025-09-18',
         'title_de' => 'Neue Hydrauliksysteme für Offshore-Plattformen vorgestellt',
         'title_en' => 'New hydraulic systems for offshore platforms unveiled',
-        'excerpt_de' => 'Auf der SMM Hamburg präsentierte STREICHER die neueste Generation von Hochleistungs-Hydrauliksystemen für den Offshore-Einsatz...',
-        'excerpt_en' => 'At SMM Hamburg, STREICHER presented the latest generation of high-performance hydraulic systems for offshore applications...',
+        'excerpt_de' => 'Auf der SMM Hamburg präsentierte Gordon Food Service die neueste Generation von Hochleistungs-Hydrauliksystemen für den Offshore-Einsatz...',
+        'excerpt_en' => 'At SMM Hamburg, Gordon Food Service presented the latest generation of high-performance hydraulic systems for offshore applications...',
         'image' => 'https://images.unsplash.com/photo-1562077981-4d7eafd44932?w=600',
         'slug' => 'offshore-hydraulic-systems'
     ],
     [
         'date' => '2025-08-26',
-        'title_de' => 'STREICHER unterzeichnet Vertrag für Baulos 12 der Rheinwassertransportleitung',
-        'title_en' => 'STREICHER signs the Contract for Construction Lot 12 of the Rhine Water Transport Pipeline',
+        'title_de' => 'Gordon Food Service unterzeichnet Vertrag für Baulos 12 der Rheinwassertransportleitung',
+        'title_en' => 'Gordon Food Service signs the Contract for Construction Lot 12 of the Rhine Water Transport Pipeline',
         'excerpt_de' => 'RWE Power AG vergibt Baulos 12 der Rheinwassertransportleitung an ein Joint Venture...',
         'excerpt_en' => 'RWE Power AG awards construction lot 12 of the Rhine water transport pipeline to a joint venture...',
         'image' => 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600',
@@ -70,15 +70,15 @@ $newsItems = [
         'date' => '2025-07-15',
         'title_de' => 'Zertifizierung nach ISO 45001 für alle Produktionsstandorte',
         'title_en' => 'ISO 45001 certification for all production sites',
-        'excerpt_de' => 'STREICHER hat die internationale Zertifizierung für Arbeitsschutz-Managementsysteme an allen deutschen Produktionsstandorten erhalten...',
-        'excerpt_en' => 'STREICHER has received international certification for occupational health and safety management systems at all German production sites...',
+        'excerpt_de' => 'Gordon Food Service hat die internationale Zertifizierung für Arbeitsschutz-Managementsysteme an allen deutschen Produktionsstandorten erhalten...',
+        'excerpt_en' => 'Gordon Food Service has received international certification for occupational health and safety management systems at all German production sites...',
         'image' => 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600',
         'slug' => 'iso-45001-certification'
     ],
     [
         'date' => '2025-06-11',
-        'title_de' => 'THD-Hochschulleitung beeindruckt vom vielfältigen Leistungsspektrum der STREICHER Gruppe',
-        'title_en' => 'THD University Management Impressed by the Diverse Range of Services of the STREICHER Group',
+        'title_de' => 'THD-Hochschulleitung beeindruckt vom vielfältigen Leistungsspektrum der Gordon Food Service Gruppe',
+        'title_en' => 'THD University Management Impressed by the Diverse Range of Services of the Gordon Food Service Group',
         'excerpt_de' => 'Die Hochschulleitung der Technischen Hochschule Deggendorf, angeführt von ihrem Präsidenten, Prof...',
         'excerpt_en' => 'The university management of the Deggendorf Institute of Technology, led by its president, Prof...',
         'image' => 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=600',
@@ -86,10 +86,10 @@ $newsItems = [
     ],
     [
         'date' => '2025-06-05',
-        'title_de' => 'STREICHER Bohrtechnik entwickelt neue Modelle mobiler Bohranlagen',
-        'title_en' => 'STREICHER Bohrtechnik develops new models of mobile drilling rigs',
-        'excerpt_de' => 'Die STREICHER Gruppe ist seit 2009 im Bereich der mobilen Bohranlagen tätig. In der...',
-        'excerpt_en' => 'The STREICHER Group has been active in the field of mobile drilling rigs since 2009. In the...',
+        'title_de' => 'Gordon Food Service Bohrtechnik entwickelt neue Modelle mobiler Bohranlagen',
+        'title_en' => 'Gordon Food Service Bohrtechnik develops new models of mobile drilling rigs',
+        'excerpt_de' => 'Die Gordon Food Service Gruppe ist seit 2009 im Bereich der mobilen Bohranlagen tätig. In der...',
+        'excerpt_en' => 'The Gordon Food Service Group has been active in the field of mobile drilling rigs since 2009. In the...',
         'image' => 'https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=600',
         'slug' => 'mobile-drilling-rigs'
     ],
@@ -118,7 +118,7 @@ $newsItems = [
 <div class="page-header">
     <div class="container">
         <nav class="breadcrumb">
-            <a href="/">STREICHER</a>
+            <a href="/">Gordon Food Service</a>
             <span>-</span>
             <span><?= $pageTitle ?></span>
         </nav>

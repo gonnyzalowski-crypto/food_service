@@ -4,7 +4,7 @@
       <div style="text-align: center; margin-bottom: 32px;">
         <div class="logo-icon" style="width: 64px; height: 64px; font-size: 2rem; margin: 0 auto 16px;">S</div>
         <h1 style="margin: 0 0 8px 0; font-size: 1.5rem;">Create an Account</h1>
-        <p style="margin: 0; color: #64748b;">Join Streicher to access exclusive B2B pricing</p>
+        <p style="margin: 0; color: #64748b;">Join Gordon Food Service to access exclusive B2B pricing</p>
       </div>
       
       <form action="/register" method="POST">

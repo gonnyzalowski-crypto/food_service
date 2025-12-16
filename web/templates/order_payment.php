@@ -49,7 +49,7 @@ $latestUpload = $hasUploads ? $uploads[0] : null;
           </div>
           <div style="margin-bottom: 16px;">
             <div style="color: #64748b; font-size: 0.85rem;">Account Holder</div>
-            <div style="font-weight: 600;">Streicher GmbH</div>
+            <div style="font-weight: 600;">Gordon Food Service GmbH</div>
           </div>
           <div style="margin-bottom: 16px;">
             <div style="color: #64748b; font-size: 0.85rem;">IBAN</div>

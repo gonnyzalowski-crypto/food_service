@@ -26,7 +26,7 @@
           <div class="form-group">
             <label class="form-label">Carrier *</label>
             <select name="carrier" class="form-control" required>
-              <option value="Streicher Logistics">Streicher Logistics</option>
+              <option value="Gordon Food Service Logistics">Gordon Food Service Logistics</option>
               <option value="DHL Express">DHL Express</option>
               <option value="FedEx">FedEx</option>
               <option value="UPS">UPS</option>
@@ -154,7 +154,7 @@
           
           <div class="form-group">
             <label class="form-label">Facility Name</label>
-            <input type="text" name="initial_facility" class="form-control" value="Streicher Logistics Center">
+            <input type="text" name="initial_facility" class="form-control" value="Gordon Food Service Logistics Center">
           </div>
         </div>
       </div>

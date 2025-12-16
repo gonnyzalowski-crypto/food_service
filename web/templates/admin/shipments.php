@@ -97,7 +97,7 @@
             <div style="font-weight: 500;"><?= htmlspecialchars($billing['company'] ?? 'N/A') ?></div>
             <div style="font-size: 0.85rem; color: #64748b;"><?= htmlspecialchars($billing['name'] ?? '') ?></div>
           </td>
-          <td><?= htmlspecialchars($shipment['carrier'] ?? 'Streicher Logistics') ?></td>
+          <td><?= htmlspecialchars($shipment['carrier'] ?? 'Gordon Food Service Logistics') ?></td>
           <td>
             <span class="order-status-badge status-<?= $shipment['status'] ?>">
               <?= ucfirst(str_replace('_', ' ', $shipment['status'])) ?>

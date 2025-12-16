@@ -105,7 +105,7 @@
               </div>
               <div style="display: flex; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.1); border-radius: 8px;">
                 <span style="color: #94a3b8;">Account Holder</span>
-                <span style="font-weight: 600;"><?= htmlspecialchars($s['account_holder'] ?? 'Streicher GmbH') ?></span>
+                <span style="font-weight: 600;"><?= htmlspecialchars($s['account_holder'] ?? 'Gordon Food Service GmbH') ?></span>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.1); border-radius: 8px;">
                 <span style="color: #94a3b8;">IBAN</span>

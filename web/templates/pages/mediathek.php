@@ -1,7 +1,7 @@
 <?php
 $pageTitle = $lang === 'de' ? 'Mediathek' : 'Media Library';
 
-// Videos from Streicher website
+// Videos from Gordon Food Service website
 $projectVideos = [
     [
         'title_de' => 'HDD-E Serie - Vollelektrische Horizontalbohranlagen',
@@ -61,8 +61,8 @@ $projectVideos = [
 
 $imageVideos = [
     [
-        'title_de' => 'STREICHER Imagevideo (Englische Version)',
-        'title_en' => 'STREICHER Image Video (English Version)',
+        'title_de' => 'Gordon Food Service Imagevideo (Englische Version)',
+        'title_en' => 'Gordon Food Service Image Video (English Version)',
         'vimeo_id' => '378796657',
         'youtube_id' => 'v0-RQ7pYEyg',
     ],
@@ -73,8 +73,8 @@ $imageVideos = [
         'youtube_id' => null,
     ],
     [
-        'title_de' => 'STREICHER Maschinenbau',
-        'title_en' => 'STREICHER Mechanical Engineering',
+        'title_de' => 'Gordon Food Service Maschinenbau',
+        'title_en' => 'Gordon Food Service Mechanical Engineering',
         'vimeo_id' => '378309699',
         'youtube_id' => null,
     ],
@@ -100,14 +100,14 @@ $galleryImages = [
 <div class="page-header">
     <div class="container">
         <nav class="breadcrumb">
-            <a href="/">STREICHER</a>
+            <a href="/">Gordon Food Service</a>
             <span>-</span>
             <span><?= $pageTitle ?></span>
         </nav>
     </div>
 </div>
 
-<section class="mediathek-hero" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://www.streichergmbh.com/fileadmin/_processed_/8/6/csm_STREICHER-Deggendorf_Drohne_DJI_0003_6b7c9f7c8a.jpg') center/cover;">
+<section class="mediathek-hero" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://www.Gordon Food Servicegmbh.com/fileadmin/_processed_/8/6/csm_Gordon Food Service-Deggendorf_Drohne_DJI_0003_6b7c9f7c8a.jpg') center/cover;">
     <div class="container">
         <h1><?= $pageTitle ?></h1>
     </div>
@@ -173,7 +173,7 @@ $galleryImages = [
         <div class="gallery-grid">
             <?php foreach ($galleryImages as $index => $image): ?>
             <a href="<?= $image ?>" class="gallery-item" data-lightbox="gallery">
-                <img src="<?= $image ?>" alt="STREICHER Gallery <?= $index + 1 ?>">
+                <img src="<?= $image ?>" alt="Gordon Food Service Gallery <?= $index + 1 ?>">
                 <div class="gallery-overlay">
                     <span>🔍</span>
                 </div>

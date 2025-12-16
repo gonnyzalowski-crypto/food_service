@@ -6,7 +6,7 @@ $pageSubtitle = $lang === 'de' ? 'Gesundheit, Sicherheit, Umwelt & Qualität' : 
 <div class="page-header">
     <div class="container">
         <nav class="breadcrumb">
-            <a href="/">STREICHER</a>
+            <a href="/">Gordon Food Service</a>
             <span>-</span>
             <span><?= $pageTitle ?></span>
         </nav>
@@ -24,9 +24,9 @@ $pageSubtitle = $lang === 'de' ? 'Gesundheit, Sicherheit, Umwelt & Qualität' : 
     <div class="container">
         <div class="intro-content">
             <?php if ($lang === 'de'): ?>
-            <p class="lead">Bei STREICHER hat die Sicherheit und Gesundheit unserer Mitarbeiter, Kunden und Partner höchste Priorität. Wir sind bestrebt, alle unsere Aktivitäten unter Einhaltung höchster Qualitäts- und Umweltstandards durchzuführen.</p>
+            <p class="lead">Bei Gordon Food Service hat die Sicherheit und Gesundheit unserer Mitarbeiter, Kunden und Partner höchste Priorität. Wir sind bestrebt, alle unsere Aktivitäten unter Einhaltung höchster Qualitäts- und Umweltstandards durchzuführen.</p>
             <?php else: ?>
-            <p class="lead">At STREICHER, the safety and health of our employees, customers and partners is our top priority. We are committed to carrying out all our activities in compliance with the highest quality and environmental standards.</p>
+            <p class="lead">At Gordon Food Service, the safety and health of our employees, customers and partners is our top priority. We are committed to carrying out all our activities in compliance with the highest quality and environmental standards.</p>
             <?php endif; ?>
         </div>
     </div>

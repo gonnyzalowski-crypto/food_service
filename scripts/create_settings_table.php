@@ -10,7 +10,7 @@ $dsn = sprintf(
     'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
     $_ENV['DB_HOST'] ?? '127.0.0.1',
     $_ENV['DB_PORT'] ?? '3306',
-    $_ENV['DB_NAME'] ?? 'streicher'
+    $_ENV['DB_NAME'] ?? 'Gordon Food Service'
 );
 
 $pdo = new PDO($dsn, $_ENV['DB_USER'] ?? 'root', $_ENV['DB_PASS'] ?? '', [
@@ -30,17 +30,17 @@ $pdo->exec("
 
 // Insert default settings
 $defaults = [
-    'company_name' => 'Streicher GmbH',
+    'company_name' => 'Gordon Food Service GmbH',
     'vat_id' => 'DE123456789',
     'address' => "Industriestraße 45\n93055 Regensburg\nGermany",
     'bank_name' => 'Deutsche Bank AG',
-    'account_holder' => 'Streicher GmbH',
+    'account_holder' => 'Gordon Food Service GmbH',
     'iban' => 'DE89 3704 0044 0532 0130 00',
     'bic' => 'COBADEFFXXX',
-    'support_email' => 'support@streichergmbh.com',
+    'support_email' => 'support@Gordon Food Servicegmbh.com',
     'support_phone' => '+49 991 330-00',
-    'sales_email' => 'sales@streichergmbh.com',
-    'shipping_email' => 'shipping@streichergmbh.com',
+    'sales_email' => 'sales@Gordon Food Servicegmbh.com',
+    'shipping_email' => 'shipping@Gordon Food Servicegmbh.com',
     'vat_rate' => '19',
     'currency' => 'USD',
     'free_shipping_threshold' => '5000',

@@ -17,7 +17,7 @@
     <div class="card-body">
       <div style="background: #dcfce7; padding: 24px; border-radius: 8px; margin-bottom: 24px;">
         <h4 style="margin: 0 0 8px 0; color: #166534;">24-Month Standard Warranty</h4>
-        <p style="margin: 0; color: #166534;">All Streicher products are covered by our comprehensive 24-month warranty against manufacturing defects.</p>
+        <p style="margin: 0; color: #166534;">All Gordon Food Service products are covered by our comprehensive 24-month warranty against manufacturing defects.</p>
       </div>
       
       <h4>What's Covered:</h4>
@@ -66,7 +66,7 @@
       
       <h4>Return Process</h4>
       <ol style="color: #475569;">
-        <li style="margin-bottom: 12px;"><strong>Contact Us:</strong> Email returns@streichergmbh.com to request a Return Authorization (RA) number.</li>
+        <li style="margin-bottom: 12px;"><strong>Contact Us:</strong> Email returns@Gordon Food Servicegmbh.com to request a Return Authorization (RA) number.</li>
         <li style="margin-bottom: 12px;"><strong>Pack Securely:</strong> Repack the product in its original packaging with all accessories.</li>
         <li style="margin-bottom: 12px;"><strong>Ship:</strong> Send the package to our returns center with the RA number clearly marked.</li>
         <li><strong>Refund:</strong> Once inspected, refunds are processed within 10 business days.</li>
@@ -118,7 +118,7 @@
       </p>
       <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
         <div>
-          <strong>📧 Email:</strong> returns@streichergmbh.com
+          <strong>📧 Email:</strong> returns@Gordon Food Servicegmbh.com
         </div>
       </div>
     </div>

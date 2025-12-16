@@ -10,8 +10,8 @@ $dotenv = Dotenv::createImmutable(dirname(__DIR__));
 $dotenv->safeLoad();
 
 $pdo = new PDO(
-    sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', $_ENV['DB_HOST'] ?? 'db', $_ENV['DB_NAME'] ?? 'streicher'),
-    $_ENV['DB_USER'] ?? 'streicher', $_ENV['DB_PASS'] ?? 'secret',
+    sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', $_ENV['DB_HOST'] ?? 'db', $_ENV['DB_NAME'] ?? 'Gordon Food Service'),
+    $_ENV['DB_USER'] ?? 'Gordon Food Service', $_ENV['DB_PASS'] ?? 'secret',
     [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
 );
 
@@ -98,7 +98,7 @@ foreach ($products as $product) {
     
     $longDesc .= "## Product Overview\n\n";
     $longDesc .= "{$shortDesc}\n\n";
-    $longDesc .= "Streicher GmbH has been a trusted supplier of industrial equipment for over 50 years. Our products are engineered to meet the most stringent international standards and are backed by comprehensive technical support.\n\n";
+    $longDesc .= "Gordon Food Service GmbH has been a trusted supplier of industrial equipment for over 50 years. Our products are engineered to meet the most stringent international standards and are backed by comprehensive technical support.\n\n";
     
     $longDesc .= "## Technical Specifications\n\n";
     foreach ($specs as $key => $value) {
@@ -115,7 +115,7 @@ foreach ($products as $product) {
     $longDesc .= "- Factory testing and certification\n";
     
     $longDesc .= "\n## Quality Assurance\n\n";
-    $longDesc .= "All Streicher products undergo rigorous quality control procedures including:\n";
+    $longDesc .= "All Gordon Food Service products undergo rigorous quality control procedures including:\n";
     $longDesc .= "- Incoming material inspection\n";
     $longDesc .= "- In-process quality checks\n";
     $longDesc .= "- Final assembly testing\n";

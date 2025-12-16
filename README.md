@@ -1,15 +1,15 @@
-# Streicher GmbH - Industrial Equipment E-Commerce Platform
+# Gordon Food Service - Food Supply & Provisioning Platform
 
 <div align="center">
 
-![Streicher GmbH](https://img.shields.io/badge/Streicher-GmbH-0066cc?style=for-the-badge)
+![Gordon Food Service](https://img.shields.io/badge/Gordon-Food_Service-0066cc?style=for-the-badge)
 ![PHP 8.2](https://img.shields.io/badge/PHP-8.2-777BB4?style=flat-square&logo=php)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat-square&logo=mysql&logoColor=white)
 ![License](https://img.shields.io/badge/License-Proprietary-red?style=flat-square)
 
-**Enterprise-grade B2B e-commerce platform for industrial machinery and heavy equipment**
+**Enterprise-grade B2B platform for food supply and offshore provisioning**
 
-[Live Demo](https://streichergmbh.com) · [Documentation](#user-guide) · [Deployment](#deployment)
+[Live Demo](https://gordonfoods.com) · [Documentation](#user-guide) · [Deployment](#deployment)
 
 </div>
 
@@ -17,23 +17,23 @@
 
 ## Executive Summary
 
-**Streicher GmbH** is a comprehensive B2B e-commerce solution designed for the industrial equipment sector. The platform enables manufacturers and distributors to sell high-value machinery (€50,000 - €400,000+) with enterprise-grade security, multi-currency support, and full order lifecycle management.
+**Gordon Food Service** is a comprehensive B2B platform designed for wholesale food and supply provisioning. The platform enables food distributors and suppliers to manage bulk orders, contractor relationships, and offshore provisioning with enterprise-grade security, multi-currency support, and full order lifecycle management.
 
 ### Market Opportunity
 
 | Metric | Value |
 |--------|-------|
-| Global Industrial Equipment Market | $650B+ (2024) |
-| B2B E-commerce Growth Rate | 17.5% CAGR |
-| Digital Transformation Gap | 70% of industrial companies lack modern e-commerce |
-| Average Order Value | €85,000 - €250,000 |
+| Global Food Supply Market | $850B+ (2024) |
+| B2B Food E-commerce Growth Rate | 18.2% CAGR |
+| Digital Transformation Gap | 65% of food companies lack modern e-commerce |
+| Average Order Value | $5,000 - $50,000 |
 
-### Why Streicher?
+### Why Gordon Food Service?
 
-- **Purpose-Built**: Designed specifically for high-value industrial sales, not adapted from retail
+- **Purpose-Built**: Designed specifically for food supply and offshore provisioning, not adapted from retail
 - **Bank Transfer Focus**: Optimized for B2B payment workflows (wire transfers, not credit cards)
 - **Full Lifecycle**: Quote → Order → Payment → Shipping → Delivery tracking
-- **Multi-Language**: German/English with easy expansion
+- **Multi-Language**: English with easy expansion
 - **Enterprise Security**: CSRF protection, rate limiting, secure sessions
 
 ---
@@ -44,11 +44,11 @@
 
 | Feature | Description |
 |---------|-------------|
-| **Product Catalog** | Browse industrial equipment by category with detailed specifications |
+| **Supply Catalog** | Browse food supplies and provisions by category with detailed specifications |
 | **Multi-Currency** | Toggle between EUR/USD with real-time exchange rates |
 | **Quote Requests** | Request custom pricing for bulk orders or special requirements |
 | **Secure Checkout** | Bank transfer payment with receipt upload |
-| **Order Tracking** | Real-time shipment tracking with customs status updates |
+| **Order Tracking** | Real-time shipment tracking with delivery status updates |
 | **Support Tickets** | Direct communication with sales and support teams |
 
 ### For Administrators
@@ -58,7 +58,7 @@
 | **Dashboard** | Overview of orders, revenue, and pending actions |
 | **Order Management** | Full lifecycle from pending → shipped → delivered |
 | **Payment Verification** | Review and approve payment receipts |
-| **Shipment Tracking** | Add tracking updates including customs hold/cleared |
+| **Shipment Tracking** | Add tracking updates including delivery status |
 | **Customer Management** | View customer history and communications |
 | **Settings** | Configure bank details, company info, notifications |
 | **Support Tickets** | Respond to customer inquiries and quote requests |
@@ -104,25 +104,25 @@
 
 ### For Customers
 
-#### 1. Browsing Products
+#### 1. Browsing Supplies
 
-1. Visit the **Products** page from the main navigation
-2. Use the **Search** box to find specific equipment
-3. Filter by **Category** (Pipelines, Mechanical, Electrical, etc.)
+1. Visit the **Supply Portal** page from the main navigation
+2. Use the **Search** box to find specific supplies
+3. Filter by **Category** (Food, Water, Toiletries, etc.)
 4. Toggle **EUR/USD** to view prices in your preferred currency
-5. Click **View** to see full product details and specifications
+5. Click **View** to see full supply details and specifications
 
 #### 2. Requesting a Quote
 
 1. Navigate to **Request Quote** in the menu
 2. Fill in your contact information and company details
-3. Specify product requirements and quantity
+3. Specify supply requirements and quantity
 4. Submit the form - you'll receive a ticket number
 5. Our sales team will respond within 24-48 hours
 
 #### 3. Placing an Order
 
-1. Add products to your cart
+1. Add supplies to your cart
 2. Proceed to **Checkout**
 3. Enter billing and shipping information
 4. Review the bank transfer details provided
@@ -137,8 +137,7 @@
    - Payment confirmation
    - Processing status
    - Shipment pickup
-   - Customs clearance
-   - Delivery updates
+   - Delivery status updates
 
 ### For Administrators
 
@@ -160,7 +159,7 @@
 
 1. Open an order with an active shipment
 2. Use the **Add Tracking Update** form
-3. Select status: Picked Up, In Transit, Customs Hold, Customs Cleared, Delivered
+3. Select status: Picked Up, In Transit, Delivered
 4. Add location and description
 5. Customer sees updates in real-time on their tracking page
 
@@ -207,7 +206,7 @@ MAIL_HOST=smtp.sendgrid.net
 MAIL_PORT=587
 MAIL_USERNAME=apikey
 MAIL_PASSWORD=your_sendgrid_api_key
-MAIL_FROM_ADDRESS=store@streichergmbh.com
+MAIL_FROM_ADDRESS=contact@gordonfoods.com
 ```
 
 #### Step 4: Deploy
@@ -218,8 +217,8 @@ Railway automatically builds using the `Dockerfile` and deploys.
 
 ```bash
 # Clone repository
-git clone https://github.com/gonnyzalowski-crypto/machine-store.git
-cd machine-store
+git clone https://github.com/gonnyzalowski-crypto/food_service.git
+cd food_service
 
 # Copy environment file
 cp .env.example .env
@@ -250,7 +249,7 @@ docker-compose up -d
 ## 📁 Project Structure
 
 ```
-streicher/
+gordon-food-service/
 ├── web/                    # Web root
 │   ├── index.php           # Single entry point (router)
 │   ├── translations.php    # i18n strings (DE/EN)
@@ -284,7 +283,7 @@ streicher/
 
 ### Competitive Advantages
 
-1. **Vertical Focus**: Built for industrial B2B, not adapted from retail
+1. **Vertical Focus**: Built for food supply B2B, not adapted from retail
 2. **No Dependencies**: Vanilla PHP means no framework lock-in or security vulnerabilities
 3. **Low Infrastructure Cost**: Runs on $5/month hosting, scales to enterprise
 4. **Rapid Deployment**: Live in hours, not months
@@ -304,15 +303,15 @@ streicher/
 
 ## 📞 Contact
 
-- **Website**: [streichergmbh.com](https://streichergmbh.com)
-- **Email**: store@streichergmbh.com
-- **Location**: Industriestraße 45, 93055 Regensburg, Germany
+- **Website**: [gordonfoods.com](https://gordonfoods.com)
+- **Email**: contact@gordonfoods.com
+- **Location**: 28th–36th St Port/Harborside industrial zone, Galveston, TX
 
 ---
 
 ## 📄 License
 
-Copyright © 2024 Streicher GmbH. All rights reserved.
+Copyright © 2024 Gordon Food Service. All rights reserved.
 
 This software is proprietary and confidential. Unauthorized copying, distribution, or use is strictly prohibited.
 

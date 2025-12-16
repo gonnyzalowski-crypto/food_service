@@ -1,8 +1,8 @@
-# Streicher GmbH - UI/UX Heuristic Evaluation Report
+# Gordon Food Service GmbH - UI/UX Heuristic Evaluation Report
 
 **Date:** December 13, 2025  
 **Auditor:** Automated Playwright + Manual Analysis  
-**Site:** https://streichergmbh.com
+**Site:** https://Gordon Food Servicegmbh.com
 
 ---
 

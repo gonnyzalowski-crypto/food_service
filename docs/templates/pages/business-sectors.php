@@ -71,7 +71,7 @@ $sectors = [
 <div class="page-header">
     <div class="container">
         <nav class="breadcrumb">
-            <a href="/">STREICHER</a>
+            <a href="/">Gordon Food Service</a>
             <span>-</span>
             <span><?= $pageTitle ?></span>
         </nav>
@@ -83,8 +83,8 @@ $sectors = [
         <h1><?= $pageTitle ?></h1>
         <p class="hero-subtitle">
             <?= $lang === 'de' 
-                ? 'Die STREICHER Gruppe ist in fünf Geschäftsbereichen tätig und bietet ein breites Spektrum an Dienstleistungen.' 
-                : 'The STREICHER Group operates in five business sectors, offering a wide range of services.' ?>
+                ? 'Die Gordon Food Service Gruppe ist in fünf Geschäftsbereichen tätig und bietet ein breites Spektrum an Dienstleistungen.' 
+                : 'The Gordon Food Service Group operates in five business sectors, offering a wide range of services.' ?>
         </p>
     </div>
 </section>

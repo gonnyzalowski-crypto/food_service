@@ -93,7 +93,7 @@
         <div class="card-body">
           <div class="form-group">
             <label class="form-label">Manufacturer</label>
-            <input type="text" name="manufacturer" class="form-control" value="<?= htmlspecialchars($product['manufacturer'] ?? 'Streicher') ?>">
+            <input type="text" name="manufacturer" class="form-control" value="<?= htmlspecialchars($product['manufacturer'] ?? 'Gordon Food Service') ?>">
           </div>
           <div class="form-group">
             <label class="form-label">Weight (kg)</label>

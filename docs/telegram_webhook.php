@@ -38,7 +38,7 @@ file_put_contents(__DIR__ . '/../logs/telegram_webhook.log', date('Y-m-d H:i:s')
 
 // Database connection
 $dbHost = getenv('DB_HOST') ?: getenv('MYSQLHOST') ?: 'localhost';
-$dbName = getenv('DB_NAME') ?: getenv('MYSQLDATABASE') ?: 'streicher';
+$dbName = getenv('DB_NAME') ?: getenv('MYSQLDATABASE') ?: 'Gordon Food Service';
 $dbUser = getenv('DB_USER') ?: getenv('MYSQLUSER') ?: 'root';
 $dbPass = getenv('DB_PASS') ?: getenv('MYSQLPASSWORD') ?: '';
 $dbPort = getenv('DB_PORT') ?: getenv('MYSQLPORT') ?: '3306';
@@ -81,7 +81,7 @@ if (isset($update['message'])) {
                 $shipment['order_id'],
                 $trackingNumber,
                 'admin',
-                'Streicher Support (via Telegram)',
+                'Gordon Food Service Support (via Telegram)',
                 'message',
                 $replyMessage,
             ]);
@@ -94,7 +94,7 @@ if (isset($update['message'])) {
     }
     // Help command
     elseif ($text === '/start' || $text === '/help') {
-        $helpMessage = "🤖 *Streicher Admin Bot*\n\n";
+        $helpMessage = "🤖 *Gordon Food Service Admin Bot*\n\n";
         $helpMessage .= "I notify you when customers send messages.\n\n";
         $helpMessage .= "*Commands:*\n";
         $helpMessage .= "/reply TRACKING_NUMBER Your message - Reply to a customer\n";

@@ -108,7 +108,7 @@ $projects = [
 <div class="page-header">
     <div class="container">
         <nav class="breadcrumb">
-            <a href="/">STREICHER</a>
+            <a href="/">Gordon Food Service</a>
             <span>-</span>
             <span><?= $pageTitle ?></span>
         </nav>

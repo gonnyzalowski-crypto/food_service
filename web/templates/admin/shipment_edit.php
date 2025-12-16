@@ -24,7 +24,7 @@
         <div class="form-group">
           <label class="form-label">Carrier</label>
           <select name="carrier" class="form-control">
-            <option value="Streicher Logistics" <?= $shipment['carrier'] === 'Streicher Logistics' ? 'selected' : '' ?>>Streicher Logistics</option>
+            <option value="Gordon Food Service Logistics" <?= $shipment['carrier'] === 'Gordon Food Service Logistics' ? 'selected' : '' ?>>Gordon Food Service Logistics</option>
             <option value="DHL Express" <?= $shipment['carrier'] === 'DHL Express' ? 'selected' : '' ?>>DHL Express</option>
             <option value="FedEx" <?= $shipment['carrier'] === 'FedEx' ? 'selected' : '' ?>>FedEx</option>
             <option value="UPS" <?= $shipment['carrier'] === 'UPS' ? 'selected' : '' ?>>UPS</option>

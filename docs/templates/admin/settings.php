@@ -23,7 +23,7 @@
       <div class="card-body">
         <div class="form-group">
           <label class="form-label">Company Name</label>
-          <input type="text" name="company_name" class="form-control" value="<?= htmlspecialchars($s['company_name'] ?? 'Streicher GmbH') ?>">
+          <input type="text" name="company_name" class="form-control" value="<?= htmlspecialchars($s['company_name'] ?? 'Gordon Food Service GmbH') ?>">
         </div>
         <div class="form-group">
           <label class="form-label">VAT ID</label>
@@ -48,7 +48,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">Account Holder</label>
-          <input type="text" name="account_holder" class="form-control" value="<?= htmlspecialchars($s['account_holder'] ?? 'Streicher GmbH') ?>">
+          <input type="text" name="account_holder" class="form-control" value="<?= htmlspecialchars($s['account_holder'] ?? 'Gordon Food Service GmbH') ?>">
         </div>
         <div class="form-group">
           <label class="form-label">IBAN</label>
@@ -69,7 +69,7 @@
       <div class="card-body">
         <div class="form-group">
           <label class="form-label">Support Email</label>
-          <input type="email" name="support_email" class="form-control" value="<?= htmlspecialchars($s['support_email'] ?? 'store@streichergmbh.com') ?>">
+          <input type="email" name="support_email" class="form-control" value="<?= htmlspecialchars($s['support_email'] ?? 'store@Gordon Food Servicegmbh.com') ?>">
         </div>
         <div class="form-group">
           <label class="form-label">Support Phone</label>
@@ -77,11 +77,11 @@
         </div>
         <div class="form-group">
           <label class="form-label">Sales Email</label>
-          <input type="email" name="sales_email" class="form-control" value="<?= htmlspecialchars($s['sales_email'] ?? 'store@streichergmbh.com') ?>">
+          <input type="email" name="sales_email" class="form-control" value="<?= htmlspecialchars($s['sales_email'] ?? 'store@Gordon Food Servicegmbh.com') ?>">
         </div>
         <div class="form-group">
           <label class="form-label">Shipping Email</label>
-          <input type="email" name="shipping_email" class="form-control" value="<?= htmlspecialchars($s['shipping_email'] ?? 'store@streichergmbh.com') ?>">
+          <input type="email" name="shipping_email" class="form-control" value="<?= htmlspecialchars($s['shipping_email'] ?? 'store@Gordon Food Servicegmbh.com') ?>">
         </div>
       </div>
     </div>
@@ -172,7 +172,7 @@
                 <span style="font-weight: 500;">Admin User</span>
               </div>
             </td>
-            <td>admin@streichergmbh.com</td>
+            <td>admin@Gordon Food Servicegmbh.com</td>
             <td><span style="background: #dbeafe; color: #1d4ed8; padding: 4px 12px; border-radius: 12px;">Super Admin</span></td>
             <td><?= date('M j, Y g:i A') ?></td>
             <td>

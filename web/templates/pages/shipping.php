@@ -179,7 +179,7 @@
       </p>
       <div style="display: flex; gap: 16px; justify-content: center;">
         <a href="/contact" class="btn btn-primary">Contact Us</a>
-        <a href="mailto:store@streichergmbh.com" class="btn btn-outline">store@streichergmbh.com</a>
+        <a href="mailto:store@Gordon Food Servicegmbh.com" class="btn btn-outline">store@Gordon Food Servicegmbh.com</a>
       </div>
     </div>
   </div>
