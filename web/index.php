@@ -1623,15 +1623,15 @@ function purge_expired_supply_payments(): void {
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/';
 $method = $_SERVER['REQUEST_METHOD'];
 
- // Disable legacy admin ecommerce routes
- if (preg_match('#^/admin/(orders|products)(/|$)#', $path) === 1) {
-     http_response_code(410);
-     exit('Disabled');
- }
+// Disable legacy tracking endpoints - replaced with supply portal
+if (preg_match('#^/(track|tracking|api/track|api/tracking)#', $path)) {
+    http_response_code(404);
+    require __DIR__ . '/templates/pages/closed.php';
+    require __DIR__ . '/templates/layout.php';
+    exit;
+}
 
-// ============ API ROUTES ============
-
- if (str_starts_with($path, '/api/')) {
+if (str_starts_with($path, '/api/')) {
      json_response(['error' => 'This endpoint is not available. Please use /supply.'], 410);
  }
 
@@ -1895,12 +1895,12 @@ if (preg_match('#^/api/orders/(\d+)$#', $path, $m) && $method === 'GET') {
 
 // POST /api/track
 if ($path === '/api/track' && $method === 'POST') {
-    json_response(['error' => 'Shipment tracking has been replaced by the contractor Supply Portal. Use /supply.'], 410);
+    json_response(['error' => 'Tracking has been replaced by contractor Supply Portal. Use /supply.'], 410);
 }
 
-// POST /api/tracking/{tracking_number}/message - Customer sends message/document
+// POST /api/tracking/{tracking_number}/message
 if (preg_match('#^/api/tracking/([A-Za-z0-9]+)/message$#', $path, $m) && $method === 'POST') {
-    json_response(['error' => 'Shipment tracking has been replaced by the contractor Supply Portal. Use /supply.'], 410);
+    json_response(['error' => 'Tracking has been replaced by contractor Supply Portal. Use /supply.'], 410);
 }
 
 // ============ ADMIN API ROUTES ============
@@ -2028,70 +2028,10 @@ if (preg_match('#^/admin/orders/(\d+)/ship$#', $path, $m) && $method === 'POST')
     exit;
 }
 
-// POST /admin/shipments/{id}/update-tracking
+// POST /admin/shipments/{id}/update-tracking - Disabled, replaced with supply portal
 if (preg_match('#^/admin/shipments/(\d+)/update-tracking$#', $path, $m) && $method === 'POST') {
     require_admin();
-    $shipmentId = (int)$m[1];
-    $data = $_POST;
-    
-    $stmt = $pdo->prepare('SELECT * FROM shipments WHERE id = ?');
-    $stmt->execute([$shipmentId]);
-    $shipment = $stmt->fetch();
-    
-    if (!$shipment) {
-        json_response(['error' => 'Shipment not found'], 404);
-    }
-    
-    $events = json_decode($shipment['events'] ?? '[]', true) ?: [];
-    
-    // Status descriptions mapping
-    $statusDescriptions = [
-        'picked_up' => 'Shipment picked up from warehouse',
-        'in_transit' => 'Shipment in transit',
-        'arrived_hub' => 'Arrived at sorting hub',
-        'departed_hub' => 'Departed from sorting hub',
-        'customs_hold' => 'Shipment held at customs for inspection',
-        'customs_cleared' => 'Customs clearance completed - shipment released',
-        'arrived_destination' => 'Arrived at destination country',
-        'out_for_delivery' => 'Out for delivery',
-        'delivery_attempted' => 'Delivery attempted - recipient not available',
-        'delivered' => 'Shipment delivered successfully',
-    ];
-    
-    $statusCode = $data['status'] ?? 'in_transit';
-    $description = !empty($data['description']) ? $data['description'] : ($statusDescriptions[$statusCode] ?? 'Status update');
-    
-    // Add new event
-    $newEvent = [
-        'timestamp' => date('Y-m-d H:i:s'),
-        'status' => strtoupper(str_replace('_', ' ', $statusCode)),
-        'description' => $description,
-        'location' => $data['location'] ?? '',
-        'facility' => $data['facility'] ?? '',
-    ];
-    
-    array_unshift($events, $newEvent);
-    
-    // Update shipment
-    $newStatus = strtolower($data['status'] ?? $shipment['status']);
-    
-    $stmt = $pdo->prepare('UPDATE shipments SET status = ?, events = ? WHERE id = ?');
-    $stmt->execute([$newStatus, json_encode($events), $shipmentId]);
-    
-    // If delivered, update order
-    if ($newStatus === 'delivered') {
-        $pdo->prepare('UPDATE orders SET status = ?, delivered_at = NOW() WHERE id = ?')
-            ->execute(['delivered', $shipment['order_id']]);
-        
-        $pdo->prepare('UPDATE shipments SET actual_delivery = NOW() WHERE id = ?')
-            ->execute([$shipmentId]);
-    }
-    
-    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])) {
-        json_response(['ok' => true]);
-    }
-    header('Location: /admin/orders/' . $shipment['order_id']);
-    exit;
+    json_response(['error' => 'Shipment tracking has been replaced by contractor Supply Portal. Use /supply.'], 410);
 }
 
 // POST /admin/shipments/{id}/customs-hold - Set customs hold status
@@ -2148,175 +2088,16 @@ if (preg_match('#^/admin/shipments/(\d+)/customs-hold$#', $path, $m) && $method 
     exit;
 }
 
-// POST /admin/shipments/{id}/clear-customs - Clear customs hold
+// POST /admin/shipments/{id}/clear-customs - Disabled, replaced with supply portal
 if (preg_match('#^/admin/shipments/(\d+)/clear-customs$#', $path, $m) && $method === 'POST') {
     require_admin();
-    $shipmentId = (int)$m[1];
-    
-    $stmt = $pdo->prepare('SELECT * FROM shipments WHERE id = ?');
-    $stmt->execute([$shipmentId]);
-    $shipment = $stmt->fetch();
-    
-    if (!$shipment) {
-        json_response(['error' => 'Shipment not found'], 404);
-    }
-    
-    // Update shipment
-    $stmt = $pdo->prepare('UPDATE shipments SET status = ?, customs_status = ? WHERE id = ?');
-    $stmt->execute(['in_transit', 'cleared', $shipmentId]);
-    
-    // Add tracking event
-    $events = json_decode($shipment['events'] ?? '[]', true) ?: [];
-    array_unshift($events, [
-        'timestamp' => date('Y-m-d H:i:s'),
-        'status' => 'CUSTOMS_CLEARED',
-        'description' => 'Customs clearance completed - shipment released',
-        'location' => $_POST['location'] ?? 'Customs Facility',
-    ]);
-    $pdo->prepare('UPDATE shipments SET events = ? WHERE id = ?')
-        ->execute([json_encode($events), $shipmentId]);
-    
-    // Add system message
-    $pdo->prepare(
-        'INSERT INTO tracking_communications (order_id, tracking_number, sender_type, message_type, message) VALUES (?, ?, ?, ?, ?)'
-    )->execute([
-        $shipment['order_id'],
-        $shipment['tracking_number'],
-        'system',
-        'status_update',
-        'Good news! Your shipment has cleared customs and is now back in transit.',
-    ]);
-    
-    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])) {
-        json_response(['ok' => true]);
-    }
-    header('Location: /admin/orders/' . $shipment['order_id']);
-    exit;
+    json_response(['error' => 'Shipment tracking has been replaced by contractor Supply Portal. Use /supply.'], 410);
 }
 
-// POST /admin/shipments/{id}/send-message - Admin sends message/document via shipment ID
-if (preg_match('#^/admin/shipments/(\d+)/send-message$#', $path, $m) && $method === 'POST') {
-    require_admin();
-    $shipmentId = (int)$m[1];
-    
-    // Get shipment to find tracking number and order ID
-    $stmt = $pdo->prepare('SELECT * FROM shipments WHERE id = ?');
-    $stmt->execute([$shipmentId]);
-    $shipment = $stmt->fetch();
-    
-    if (!$shipment) {
-        header('Location: /admin/orders');
-        exit;
-    }
-    
-    $trackingNumber = $shipment['tracking_number'];
-    $message = $_POST['message'] ?? '';
-    $documentPath = null;
-    $documentName = null;
-    $documentType = null;
-    $messageType = 'message';
-    
-    // Handle file upload
-    if (!empty($_FILES['document']['name'])) {
-        $uploadDir = __DIR__ . '/uploads/tracking/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-        
-        $ext = pathinfo($_FILES['document']['name'], PATHINFO_EXTENSION);
-        $safeName = $trackingNumber . '_admin_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
-        $destPath = $uploadDir . $safeName;
-        
-        if (move_uploaded_file($_FILES['document']['tmp_name'], $destPath)) {
-            $documentPath = 'uploads/tracking/' . $safeName;
-            $documentName = $_FILES['document']['name'];
-            $documentType = $_FILES['document']['type'];
-            $messageType = !empty($message) ? 'message' : 'document';
-        }
-    }
-    
-    if (empty($message) && empty($documentPath)) {
-        header('Location: /admin/orders/' . $shipment['order_id'] . '?error=empty_message');
-        exit;
-    }
-    
-    $stmt = $pdo->prepare(
-        'INSERT INTO tracking_communications (order_id, tracking_number, sender_type, sender_name, message_type, message, document_name, document_path, document_type) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-    );
-    $stmt->execute([
-        $shipment['order_id'],
-        $trackingNumber,
-        'admin',
-        $_SESSION['user_name'] ?? 'GFS Logistics',
-        $messageType,
-        $message ?: null,
-        $documentName,
-        $documentPath,
-        $documentType,
-    ]);
-    
-    header('Location: /admin/orders/' . $shipment['order_id'] . '#communications-' . $shipmentId);
-    exit;
-}
-
-// POST /admin/tracking/{tracking_number}/message - Admin sends message/document
+// POST /admin/tracking/{tracking_number}/message - Disabled, replaced with supply portal
 if (preg_match('#^/admin/tracking/([A-Za-z0-9]+)/message$#', $path, $m) && $method === 'POST') {
     require_admin();
-    $trackingNumber = $m[1];
-    
-    // Get shipment to find order_id
-    $stmt = $pdo->prepare('SELECT order_id FROM shipments WHERE tracking_number = ?');
-    $stmt->execute([$trackingNumber]);
-    $shipment = $stmt->fetch();
-    $orderId = $shipment ? $shipment['order_id'] : null;
-    
-    $message = $_POST['message'] ?? '';
-    $documentPath = null;
-    $documentName = null;
-    $documentType = null;
-    $messageType = 'message';
-    
-    // Handle file upload
-    if (!empty($_FILES['document']['name'])) {
-        $uploadDir = __DIR__ . '/uploads/tracking/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-        
-        $ext = pathinfo($_FILES['document']['name'], PATHINFO_EXTENSION);
-        $safeName = $trackingNumber . '_admin_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
-        $destPath = $uploadDir . $safeName;
-        
-        if (move_uploaded_file($_FILES['document']['tmp_name'], $destPath)) {
-            $documentPath = '/uploads/tracking/' . $safeName;
-            $documentName = $_FILES['document']['name'];
-            $documentType = $_FILES['document']['type'];
-            $messageType = 'document';
-        }
-    }
-    
-    if (empty($message) && empty($documentPath)) {
-        json_response(['error' => 'Message or document required'], 400);
-    }
-    
-    $stmt = $pdo->prepare(
-        'INSERT INTO tracking_communications (order_id, tracking_number, sender_type, sender_name, message_type, message, document_name, document_path, document_type) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-    );
-    $stmt->execute([
-        $orderId,
-        $trackingNumber,
-        'admin',
-        $_SESSION['user_name'] ?? 'GFS Logistics',
-        $messageType,
-        $message ?: null,
-        $documentName,
-        $documentPath,
-        $documentType,
-    ]);
-    
-    json_response(['ok' => true, 'message' => 'Message sent successfully']);
+    json_response(['error' => 'Shipment tracking has been replaced by contractor Supply Portal. Use /supply.'], 410);
 }
 
 // ============ HTML ROUTES ============

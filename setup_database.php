@@ -30,7 +30,8 @@ try {
     $migrationFiles = [
         'migrations/001_initial_schema.sql',
         'migrations/002_order_flow.sql', 
-        'migrations/003_offshore_supply.sql'
+        'migrations/003_offshore_supply.sql',
+        'migrations/004_remove_tracking.sql'
     ];
     
     foreach ($migrationFiles as $migrationFile) {
