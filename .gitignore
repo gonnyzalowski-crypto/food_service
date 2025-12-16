@@ -37,6 +37,9 @@ docker-compose.yml
 # Audit and development files
 AUDIT_REPORT.md
 
+# Local secrets
+nowpayment api key.txt
+
 # Scripts not needed for production
 /scripts/
 
@@ -48,3 +51,53 @@ random.png
 
 # Local database
 *.sql.gz
+
+# Documentation files
+*.md
+!README.md
+
+# Deployment scripts
+start.bat
+*.bat
+
+# Large media files
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.pdf
+!web/assets/images/*.png
+!web/assets/images/*.svg
+!web/assets/favicon.*
+
+# Node modules and frontend build files
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.eslintcache
+.nyc_output
+
+# Frontend build artifacts
+dist/
+build/
+*.tgz
+*.tar.gz
+
+# Environment variables for production
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Large directories
+Photo/
+uploads/
+vendor/
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db

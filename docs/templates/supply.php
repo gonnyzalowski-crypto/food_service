@@ -1,0 +1,424 @@
+<?php
+$contractor = $contractor ?? null;
+$requests = $requests ?? [];
+$error = $error ?? null;
+$info = $info ?? null;
+$showAll = (bool)($showAll ?? false);
+?>
+
+<div class="page-header">
+  <h1 class="page-title">Supply Portal</h1>
+  <p class="page-subtitle">Enter your contractor code to view supply history and request offshore provisioning.</p>
+</div>
+
+<?php if ($error): ?>
+<div class="alert alert-error mb-4">
+  <div class="alert-title">Access denied</div>
+  <p style="margin: 4px 0 0 0;"><?= htmlspecialchars((string)$error) ?></p>
+</div>
+<?php endif; ?>
+
+<?php if ($info): ?>
+<div class="alert alert-info mb-4">
+  <div class="alert-title">Info</div>
+  <p style="margin: 4px 0 0 0;"><?= htmlspecialchars((string)$info) ?></p>
+</div>
+<?php endif; ?>
+
+<?php if (!$contractor): ?>
+<div class="card" style="max-width: 640px;">
+  <div class="card-header">
+    <h3 class="card-title">Enter Contractor Code</h3>
+  </div>
+  <div class="card-body">
+    <form action="/supply/code" method="POST">
+      <?= csrf_field() ?>
+      <div class="form-group">
+        <label class="form-label">Contractor Code</label>
+        <input type="text" name="contractor_code" class="form-control" placeholder="e.g., GFS-XXXX-XXXX" required>
+      </div>
+      <button class="btn btn-primary btn-lg" type="submit" style="width: 100%;">Access Supply Portal</button>
+    </form>
+    <div style="margin-top: 16px; color: #64748b; font-size: 0.9rem;">
+      No code? Contact Gordon Food Service to register your contractor account.
+    </div>
+  </div>
+</div>
+<?php else: ?>
+<div class="card mb-4">
+  <div class="card-body" style="display: flex; justify-content: space-between; gap: 16px; align-items: center; flex-wrap: wrap;">
+    <div>
+      <div style="font-weight: 700; font-size: 1.1rem;"><?= htmlspecialchars($contractor['company_name'] ?? '') ?></div>
+      <div style="color: #64748b;">Contractor: <?= htmlspecialchars($contractor['full_name'] ?? '') ?></div>
+      <div style="color: #64748b; font-size: 0.9rem;">Code: <span style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;"><?= htmlspecialchars($contractor['contractor_code'] ?? '') ?></span></div>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <?php if (!empty($contractor['discount_eligible'])): ?>
+        <span class="order-status-badge" style="background: #dcfce7; color: #166534;">Discount: <?= htmlspecialchars((string)($contractor['discount_percent'] ?? '0')) ?>%</span>
+      <?php endif; ?>
+      <a class="btn btn-outline" href="/supply/logout">Exit</a>
+    </div>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px; align-items: start;">
+  <div>
+    <div class="card">
+      <div class="card-header" style="display:flex; justify-content: space-between; align-items:center;">
+        <h3 class="card-title">Supply History</h3>
+        <div style="font-size: 0.9rem; color: #64748b;">
+          <?= $showAll ? 'Up to 2 years' : 'Last 5 requests' ?>
+        </div>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <?php if (empty($requests)): ?>
+          <div style="padding: 32px; color: #64748b;">No supply requests found.</div>
+        <?php else: ?>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Request</th>
+                <th>Supplies</th>
+                <th>Delivery</th>
+                <th>Dates</th>
+                <th>Price</th>
+                <th>Discounted Price</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($requests as $r): ?>
+              <tr>
+                <td>
+                  <div style="font-weight: 600;"><?= htmlspecialchars($r['request_number']) ?></div>
+                  <div style="font-size: 0.85rem; color: rgba(255,255,255,0.5);">Crew: <?= (int)$r['crew_size'] ?>, <?= (int)$r['duration_days'] ?> days</div>
+                </td>
+                <td style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">
+                  <?php
+                    $types = json_decode($r['supply_types'] ?? '[]', true) ?: [];
+                    echo htmlspecialchars(implode(', ', array_map(fn($t) => str_replace('_', ' ', (string)$t), $types)));
+                  ?>
+                </td>
+                <td style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">
+                  <div><?= htmlspecialchars(str_replace('_', ' ', $r['delivery_location'])) ?></div>
+                  <div style="font-size: 0.85rem; color: rgba(255,255,255,0.5);"><?= htmlspecialchars(str_replace('_', ' ', $r['delivery_speed'])) ?></div>
+                </td>
+                <td style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">
+                  <div><?= $r['effective_date'] ? htmlspecialchars($r['effective_date']) : '—' ?></div>
+                  <div style="font-size: 0.85rem; color: rgba(255,255,255,0.5);">Created: <?= htmlspecialchars(date('Y-m-d', strtotime($r['created_at']))) ?></div>
+                </td>
+                <?php $basePrice = isset($r['base_price']) && $r['base_price'] !== null ? (float)$r['base_price'] : (float)$r['calculated_price']; ?>
+                <td style="font-weight: 700; color: rgba(255,255,255,0.9);"><?= format_price($basePrice, (string)($r['currency'] ?? 'USD')) ?></td>
+                <td style="font-weight: 800; color: #00bfff;"><?= format_price((float)$r['calculated_price'], (string)($r['currency'] ?? 'USD')) ?></td>
+                <td>
+                  <span class="order-status-badge status-<?= htmlspecialchars(str_replace('_', '-', (string)$r['status'])) ?>">
+                    <?= htmlspecialchars(ucfirst(str_replace('_', ' ', (string)$r['status']))) ?>
+                  </span>
+                </td>
+                <td>
+                  <?php if (($r['status'] ?? '') === 'approved_awaiting_payment'): ?>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="openSupplyPaymentModal(<?= (int)$r['id'] ?>, <?= htmlspecialchars(json_encode((string)$r['request_number']), ENT_QUOTES) ?>, <?= htmlspecialchars(json_encode(format_price((float)$r['calculated_price'], (string)($r['currency'] ?? 'USD'))), ENT_QUOTES) ?>, <?= htmlspecialchars(json_encode((string)($r['payment_instructions'] ?? '')), ENT_QUOTES) ?>)">Pay</button>
+                  <?php elseif (($r['status'] ?? '') === 'payment_submitted_processing'): ?>
+                    <span style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">Processing</span>
+                  <?php elseif (($r['status'] ?? '') === 'awaiting_review'): ?>
+                    <span style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">Waiting</span>
+                  <?php elseif (($r['status'] ?? '') === 'transaction_completed'): ?>
+                    <button type="button" onclick="openThankYouModal()" style="background: none; border: none; color: #4ade80; font-weight: 700; font-size: 0.9rem; cursor: pointer; text-decoration: underline;">Completed</button>
+                  <?php elseif (($r['status'] ?? '') === 'declined'): ?>
+                    <span style="color: #f87171; font-weight: 700; font-size: 0.9rem;">Declined</span>
+                  <?php else: ?>
+                    <span style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">—</span>
+                  <?php endif; ?>
+                </td>
+              </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        <?php endif; ?>
+      </div>
+      <?php if (!$showAll): ?>
+      <div class="card-footer" style="display:flex; justify-content: flex-end;">
+        <a class="btn btn-sm btn-outline" href="/supply?all=1">View all (2 years)</a>
+      </div>
+      <?php endif; ?>
+    </div>
+  </div>
+
+  <div>
+    <form class="card" action="/supply/request" method="POST">
+      <div class="card-header">
+        <h3 class="card-title">New Supply Request</h3>
+      </div>
+      <div class="card-body">
+        <?= csrf_field() ?>
+
+        <div class="form-group">
+          <label class="form-label">Duration (days)</label>
+          <input type="number" name="duration_days" class="form-control" min="14" value="14" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Crew Size</label>
+          <input type="number" name="crew_size" class="form-control" min="1" value="10" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Supply Types</label>
+          <div style="display: grid; gap: 10px;">
+            <label style="display:flex; align-items:center; gap: 10px;"><input type="checkbox" name="supply_types[]" value="water" checked> Water</label>
+            <label style="display:flex; align-items:center; gap: 10px;"><input type="checkbox" name="supply_types[]" value="dry_food" checked> Dry Food</label>
+            <label style="display:flex; align-items:center; gap: 10px;"><input type="checkbox" name="supply_types[]" value="canned_food"> Canned Food</label>
+            <label style="display:flex; align-items:center; gap: 10px;"><input type="checkbox" name="supply_types[]" value="mixed_supplies"> Mixed Supplies</label>
+            <label style="display:flex; align-items:center; gap: 10px;"><input type="checkbox" name="supply_types[]" value="toiletries"> Toiletries</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Delivery Location</label>
+          <select name="delivery_location" class="form-control" required>
+            <option value="onshore">Onshore</option>
+            <option value="offshore_rig">Offshore Rig</option>
+            <option value="nearshore">Nearshore</option>
+            <option value="pickup">Pickup</option>
+            <option value="local">Local</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Delivery Speed</label>
+          <select name="delivery_speed" class="form-control" required>
+            <option value="standard">Standard</option>
+            <option value="priority">Priority</option>
+            <option value="emergency">Emergency</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Storage Life (months)</label>
+          <input type="number" name="storage_life_months" class="form-control" min="1" value="6">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Effective Supply Date (optional)</label>
+          <input type="date" name="effective_date" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Notes (optional)</label>
+          <textarea name="notes" class="form-control" rows="3" placeholder="Rig name, dock instructions, crew constraints, etc."></textarea>
+        </div>
+
+        <div class="alert alert-info" style="margin: 0;">
+          <div class="alert-title">Pricing</div>
+          <p style="margin: 4px 0 0 0;">A single flat package price will be calculated after submission. No per-item pricing is shown.</p>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button type="submit" class="btn btn-primary btn-lg btn-block">Submit Supply Request</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="supplyPaymentModal" class="modal" style="display: none;">
+  <div class="modal-backdrop" onclick="closeSupplyPaymentModal()" style="background: rgba(0,0,0,0.8);"></div>
+  <div class="modal-content modal-lg" style="background: #1a1a1a; border: 1px solid #333; border-radius: 20px; max-width: 700px;">
+    <div class="modal-header" style="border-bottom: 1px solid #333; padding: 20px 24px;">
+      <h3 style="color: #00bfff; margin: 0; font-size: 1.5rem;">Payment Submission</h3>
+      <button type="button" class="modal-close" onclick="closeSupplyPaymentModal()" style="background: rgba(255,255,255,0.1); border: none; color: #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer;">&times;</button>
+    </div>
+    <div class="modal-body" style="padding: 24px; background: #1a1a1a;">
+      <div style="background: rgba(0,191,255,0.1); border: 1px solid rgba(0,191,255,0.3); border-radius: 10px; padding: 16px; margin-bottom: 20px;">
+        <div style="color: #00bfff; font-weight: 600; margin-bottom: 4px;">Submit your payment details</div>
+        <p style="margin: 0; color: rgba(255,255,255,0.7); font-size: 0.9rem;">Our team will process your transaction and confirm when complete.</p>
+      </div>
+
+      <div id="supplyPaymentRequestBadge" style="background: #333; padding: 12px 16px; border-radius: 10px; font-family: monospace; font-size: 0.9rem; text-align: center; color: #00bfff; margin-bottom: 20px;"></div>
+
+      <div id="supplyPaymentInstructions" style="display:none; background: rgba(0,191,255,0.1); border: 1px solid rgba(0,191,255,0.3); border-radius: 10px; padding: 16px; margin-bottom: 20px;">
+        <div style="color: #00bfff; font-weight: 600; margin-bottom: 4px;">Instructions</div>
+        <p id="supplyPaymentInstructionsText" style="margin: 0; color: rgba(255,255,255,0.7); white-space: pre-wrap;"></p>
+      </div>
+
+      <form method="POST" action="/supply/payment" id="supplyPaymentForm" class="dark-form" style="max-width: 100%; padding: 0; background: transparent; border: none;">
+        <?= csrf_field() ?>
+        <input type="hidden" name="supply_request_id" id="supply_request_id" value="">
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">Billing Full Name</label>
+            <input type="text" name="billing_name" class="dark-input" style="width: 100%; padding: 14px 12px;" required>
+          </div>
+          <div>
+            <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">Phone</label>
+            <input type="text" name="phone" class="dark-input" style="width: 100%; padding: 14px 12px;" required>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">Address Line 1</label>
+            <input type="text" name="address_line1" class="dark-input" style="width: 100%; padding: 14px 12px;" required>
+          </div>
+          <div>
+            <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">Address Line 2 (optional)</label>
+            <input type="text" name="address_line2" class="dark-input" style="width: 100%; padding: 14px 12px;">
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">City</label>
+            <input type="text" name="address_city" class="dark-input" style="width: 100%; padding: 14px 12px;" required>
+          </div>
+          <div>
+            <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">State</label>
+            <input type="text" name="address_state" class="dark-input" style="width: 100%; padding: 14px 12px;" required>
+          </div>
+          <div>
+            <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">ZIP</label>
+            <input type="text" name="address_zip" class="dark-input" style="width: 100%; padding: 14px 12px;" required>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">Country</label>
+          <input type="text" name="address_country" class="dark-input" style="width: 100%; padding: 14px 12px;" required value="United States">
+        </div>
+
+        <div style="border-top: 1px solid #333; margin: 24px 0; padding-top: 24px;">
+          <div style="color: #00bfff; font-weight: 600; margin-bottom: 16px;">💳 Card Details</div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">Card Brand</label>
+            <select name="card_brand" class="dark-select" style="width: 100%; padding: 14px 12px;">
+              <option value="">Select…</option>
+              <option value="visa">Visa</option>
+              <option value="mastercard">Mastercard</option>
+              <option value="amex">American Express</option>
+              <option value="discover">Discover</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">Name on Card</label>
+            <input type="text" name="card_name" class="dark-input" style="width: 100%; padding: 14px 12px;" required>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">Card Number</label>
+          <input type="text" name="card_number" class="dark-input" style="width: 100%; padding: 14px 12px;" inputmode="numeric" autocomplete="cc-number" required>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+          <div>
+            <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">Exp Month</label>
+            <input type="number" name="exp_month" class="dark-input" style="width: 100%; padding: 14px 12px;" min="1" max="12" required>
+          </div>
+          <div>
+            <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">Exp Year</label>
+            <input type="number" name="exp_year" class="dark-input" style="width: 100%; padding: 14px 12px;" min="<?= (int)date('Y') ?>" max="<?= (int)date('Y') + 25 ?>" required>
+          </div>
+          <div>
+            <label style="display: block; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 6px;">CVV</label>
+            <input type="password" name="cvv" class="dark-input" style="width: 100%; padding: 14px 12px;" inputmode="numeric" autocomplete="cc-csc" required>
+          </div>
+        </div>
+
+        <div style="display:flex; gap: 12px; justify-content: flex-end;">
+          <button type="button" class="dark-btn-outline" onclick="closeSupplyPaymentModal()">Cancel</button>
+          <button type="submit" class="dark-btn" id="supplyPaymentSubmit">Submit Payment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function openSupplyPaymentModal(requestId, requestNumber, priceLabel, instructions) {
+  const modal = document.getElementById('supplyPaymentModal');
+  const badge = document.getElementById('supplyPaymentRequestBadge');
+  const instrBox = document.getElementById('supplyPaymentInstructions');
+  const instrText = document.getElementById('supplyPaymentInstructionsText');
+
+  document.getElementById('supply_request_id').value = requestId;
+  badge.textContent = `Request: ${requestNumber} · Price: ${priceLabel}`;
+
+  const instr = (typeof instructions === 'string') ? instructions.trim() : '';
+  if (instr) {
+    instrText.textContent = instr;
+    instrBox.style.display = '';
+  } else {
+    instrText.textContent = '';
+    instrBox.style.display = 'none';
+  }
+
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSupplyPaymentModal() {
+  const modal = document.getElementById('supplyPaymentModal');
+  modal.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+document.getElementById('supplyPaymentForm')?.addEventListener('submit', function() {
+  const btn = document.getElementById('supplyPaymentSubmit');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+  }
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeSupplyPaymentModal();
+    closeThankYouModal();
+  }
+});
+
+function openThankYouModal() {
+  document.getElementById('thankYouModal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeThankYouModal() {
+  document.getElementById('thankYouModal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+</script>
+
+<!-- Thank You Modal -->
+<div id="thankYouModal" class="modal" style="display: none;">
+  <div class="modal-backdrop" onclick="closeThankYouModal()" style="background: rgba(0,0,0,0.8);"></div>
+  <div class="modal-content" style="background: #1a1a1a; border: 1px solid #333; border-radius: 20px; max-width: 500px; text-align: center;">
+    <div class="modal-header" style="border-bottom: 1px solid #333; padding: 20px 24px;">
+      <h3 style="color: #4ade80; margin: 0; font-size: 1.5rem;">✓ Order Complete</h3>
+      <button type="button" class="modal-close" onclick="closeThankYouModal()" style="background: rgba(255,255,255,0.1); border: none; color: #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer;">&times;</button>
+    </div>
+    <div class="modal-body" style="padding: 32px 24px; background: #1a1a1a;">
+      <div style="font-size: 4rem; margin-bottom: 16px;">🎉</div>
+      <h4 style="color: #ffffff; font-size: 1.3rem; margin: 0 0 16px 0;">Thank You for Your Patronage!</h4>
+      <p style="color: rgba(255,255,255,0.7); font-size: 1rem; line-height: 1.6; margin: 0 0 24px 0;">
+        We appreciate your business. Your order has been successfully processed and is now being prepared for delivery.
+      </p>
+      <div style="background: rgba(0,191,255,0.1); border: 1px solid rgba(0,191,255,0.3); border-radius: 10px; padding: 16px; margin-bottom: 24px;">
+        <p style="color: rgba(255,255,255,0.8); font-size: 0.95rem; margin: 0;">
+          📧 <strong style="color: #00bfff;">Delivery instructions</strong> will be sent to your email within the next <strong>24 hours</strong>.
+        </p>
+      </div>
+      <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin: 0;">
+        If you have any questions, please contact us at <a href="mailto:contact@gordonfoods.com" style="color: #00bfff;">contact@gordonfoods.com</a>
+      </p>
+    </div>
+    <div style="padding: 16px 24px; border-top: 1px solid #333;">
+      <button type="button" class="dark-btn" onclick="closeThankYouModal()" style="width: 100%;">Close</button>
+    </div>
+  </div>
+</div>
+<?php endif; ?>
