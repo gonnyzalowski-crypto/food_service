@@ -264,6 +264,34 @@ if (isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== 'localhost' && str
 $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
 $requestPath = parse_url($requestUri, PHP_URL_PATH);
 
+// Serve files from /assets/ path
+if (preg_match('#^/assets/(.+)$#', $requestPath, $matches)) {
+    $assetFile = $matches[1];
+    $assetPath = __DIR__ . '/assets/' . $assetFile;
+    if (file_exists($assetPath) && is_file($assetPath)) {
+        $mimeTypes = [
+            'css' => 'text/css',
+            'js' => 'application/javascript',
+            'png' => 'image/png',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'gif' => 'image/gif',
+            'svg' => 'image/svg+xml',
+            'pdf' => 'application/pdf',
+            'webp' => 'image/webp',
+            'ico' => 'image/x-icon',
+            'woff' => 'font/woff',
+            'woff2' => 'font/woff2',
+        ];
+        $ext = strtolower(pathinfo($assetPath, PATHINFO_EXTENSION));
+        $mime = $mimeTypes[$ext] ?? 'application/octet-stream';
+        header('Content-Type: ' . $mime);
+        header('Cache-Control: public, max-age=31536000');
+        readfile($assetPath);
+        exit;
+    }
+}
+
 // Static file mappings
 $staticMappings = [
     '/styles.css' => __DIR__ . '/assets/styles.css',
