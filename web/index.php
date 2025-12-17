@@ -3456,15 +3456,17 @@ if (preg_match('#^/admin/supply-requests/(\d+)/edit$#', $path, $m) && $method ==
     }
 
     $createdAt = !empty($_POST['created_at']) ? date('Y-m-d H:i:s', strtotime($_POST['created_at'])) : $req['created_at'];
+    $requestNumber = !empty($_POST['request_number']) ? trim($_POST['request_number']) : $req['request_number'];
 
     $stmt = $pdo->prepare(
         'UPDATE supply_requests SET 
-            duration_days = ?, crew_size = ?, supply_types = ?, delivery_location = ?, delivery_speed = ?, 
+            request_number = ?, duration_days = ?, crew_size = ?, supply_types = ?, delivery_location = ?, delivery_speed = ?, 
             storage_life_months = ?, base_price = ?, calculated_price = ?, status = ?, 
             effective_date = ?, notes = ?, payment_instructions = ?, created_at = ?
          WHERE id = ?'
     );
     $stmt->execute([
+        $requestNumber,
         (int)($_POST['duration_days'] ?? $req['duration_days']),
         (int)($_POST['crew_size'] ?? $req['crew_size']),
         json_encode($supplyTypes),

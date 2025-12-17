@@ -61,9 +61,14 @@ $statuses = [
             <label class="form-label">Contractor</label>
             <input type="text" class="form-control" value="<?= htmlspecialchars(($req['company_name'] ?? '') . ' (' . ($req['contractor_code'] ?? '') . ')') ?>" disabled>
           </div>
+          <div class="form-group">
+            <label class="form-label">Request Number (ID)</label>
+            <input type="text" name="request_number" class="form-control" value="<?= htmlspecialchars($req['request_number'] ?? '') ?>" placeholder="TXN-SUP-YYYYMMDD-XXXXXX">
+            <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">Admin can edit the unique request identifier.</p>
+          </div>
           <?php endif; ?>
           
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-row-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
             <div class="form-group">
               <label class="form-label">Crew Size *</label>
               <input type="number" name="crew_size" class="form-control" min="1" required value="<?= htmlspecialchars($req['crew_size'] ?? '10') ?>">
@@ -95,7 +100,7 @@ $statuses = [
             </div>
           </div>
           
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-row-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
             <div class="form-group">
               <label class="form-label">Delivery Location *</label>
               <select name="delivery_location" class="form-control" required>
