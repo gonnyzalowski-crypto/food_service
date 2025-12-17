@@ -1,6 +1,53 @@
 <?php
 declare(strict_types=1);
 
+// EARLY HEALTH CHECK - before any requires that might fail
+$requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+if ($requestPath === '/health' || $requestPath === '/healthz') {
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'ok', 'timestamp' => date('c')]);
+    exit;
+}
+
+// Debug endpoint - before any requires
+if ($requestPath === '/debug-db') {
+    header('Content-Type: application/json');
+    $debug = [
+        'DATABASE_URL' => !empty($_ENV['DATABASE_URL']) ? 'set' : (!empty(getenv('DATABASE_URL')) ? 'getenv' : 'not set'),
+        'DB_HOST' => $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?: 'not set',
+        'DB_PORT' => $_ENV['DB_PORT'] ?? getenv('DB_PORT') ?: 'not set',
+        'DB_NAME' => $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?: 'not set',
+        'DB_USER' => $_ENV['DB_USER'] ?? getenv('DB_USER') ?: 'not set',
+        'env_count' => count($_ENV),
+        'getenv_test' => getenv('DB_HOST') ?: 'empty',
+    ];
+    
+    // Try to connect using getenv (Railway injects env vars)
+    $testHost = getenv('DB_HOST') ?: ($_ENV['DB_HOST'] ?? 'mysql.railway.internal');
+    $testPort = getenv('DB_PORT') ?: ($_ENV['DB_PORT'] ?? '3306');
+    $testName = getenv('DB_NAME') ?: ($_ENV['DB_NAME'] ?? 'railway');
+    $testUser = getenv('DB_USER') ?: ($_ENV['DB_USER'] ?? 'root');
+    $testPass = getenv('DB_PASS') ?: ($_ENV['DB_PASS'] ?? '');
+    
+    $debug['using_host'] = $testHost;
+    $debug['using_port'] = $testPort;
+    $debug['using_name'] = $testName;
+    $debug['using_user'] = $testUser;
+    
+    try {
+        $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $testHost, $testPort, $testName);
+        $pdo = new PDO($dsn, $testUser, $testPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 5]);
+        $debug['connection'] = 'SUCCESS';
+        $debug['server_version'] = $pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
+    } catch (PDOException $e) {
+        $debug['connection'] = 'FAILED';
+        $debug['error'] = $e->getMessage();
+    }
+    
+    echo json_encode($debug, JSON_PRETTY_PRINT);
+    exit;
+}
+
 // Hide PHP errors in production
 if (isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== 'localhost' && strpos($_SERVER['HTTP_HOST'], '127.0.0.1') === false) {
     error_reporting(0);
@@ -186,67 +233,6 @@ function sendTelegramNotification(string $message, ?string $documentUrl = null):
     }
     
     return $result !== false;
-}
-
-// Health check endpoint - respond before DB connection for Railway healthcheck
-$requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-if ($requestPath === '/health' || $requestPath === '/healthz') {
-    header('Content-Type: application/json');
-    echo json_encode(['status' => 'ok', 'timestamp' => date('c')]);
-    exit;
-}
-
-// Debug endpoint to check database connection
-if ($requestPath === '/debug-db') {
-    header('Content-Type: application/json');
-    $databaseUrl = $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL') ?? null;
-    $dbHost = $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?? 'not set';
-    $dbPort = $_ENV['DB_PORT'] ?? getenv('DB_PORT') ?? 'not set';
-    $dbName = $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?? 'not set';
-    $dbUser = $_ENV['DB_USER'] ?? getenv('DB_USER') ?? 'not set';
-    
-    $debug = [
-        'DATABASE_URL_set' => !empty($databaseUrl),
-        'DB_HOST' => $dbHost,
-        'DB_PORT' => $dbPort,
-        'DB_NAME' => $dbName,
-        'DB_USER' => $dbUser,
-        'env_keys' => array_keys($_ENV),
-    ];
-    
-    // Try to connect
-    try {
-        if ($databaseUrl) {
-            $dbParts = parse_url($databaseUrl);
-            $testHost = $dbParts['host'] ?? '127.0.0.1';
-            $testPort = $dbParts['port'] ?? '3306';
-            $testName = ltrim($dbParts['path'] ?? '/railway', '/');
-            $testUser = $dbParts['user'] ?? 'root';
-            $testPass = $dbParts['pass'] ?? '';
-        } else {
-            $testHost = $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?? '127.0.0.1';
-            $testPort = $_ENV['DB_PORT'] ?? getenv('DB_PORT') ?? '3306';
-            $testName = $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?? 'railway';
-            $testUser = $_ENV['DB_USER'] ?? getenv('DB_USER') ?? 'root';
-            $testPass = $_ENV['DB_PASS'] ?? getenv('DB_PASS') ?? '';
-        }
-        
-        $debug['parsed_host'] = $testHost;
-        $debug['parsed_port'] = $testPort;
-        $debug['parsed_name'] = $testName;
-        $debug['parsed_user'] = $testUser;
-        
-        $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $testHost, $testPort, $testName);
-        $pdo = new PDO($dsn, $testUser, $testPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-        $debug['connection'] = 'SUCCESS';
-        $debug['server_info'] = $pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
-    } catch (PDOException $e) {
-        $debug['connection'] = 'FAILED';
-        $debug['error'] = $e->getMessage();
-    }
-    
-    echo json_encode($debug, JSON_PRETTY_PRINT);
-    exit;
 }
 
  // Disable legacy endpoints from the previous Gordon Food Service store (ecommerce/tracking/tools)
