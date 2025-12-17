@@ -1840,6 +1840,16 @@ function generate_supply_request_number(): string {
 
 function require_contractor(): void {
     if (empty($_SESSION['contractor_id'])) {
+        // Check if this is an AJAX request
+        $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+        $acceptsJson = strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false;
+        
+        if ($isAjax || $acceptsJson) {
+            header('Content-Type: application/json');
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Not authenticated']);
+            exit;
+        }
         header('Location: /supply');
         exit;
     }
