@@ -107,7 +107,7 @@
           Our sales team is available 24/7 to assist you.
         </p>
         <div style="font-size: 0.9rem;">
-          ✉️ store@Gordon Food Servicegmbh.com
+          ✉️ contact@gorfos.com
         </div>
       </div>
     </div>

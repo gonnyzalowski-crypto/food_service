@@ -206,7 +206,7 @@ if ($isSoftwareOrder) {
         <p style="margin: 0; color: #64748b;">Contact our support team for any questions about your order.</p>
       </div>
       <div style="display: flex; gap: 12px;">
-        <a href="mailto:store@Gordon Food Servicegmbh.com" class="btn btn-outline">Email Support</a>
+        <a href="mailto:contact@gorfos.com" class="btn btn-outline">Email Support</a>
         <a href="/contact" class="btn btn-outline">Contact Us</a>
       </div>
     </div>

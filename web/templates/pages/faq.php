@@ -147,7 +147,7 @@
         <h4 style="margin: 0 0 8px 0;">How do I get technical support?</h4>
         <p style="margin: 0; color: #64748b;">
           Visit our <a href="/support">Technical Support</a> page to submit a support request, or contact 
-          our support team directly at store@Gordon Food Servicegmbh.com.
+          our support team directly at contact@gorfos.com.
         </p>
       </div>
       

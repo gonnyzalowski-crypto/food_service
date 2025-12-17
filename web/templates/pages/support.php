@@ -22,7 +22,7 @@
     <div style="font-size: 3rem; margin-bottom: 16px;">✉️</div>
     <h3 style="margin: 0 0 8px 0;">Email Support</h3>
     <p style="color: #64748b; margin-bottom: 16px;">Get detailed technical assistance via email</p>
-    <div style="font-size: 1.25rem; font-weight: 700; margin-bottom: 16px;">store@Gordon Food Servicegmbh.com</div>
+    <div style="font-size: 1.25rem; font-weight: 700; margin-bottom: 16px;">contact@gorfos.com</div>
     <div style="color: #64748b; font-size: 0.9rem;">Response within 24 hours</div>
   </div>
   

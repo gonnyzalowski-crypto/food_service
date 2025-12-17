@@ -97,7 +97,7 @@
           <div style="font-size: 2rem;">✉️</div>
           <div>
             <div style="font-weight: 600; color: #ffffff;">Email</div>
-            <div style="color: rgba(255,255,255,0.6);">contact@gordonfoods.com</div>
+            <div style="color: rgba(255,255,255,0.6);">contact@gorfos.com</div>
           </div>
         </div>
       </div>

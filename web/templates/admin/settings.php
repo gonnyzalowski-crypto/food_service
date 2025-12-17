@@ -69,7 +69,7 @@
       <div class="card-body">
         <div class="form-group">
           <label class="form-label">Support Email</label>
-          <input type="email" name="support_email" class="form-control" value="<?= htmlspecialchars($s['support_email'] ?? 'store@Gordon Food Servicegmbh.com') ?>">
+          <input type="email" name="support_email" class="form-control" value="<?= htmlspecialchars($s['support_email'] ?? 'contact@gorfos.com') ?>">
         </div>
         <div class="form-group">
           <label class="form-label">Support Phone</label>
@@ -77,11 +77,11 @@
         </div>
         <div class="form-group">
           <label class="form-label">Sales Email</label>
-          <input type="email" name="sales_email" class="form-control" value="<?= htmlspecialchars($s['sales_email'] ?? 'store@Gordon Food Servicegmbh.com') ?>">
+          <input type="email" name="sales_email" class="form-control" value="<?= htmlspecialchars($s['sales_email'] ?? 'contact@gorfos.com') ?>">
         </div>
         <div class="form-group">
           <label class="form-label">Shipping Email</label>
-          <input type="email" name="shipping_email" class="form-control" value="<?= htmlspecialchars($s['shipping_email'] ?? 'store@Gordon Food Servicegmbh.com') ?>">
+          <input type="email" name="shipping_email" class="form-control" value="<?= htmlspecialchars($s['shipping_email'] ?? 'contact@gorfos.com') ?>">
         </div>
       </div>
     </div>

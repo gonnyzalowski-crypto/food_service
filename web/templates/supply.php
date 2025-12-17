@@ -67,25 +67,6 @@ $totalRequests = count($requests);
 $completedRequests = count(array_filter($requests, fn($r) => in_array($r['status'] ?? '', ['transaction_completed', 'completed', 'shipped'])));
 $pendingRequests = count(array_filter($requests, fn($r) => in_array($r['status'] ?? '', ['awaiting_review', 'approved_awaiting_payment', 'payment_submitted_processing'])));
 $totalSpent = array_sum(array_map(fn($r) => in_array($r['status'] ?? '', ['transaction_completed', 'completed', 'shipped']) ? (float)($r['calculated_price'] ?? 0) : 0, $requests));
-
-// Calculate monthly spending for the chart (last 6 months)
-$monthlyData = [];
-for ($i = 5; $i >= 0; $i--) {
-    $monthStart = date('Y-m-01', strtotime("-$i months"));
-    $monthEnd = date('Y-m-t', strtotime("-$i months"));
-    $monthLabel = date('M', strtotime("-$i months"));
-    $monthTotal = 0;
-    foreach ($requests as $r) {
-        if (in_array($r['status'] ?? '', ['transaction_completed', 'completed', 'shipped'])) {
-            $completedDate = date('Y-m-d', strtotime($r['completed_at'] ?? $r['created_at']));
-            if ($completedDate >= $monthStart && $completedDate <= $monthEnd) {
-                $monthTotal += (float)($r['calculated_price'] ?? 0);
-            }
-        }
-    }
-    $monthlyData[] = ['label' => $monthLabel, 'value' => $monthTotal];
-}
-$maxValue = max(array_column($monthlyData, 'value')) ?: 1;
 ?>
 
 <div class="card mb-4">
@@ -93,7 +74,7 @@ $maxValue = max(array_column($monthlyData, 'value')) ?: 1;
     <h3 class="card-title">Supply Metrics</h3>
   </div>
   <div class="card-body">
-    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
       <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; text-align: center;">
         <div style="font-size: 1.8rem; font-weight: 700; color: #00bfff;"><?= $totalRequests ?></div>
         <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">Total Requests</div>
@@ -109,20 +90,6 @@ $maxValue = max(array_column($monthlyData, 'value')) ?: 1;
       <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; text-align: center;">
         <div style="font-size: 1.8rem; font-weight: 700; color: #00bfff;"><?= format_price($totalSpent, 'USD') ?></div>
         <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">Total Spent</div>
-      </div>
-    </div>
-    
-    <!-- Smooth Area Chart -->
-    <div style="margin-top: 16px;">
-      <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-bottom: 12px;">Monthly Spending (Last 6 Months)</div>
-      <div style="position: relative; height: 120px; display: flex; align-items: flex-end; gap: 8px; padding-bottom: 24px;">
-        <?php foreach ($monthlyData as $i => $month): ?>
-        <?php $height = $maxValue > 0 ? ($month['value'] / $maxValue) * 100 : 0; ?>
-        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;">
-          <div style="width: 100%; background: linear-gradient(180deg, #00bfff 0%, rgba(0,191,255,0.3) 100%); border-radius: 8px 8px 0 0; height: <?= max($height, 4) ?>%; min-height: 4px; transition: height 0.3s ease;"></div>
-          <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5); position: absolute; bottom: 0;"><?= $month['label'] ?></div>
-        </div>
-        <?php endforeach; ?>
       </div>
     </div>
   </div>

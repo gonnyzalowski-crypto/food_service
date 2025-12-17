@@ -73,7 +73,7 @@ $lang = 'en-US';
         <a href="/supply">Supply Portal</a>
       </div>
       <div class="mobile-nav-info">
-        <span>✉️ contact@gordonfoods.com</span>
+        <span>✉️ contact@gorfos.com</span>
         <span style="margin-left: 16px;">☎️ +1 213-653-0266</span>
       </div>
     </div>
@@ -102,7 +102,7 @@ $lang = 'en-US';
       </p>
       <p style="margin-top: 16px;">
         <strong>Contact:</strong><br>
-        contact@gordonfoods.com<br>
+        contact@gorfos.com<br>
         +1 213-653-0266
       </p>
     </div>

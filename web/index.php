@@ -4759,8 +4759,9 @@ if ($path === '/admin/seed-supply-requests' && $method === 'GET') {
             $discountedPrice = mt_rand($config['min'] * 100, $config['max'] * 100) / 100;
             $basePrice = $discountedPrice / (1 - $discountPercent / 100);
             
-            // Random values
-            $crewSize = mt_rand(8, 25);
+            // Crew sizes per contractor
+            $crewSizes = ['brian' => 5, 'brokard' => 20, 'benard' => 60];
+            $crewSize = $crewSizes[$key];
             $durationDays = mt_rand(7, 30);
             $numTypes = mt_rand(2, 4);
             shuffle($supplyTypes);
@@ -4835,6 +4836,55 @@ if ($path === '/admin/seed-supply-requests' && $method === 'GET') {
     }
     
     echo "\n<a href='/admin/supply-requests' style='color:#00bfff;'>View Supply Requests →</a>\n";
+    echo "</pre>";
+    exit;
+}
+
+// GET /admin/update-crew-sizes - Update crew sizes for existing supply requests
+if ($path === '/admin/update-crew-sizes' && $method === 'GET') {
+    require_admin();
+    header('Content-Type: text/html; charset=utf-8');
+    
+    echo "<pre style='background:#1a1a1a;color:#fff;padding:20px;font-family:monospace;'>";
+    echo "=== Updating Crew Sizes ===\n\n";
+    
+    // Get contractor IDs
+    $contractors = [];
+    $stmt = $pdo->query("SELECT id, full_name, company_name FROM contractors WHERE active = 1");
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $name = strtolower($row['full_name']);
+        if (strpos($name, 'brian') !== false) {
+            $contractors['brian'] = $row;
+        } elseif (strpos($name, 'brokard') !== false) {
+            $contractors['brokard'] = $row;
+        } elseif (strpos($name, 'benard') !== false && strpos(strtolower($row['company_name']), 'houston') !== false) {
+            $contractors['benard'] = $row;
+        }
+    }
+    
+    // Crew sizes: Brian=5, Brokard=20, Benard=60
+    $crewSizes = [
+        'brian' => 5,
+        'brokard' => 20,
+        'benard' => 60,
+    ];
+    
+    foreach ($crewSizes as $key => $crewSize) {
+        if (!isset($contractors[$key])) {
+            echo "<span style='color:red;'>Contractor '$key' not found!</span>\n";
+            continue;
+        }
+        
+        $contractorId = $contractors[$key]['id'];
+        $stmt = $pdo->prepare("UPDATE supply_requests SET crew_size = ? WHERE contractor_id = ?");
+        $stmt->execute([$crewSize, $contractorId]);
+        $affected = $stmt->rowCount();
+        
+        echo "<span style='color:#4ade80;'>✓</span> Updated {$contractors[$key]['full_name']} ({$contractors[$key]['company_name']}): crew_size = $crewSize ($affected requests)\n";
+    }
+    
+    echo "\n<span style='color:#4ade80;font-weight:bold;'>Done!</span>\n";
+    echo "<a href='/admin/supply-requests' style='color:#00bfff;'>View Supply Requests →</a>\n";
     echo "</pre>";
     exit;
 }
