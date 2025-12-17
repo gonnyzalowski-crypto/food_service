@@ -68,6 +68,8 @@ start.bat
 *.gif
 *.svg
 *.pdf
+!web/assets/*.svg
+!web/assets/*.png
 !web/assets/images/*.png
 !web/assets/images/*.svg
 !web/assets/favicon.*
