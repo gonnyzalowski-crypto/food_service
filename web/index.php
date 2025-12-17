@@ -337,18 +337,25 @@ if ($requestPath === '/telegram-webhook') {
 
 // Database setup endpoint - initialize all tables
 if ($requestPath === '/setup-database') {
-    $setupDbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQL_HOST'] ?? $_ENV['MYSQLHOST'] ?? '127.0.0.1';
-    $setupDbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQL_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';
-    $setupDbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQL_DATABASE'] ?? $_ENV['MYSQLDATABASE'] ?? 'gordon_food_service';
-    $setupDbUser = $_ENV['DB_USER'] ?? $_ENV['MYSQL_USER'] ?? $_ENV['MYSQLUSER'] ?? 'root';
-    $setupDbPass = $_ENV['DB_PASS'] ?? $_ENV['MYSQL_PASSWORD'] ?? $_ENV['MYSQLPASSWORD'] ?? '';
+    $setupDbHost = getenv('DB_HOST') ?: ($_ENV['DB_HOST'] ?? $_ENV['MYSQL_HOST'] ?? $_ENV['MYSQLHOST'] ?? 'mysql.railway.internal');
+    $setupDbPort = getenv('DB_PORT') ?: ($_ENV['DB_PORT'] ?? $_ENV['MYSQL_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306');
+    $setupDbName = getenv('DB_NAME') ?: ($_ENV['DB_NAME'] ?? $_ENV['MYSQL_DATABASE'] ?? $_ENV['MYSQLDATABASE'] ?? 'railway');
+    $setupDbUser = getenv('DB_USER') ?: ($_ENV['DB_USER'] ?? $_ENV['MYSQL_USER'] ?? $_ENV['MYSQLUSER'] ?? 'root');
+    $setupDbPass = getenv('DB_PASS') ?: ($_ENV['DB_PASS'] ?? $_ENV['MYSQL_PASSWORD'] ?? $_ENV['MYSQLPASSWORD'] ?? '');
     
     try {
+        // First connect WITHOUT database name to create it if needed
         $setupPdo = new PDO(
-            "mysql:host=$setupDbHost;port=$setupDbPort;dbname=$setupDbName;charset=utf8mb4",
+            "mysql:host=$setupDbHost;port=$setupDbPort;charset=utf8mb4",
             $setupDbUser, $setupDbPass,
             [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
         );
+        
+        // Create database if it doesn't exist
+        $setupPdo->exec("CREATE DATABASE IF NOT EXISTS `$setupDbName` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+        
+        // Now connect to the database
+        $setupPdo->exec("USE `$setupDbName`");
         
         $tables = [];
 
@@ -495,6 +502,12 @@ if ($requestPath === '/setup-database') {
             $adminHash = password_hash('Americana12@', PASSWORD_DEFAULT);
             $stmt = $setupPdo->prepare("INSERT INTO users (email, password_hash, full_name, role) VALUES (?, ?, ?, 'admin')");
             $stmt->execute(['gonnyzalowski@gmail.com', $adminHash, 'Administrator']);
+        }
+
+        // Create demo contractor
+        $stmt = $setupPdo->query("SELECT COUNT(*) FROM contractors");
+        if ($stmt->fetchColumn() == 0) {
+            $setupPdo->exec("INSERT INTO contractors (full_name, company_name, contractor_code, discount_percent, discount_eligible, active) VALUES ('Demo Contractor', 'GFS Registered Contractor', 'GFS-DEMO-0001', 35.00, 1, 1)");
         }
 
         header('Content-Type: text/html');
