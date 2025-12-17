@@ -234,46 +234,21 @@ $maxValue = max(array_column($monthlyData, 'value')) ?: 1;
           <label class="form-label">Supply Types & Quantities (kg)</label>
           <p style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin: 0 0 12px 0;">Enter quantity in kilograms for each supply type you need. Prices shown are per kg.</p>
           <div style="display: grid; gap: 12px;">
+            <?php 
+            $supplyPrices = $supplyPrices ?? [];
+            foreach ($supplyPrices as $key => $item): 
+              $itemName = $item['name'] ?? ucwords(str_replace('_', ' ', $key));
+              $itemPrice = (float)($item['price'] ?? 0);
+            ?>
             <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
               <div>
-                <div style="font-weight: 600;">Water</div>
-                <div style="font-size: 0.85rem; color: #00bfff;">$0.85/kg</div>
+                <div style="font-weight: 600;"><?= htmlspecialchars($itemName) ?></div>
+                <div style="font-size: 0.85rem; color: #00bfff;">$<?= number_format($itemPrice, 2) ?>/kg</div>
               </div>
-              <input type="number" name="supply_quantities[water]" class="form-control" style="width: 100px;" min="0" step="0.1" value="0" placeholder="kg" oninput="updatePriceEstimate()">
-              <input type="hidden" name="supply_types[]" value="water">
+              <input type="number" name="supply_quantities[<?= htmlspecialchars($key) ?>]" class="form-control" style="width: 100px;" min="0" step="0.1" value="0" placeholder="kg" oninput="updatePriceEstimate()">
+              <input type="hidden" name="supply_types[]" value="<?= htmlspecialchars($key) ?>">
             </div>
-            <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
-              <div>
-                <div style="font-weight: 600;">Dry Food</div>
-                <div style="font-size: 0.85rem; color: #00bfff;">$3.50/kg</div>
-              </div>
-              <input type="number" name="supply_quantities[dry_food]" class="form-control" style="width: 100px;" min="0" step="0.1" value="0" placeholder="kg" oninput="updatePriceEstimate()">
-              <input type="hidden" name="supply_types[]" value="dry_food">
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
-              <div>
-                <div style="font-weight: 600;">Canned Food</div>
-                <div style="font-size: 0.85rem; color: #00bfff;">$4.25/kg</div>
-              </div>
-              <input type="number" name="supply_quantities[canned_food]" class="form-control" style="width: 100px;" min="0" step="0.1" value="0" placeholder="kg" oninput="updatePriceEstimate()">
-              <input type="hidden" name="supply_types[]" value="canned_food">
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
-              <div>
-                <div style="font-weight: 600;">Mixed Supplies</div>
-                <div style="font-size: 0.85rem; color: #00bfff;">$5.75/kg</div>
-              </div>
-              <input type="number" name="supply_quantities[mixed_supplies]" class="form-control" style="width: 100px;" min="0" step="0.1" value="0" placeholder="kg" oninput="updatePriceEstimate()">
-              <input type="hidden" name="supply_types[]" value="mixed_supplies">
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
-              <div>
-                <div style="font-weight: 600;">Toiletries</div>
-                <div style="font-size: 0.85rem; color: #00bfff;">$8.50/kg</div>
-              </div>
-              <input type="number" name="supply_quantities[toiletries]" class="form-control" style="width: 100px;" min="0" step="0.1" value="0" placeholder="kg" oninput="updatePriceEstimate()">
-              <input type="hidden" name="supply_types[]" value="toiletries">
-            </div>
+            <?php endforeach; ?>
           </div>
         </div>
 
@@ -497,14 +472,8 @@ function closeThankYouModal() {
   document.body.style.overflow = '';
 }
 
-// Per-kg prices for live estimation
-const pricesPerKg = {
-  water: 0.85,
-  dry_food: 3.50,
-  canned_food: 4.25,
-  mixed_supplies: 5.75,
-  toiletries: 8.50
-};
+// Per-kg prices for live estimation (loaded from database)
+const pricesPerKg = <?= json_encode(array_map(fn($item) => (float)($item['price'] ?? 0), $supplyPrices ?? [])) ?>;
 
 // Location multipliers
 const locationMultipliers = {
@@ -523,13 +492,13 @@ const speedMultipliers = {
 };
 
 function updatePriceEstimate() {
-  const quantities = {
-    water: parseFloat(document.querySelector('input[name="supply_quantities[water]"]')?.value) || 0,
-    dry_food: parseFloat(document.querySelector('input[name="supply_quantities[dry_food]"]')?.value) || 0,
-    canned_food: parseFloat(document.querySelector('input[name="supply_quantities[canned_food]"]')?.value) || 0,
-    mixed_supplies: parseFloat(document.querySelector('input[name="supply_quantities[mixed_supplies]"]')?.value) || 0,
-    toiletries: parseFloat(document.querySelector('input[name="supply_quantities[toiletries]"]')?.value) || 0
-  };
+  const quantities = {};
+  document.querySelectorAll('input[name^="supply_quantities["]').forEach(input => {
+    const match = input.name.match(/supply_quantities\[([^\]]+)\]/);
+    if (match) {
+      quantities[match[1]] = parseFloat(input.value) || 0;
+    }
+  });
 
   const location = document.querySelector('select[name="delivery_location"]')?.value || 'onshore';
   const speed = document.querySelector('select[name="delivery_speed"]')?.value || 'standard';
@@ -539,11 +508,11 @@ function updatePriceEstimate() {
   let breakdown = [];
 
   for (const [type, kg] of Object.entries(quantities)) {
-    if (kg > 0) {
+    if (kg > 0 && pricesPerKg[type]) {
       const price = pricesPerKg[type];
       const itemTotal = kg * price;
       subtotal += itemTotal;
-      breakdown.push(`${type.replace('_', ' ')}: ${kg}kg × $${price.toFixed(2)} = $${itemTotal.toFixed(2)}`);
+      breakdown.push(`${type.replace(/_/g, ' ')}: ${kg}kg × $${price.toFixed(2)} = $${itemTotal.toFixed(2)}`);
     }
   }
 

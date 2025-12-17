@@ -2484,6 +2484,23 @@ if ($path === '/supply' && $method === 'GET') {
         $requests = $stmt->fetchAll();
     }
 
+    // Load supply prices from database
+    $stmt = $pdo->prepare('SELECT setting_value FROM settings WHERE setting_key = ?');
+    $stmt->execute(['supply_prices']);
+    $supplyPricesJson = $stmt->fetchColumn();
+    $supplyPrices = $supplyPricesJson ? json_decode($supplyPricesJson, true) : [];
+    
+    // Default prices if empty
+    if (empty($supplyPrices)) {
+        $supplyPrices = [
+            'water' => ['name' => 'Water', 'price' => 0.85],
+            'dry_food' => ['name' => 'Dry Food', 'price' => 3.50],
+            'canned_food' => ['name' => 'Canned Food', 'price' => 4.25],
+            'mixed_supplies' => ['name' => 'Mixed Supplies', 'price' => 5.75],
+            'toiletries' => ['name' => 'Toiletries', 'price' => 8.50],
+        ];
+    }
+
     render_template('supply.php', [
         'title' => 'Supply Portal - Gordon Food Service',
         'contractor' => $contractor,
@@ -2491,6 +2508,7 @@ if ($path === '/supply' && $method === 'GET') {
         'error' => $error,
         'info' => $info,
         'showAll' => !empty($_GET['all']),
+        'supplyPrices' => $supplyPrices,
     ]);
 }
 
@@ -3989,9 +4007,25 @@ if ($path === '/admin/settings' && $method === 'GET') {
         $settings[$row['setting_key']] = $row['setting_value'];
     }
     
+    // Load supply prices from settings
+    $supplyPricesJson = $settings['supply_prices'] ?? null;
+    $supplyPrices = $supplyPricesJson ? json_decode($supplyPricesJson, true) : [];
+    
+    // If no supply prices set, use defaults
+    if (empty($supplyPrices)) {
+        $supplyPrices = [
+            'water' => ['name' => 'Water', 'price' => 0.85],
+            'dry_food' => ['name' => 'Dry Food', 'price' => 3.50],
+            'canned_food' => ['name' => 'Canned Food', 'price' => 4.25],
+            'mixed_supplies' => ['name' => 'Mixed Supplies', 'price' => 5.75],
+            'toiletries' => ['name' => 'Toiletries', 'price' => 8.50],
+        ];
+    }
+    
     render_admin_template('settings.php', [
         'title' => 'Settings - Admin',
         'settings' => $settings,
+        'supplyPrices' => $supplyPrices,
     ]);
 }
 
@@ -4021,6 +4055,54 @@ if ($path === '/admin/settings' && $method === 'POST') {
         $value = isset($_POST[$key]) ? '1' : '0';
         $stmt->execute([$key, $value]);
     }
+    
+    header('Location: /admin/settings?saved=1');
+    exit;
+}
+
+// POST /admin/settings/supply-item - Add/Edit/Delete supply items
+if ($path === '/admin/settings/supply-item' && $method === 'POST') {
+    require_admin();
+    
+    $action = $_POST['action'] ?? '';
+    $itemKey = strtolower(trim(preg_replace('/[^a-z_]/', '', $_POST['item_key'] ?? '')));
+    $itemName = trim($_POST['item_name'] ?? '');
+    $itemPrice = (float)($_POST['item_price'] ?? 0);
+    
+    // Load current supply prices
+    $stmt = $pdo->prepare('SELECT setting_value FROM settings WHERE setting_key = ?');
+    $stmt->execute(['supply_prices']);
+    $supplyPricesJson = $stmt->fetchColumn();
+    $supplyPrices = $supplyPricesJson ? json_decode($supplyPricesJson, true) : [];
+    
+    // Default prices if empty
+    if (empty($supplyPrices)) {
+        $supplyPrices = [
+            'water' => ['name' => 'Water', 'price' => 0.85],
+            'dry_food' => ['name' => 'Dry Food', 'price' => 3.50],
+            'canned_food' => ['name' => 'Canned Food', 'price' => 4.25],
+            'mixed_supplies' => ['name' => 'Mixed Supplies', 'price' => 5.75],
+            'toiletries' => ['name' => 'Toiletries', 'price' => 8.50],
+        ];
+    }
+    
+    if ($action === 'add' && $itemKey !== '' && $itemPrice > 0) {
+        $supplyPrices[$itemKey] = [
+            'name' => $itemName ?: ucwords(str_replace('_', ' ', $itemKey)),
+            'price' => $itemPrice,
+        ];
+    } elseif ($action === 'edit' && $itemKey !== '' && $itemPrice > 0) {
+        $supplyPrices[$itemKey] = [
+            'name' => $itemName ?: ucwords(str_replace('_', ' ', $itemKey)),
+            'price' => $itemPrice,
+        ];
+    } elseif ($action === 'delete' && $itemKey !== '') {
+        unset($supplyPrices[$itemKey]);
+    }
+    
+    // Save updated prices
+    $stmt = $pdo->prepare('INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)');
+    $stmt->execute(['supply_prices', json_encode($supplyPrices)]);
     
     header('Location: /admin/settings?saved=1');
     exit;

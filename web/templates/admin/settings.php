@@ -147,6 +147,56 @@
     </div>
   </div>
   
+  <!-- Supply Pricing -->
+  <div class="card mt-4">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+      <h3 class="card-title">📦 Supply Item Pricing (per kg)</h3>
+      <button type="button" class="btn btn-sm btn-primary" onclick="openAddSupplyItemModal()">+ Add Item</button>
+    </div>
+    <div class="card-body" style="padding: 0;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Item Name</th>
+            <th>Item Key</th>
+            <th>Price per kg (USD)</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php 
+          $supplyPrices = $supplyPrices ?? [];
+          if (empty($supplyPrices)): 
+          ?>
+          <tr>
+            <td colspan="4" style="text-align: center; color: rgba(255,255,255,0.5); padding: 24px;">
+              No supply items configured. Add items to set pricing.
+            </td>
+          </tr>
+          <?php else: ?>
+          <?php foreach ($supplyPrices as $key => $item): ?>
+          <tr>
+            <td style="font-weight: 500;"><?= htmlspecialchars($item['name'] ?? ucwords(str_replace('_', ' ', $key))) ?></td>
+            <td><code style="background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px;"><?= htmlspecialchars($key) ?></code></td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: #00bfff; font-weight: 600;">$<?= number_format((float)($item['price'] ?? 0), 2) ?></span>
+              </div>
+            </td>
+            <td>
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn btn-sm btn-outline" onclick="openEditSupplyItemModal('<?= htmlspecialchars($key) ?>', '<?= htmlspecialchars($item['name'] ?? '') ?>', '<?= (float)($item['price'] ?? 0) ?>')">Edit</button>
+                <button type="button" class="btn btn-sm btn-danger" onclick="deleteSupplyItem('<?= htmlspecialchars($key) ?>')">Delete</button>
+              </div>
+            </td>
+          </tr>
+          <?php endforeach; ?>
+          <?php endif; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- Admin Users -->
   <div class="card mt-4">
     <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
@@ -189,3 +239,88 @@
     <button type="submit" class="btn btn-primary btn-lg">💾 Save Settings</button>
   </div>
 </form>
+
+<!-- Supply Item Modal -->
+<div id="supplyItemModal" class="modal" style="display: none;">
+  <div class="modal-backdrop" onclick="closeSupplyItemModal()"></div>
+  <div class="modal-content" style="max-width: 500px;">
+    <div class="modal-header">
+      <h3 id="supplyItemModalTitle">Add Supply Item</h3>
+      <button type="button" class="modal-close" onclick="closeSupplyItemModal()">&times;</button>
+    </div>
+    <form id="supplyItemForm" action="/admin/settings/supply-item" method="POST">
+      <?= csrf_field() ?>
+      <input type="hidden" name="action" id="supplyItemAction" value="add">
+      <input type="hidden" name="original_key" id="supplyItemOriginalKey" value="">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Item Name</label>
+          <input type="text" name="item_name" id="supplyItemName" class="form-control" placeholder="e.g., Water, Dry Food, Canned Food" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Item Key (lowercase, underscores)</label>
+          <input type="text" name="item_key" id="supplyItemKey" class="form-control" placeholder="e.g., water, dry_food, canned_food" pattern="[a-z_]+" required>
+          <small style="color: rgba(255,255,255,0.5);">Used internally. Use lowercase letters and underscores only.</small>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Price per kg (USD)</label>
+          <input type="number" name="item_price" id="supplyItemPrice" class="form-control" step="0.01" min="0" placeholder="e.g., 3.50" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeSupplyItemModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Item</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Delete Supply Item Form (hidden) -->
+<form id="deleteSupplyItemForm" action="/admin/settings/supply-item" method="POST" style="display: none;">
+  <?= csrf_field() ?>
+  <input type="hidden" name="action" value="delete">
+  <input type="hidden" name="item_key" id="deleteSupplyItemKey" value="">
+</form>
+
+<script>
+function openAddSupplyItemModal() {
+  document.getElementById('supplyItemModalTitle').textContent = 'Add Supply Item';
+  document.getElementById('supplyItemAction').value = 'add';
+  document.getElementById('supplyItemOriginalKey').value = '';
+  document.getElementById('supplyItemName').value = '';
+  document.getElementById('supplyItemKey').value = '';
+  document.getElementById('supplyItemPrice').value = '';
+  document.getElementById('supplyItemKey').readOnly = false;
+  document.getElementById('supplyItemModal').style.display = 'flex';
+}
+
+function openEditSupplyItemModal(key, name, price) {
+  document.getElementById('supplyItemModalTitle').textContent = 'Edit Supply Item';
+  document.getElementById('supplyItemAction').value = 'edit';
+  document.getElementById('supplyItemOriginalKey').value = key;
+  document.getElementById('supplyItemName').value = name || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  document.getElementById('supplyItemKey').value = key;
+  document.getElementById('supplyItemPrice').value = price;
+  document.getElementById('supplyItemKey').readOnly = true;
+  document.getElementById('supplyItemModal').style.display = 'flex';
+}
+
+function closeSupplyItemModal() {
+  document.getElementById('supplyItemModal').style.display = 'none';
+}
+
+function deleteSupplyItem(key) {
+  if (confirm('Are you sure you want to delete this supply item? This cannot be undone.')) {
+    document.getElementById('deleteSupplyItemKey').value = key;
+    document.getElementById('deleteSupplyItemForm').submit();
+  }
+}
+
+// Auto-generate key from name
+document.getElementById('supplyItemName')?.addEventListener('input', function() {
+  if (document.getElementById('supplyItemAction').value === 'add') {
+    const key = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    document.getElementById('supplyItemKey').value = key;
+  }
+});
+</script>

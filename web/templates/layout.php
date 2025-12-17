@@ -18,6 +18,12 @@ $lang = 'en-US';
 </head>
 <body>
 
+<!-- Global Background Image (same as hero section) -->
+<div id="global-bg" style="position: fixed; inset: 0; z-index: -1; pointer-events: none;">
+  <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=1920&q=90" alt="" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.25;">
+  <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,10,10,0.9) 0%, rgba(10,10,10,0.7) 50%, rgba(10,10,10,0.95) 100%);"></div>
+</div>
+
 <!-- Skip Link for Accessibility -->
 <a href="#main-content" class="skip-link">Skip to main content</a>
 

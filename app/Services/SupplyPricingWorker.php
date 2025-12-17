@@ -11,13 +11,13 @@ class SupplyPricingWorker
 {
     private PDO $pdo;
 
-    // Per-kg prices for each supply type (realistic wholesale prices in USD)
-    public const PRICES_PER_KG = [
-        'water' => 0.85,           // $0.85/kg for bottled water
-        'dry_food' => 3.50,        // $3.50/kg for dry goods (rice, pasta, flour, etc.)
-        'canned_food' => 4.25,     // $4.25/kg for canned goods
-        'mixed_supplies' => 5.75,  // $5.75/kg for mixed provisions
-        'toiletries' => 8.50,      // $8.50/kg for toiletries and hygiene products
+    // Default per-kg prices (used if database has no prices)
+    public const DEFAULT_PRICES_PER_KG = [
+        'water' => 0.85,
+        'dry_food' => 3.50,
+        'canned_food' => 4.25,
+        'mixed_supplies' => 5.75,
+        'toiletries' => 8.50,
     ];
 
     public function __construct(PDO $pdo)
@@ -26,11 +26,27 @@ class SupplyPricingWorker
     }
 
     /**
-     * Get per-kg prices for display in the form
+     * Get per-kg prices from database
      */
-    public static function getPricesPerKg(): array
+    public function getPricesPerKg(): array
     {
-        return self::PRICES_PER_KG;
+        try {
+            $stmt = $this->pdo->prepare('SELECT setting_value FROM settings WHERE setting_key = ?');
+            $stmt->execute(['supply_prices']);
+            $json = $stmt->fetchColumn();
+            if ($json) {
+                $prices = json_decode($json, true);
+                if (is_array($prices) && !empty($prices)) {
+                    $result = [];
+                    foreach ($prices as $key => $item) {
+                        $result[$key] = (float)($item['price'] ?? 0);
+                    }
+                    return $result;
+                }
+            }
+        } catch (\Throwable $e) {
+        }
+        return self::DEFAULT_PRICES_PER_KG;
     }
 
     /**
@@ -119,13 +135,16 @@ class SupplyPricingWorker
         $supplyQuantities = $input['supply_quantities'] ?? [];
         $itemBreakdown = [];
         
+        // Get prices from database
+        $dbPrices = $this->getPricesPerKg();
+        
         if (!empty($supplyQuantities) && is_array($supplyQuantities)) {
             // New per-kg pricing model
             $basePrice = 0.0;
             foreach ($supplyQuantities as $type => $kg) {
                 $kg = (float)$kg;
-                if ($kg > 0 && isset(self::PRICES_PER_KG[$type])) {
-                    $pricePerKg = self::PRICES_PER_KG[$type];
+                if ($kg > 0 && isset($dbPrices[$type])) {
+                    $pricePerKg = $dbPrices[$type];
                     $itemTotal = $kg * $pricePerKg;
                     $itemBreakdown[$type] = [
                         'kg' => $kg,
