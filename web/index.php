@@ -13,7 +13,15 @@ if ($requestPath === '/health' || $requestPath === '/healthz') {
 if (preg_match('#^/assets/(.+)$#', $requestPath, $matches)) {
     $assetFile = $matches[1];
     $assetPath = __DIR__ . '/assets/' . $assetFile;
-    if (file_exists($assetPath) && is_file($assetPath)) {
+    
+    // Debug: return file info if file doesn't exist
+    if (!file_exists($assetPath)) {
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'File not found', 'path' => $assetPath, 'dir' => __DIR__, 'file' => $assetFile]);
+        exit;
+    }
+    
+    if (is_file($assetPath)) {
         $mimeTypes = [
             'css' => 'text/css',
             'js' => 'application/javascript',
