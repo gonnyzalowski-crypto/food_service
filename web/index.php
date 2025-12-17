@@ -13,21 +13,18 @@ if ($requestPath === '/health' || $requestPath === '/healthz') {
 if ($requestPath === '/debug-db') {
     header('Content-Type: application/json');
     $debug = [
-        'DATABASE_URL' => !empty($_ENV['DATABASE_URL']) ? 'set' : (!empty(getenv('DATABASE_URL')) ? 'getenv' : 'not set'),
-        'DB_HOST' => $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?: 'not set',
-        'DB_PORT' => $_ENV['DB_PORT'] ?? getenv('DB_PORT') ?: 'not set',
-        'DB_NAME' => $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?: 'not set',
-        'DB_USER' => $_ENV['DB_USER'] ?? getenv('DB_USER') ?: 'not set',
-        'env_count' => count($_ENV),
-        'getenv_test' => getenv('DB_HOST') ?: 'empty',
+        'DATABASE_URL' => !empty(getenv('DATABASE_URL')) ? 'set' : 'not set',
+        'DB_HOST' => getenv('DB_HOST') ?: 'not set',
+        'DB_PORT' => getenv('DB_PORT') ?: 'not set',
+        'DB_NAME' => getenv('DB_NAME') ?: 'not set',
+        'DB_USER' => getenv('DB_USER') ?: 'not set',
     ];
     
-    // Try to connect using getenv (Railway injects env vars)
-    $testHost = getenv('DB_HOST') ?: ($_ENV['DB_HOST'] ?? 'mysql.railway.internal');
-    $testPort = getenv('DB_PORT') ?: ($_ENV['DB_PORT'] ?? '3306');
-    $testName = getenv('DB_NAME') ?: ($_ENV['DB_NAME'] ?? 'railway');
-    $testUser = getenv('DB_USER') ?: ($_ENV['DB_USER'] ?? 'root');
-    $testPass = getenv('DB_PASS') ?: ($_ENV['DB_PASS'] ?? '');
+    $testHost = getenv('DB_HOST') ?: 'mysql.railway.internal';
+    $testPort = getenv('DB_PORT') ?: '3306';
+    $testName = getenv('DB_NAME') ?: 'railway';
+    $testUser = getenv('DB_USER') ?: 'root';
+    $testPass = getenv('DB_PASS') ?: '';
     
     $debug['using_host'] = $testHost;
     $debug['using_port'] = $testPort;
@@ -35,16 +32,225 @@ if ($requestPath === '/debug-db') {
     $debug['using_user'] = $testUser;
     
     try {
-        $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $testHost, $testPort, $testName);
+        $dsn = sprintf('mysql:host=%s;port=%s;charset=utf8mb4', $testHost, $testPort);
         $pdo = new PDO($dsn, $testUser, $testPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 5]);
         $debug['connection'] = 'SUCCESS';
         $debug['server_version'] = $pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
+        
+        // Check if database exists
+        $stmt = $pdo->query("SHOW DATABASES LIKE '$testName'");
+        $debug['database_exists'] = $stmt->rowCount() > 0;
+        
+        if ($debug['database_exists']) {
+            $pdo->exec("USE `$testName`");
+            $stmt = $pdo->query("SHOW TABLES");
+            $debug['table_count'] = $stmt->rowCount();
+        }
     } catch (PDOException $e) {
         $debug['connection'] = 'FAILED';
         $debug['error'] = $e->getMessage();
     }
     
     echo json_encode($debug, JSON_PRETTY_PRINT);
+    exit;
+}
+
+// EARLY SETUP DATABASE - before any requires that might fail
+if ($requestPath === '/setup-database') {
+    header('Content-Type: text/html; charset=utf-8');
+    
+    $setupDbHost = getenv('DB_HOST') ?: 'mysql.railway.internal';
+    $setupDbPort = getenv('DB_PORT') ?: '3306';
+    $setupDbName = getenv('DB_NAME') ?: 'railway';
+    $setupDbUser = getenv('DB_USER') ?: 'root';
+    $setupDbPass = getenv('DB_PASS') ?: '';
+    
+    echo "<h1>Gordon Food Service - Database Setup</h1>";
+    echo "<p>Host: $setupDbHost:$setupDbPort</p>";
+    echo "<p>Database: $setupDbName</p>";
+    echo "<p>User: $setupDbUser</p>";
+    
+    try {
+        // Connect without database name first
+        $pdo = new PDO(
+            "mysql:host=$setupDbHost;port=$setupDbPort;charset=utf8mb4",
+            $setupDbUser, $setupDbPass,
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+        );
+        echo "<p style='color:green'>✓ Connected to MySQL server</p>";
+        
+        // Create database
+        $pdo->exec("CREATE DATABASE IF NOT EXISTS `$setupDbName` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+        echo "<p style='color:green'>✓ Database '$setupDbName' ready</p>";
+        
+        // Use database
+        $pdo->exec("USE `$setupDbName`");
+        
+        // Create tables
+        $tables = [];
+        
+        $pdo->exec("CREATE TABLE IF NOT EXISTS users (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            email VARCHAR(255) NOT NULL UNIQUE,
+            password_hash VARCHAR(255) NOT NULL,
+            full_name VARCHAR(255),
+            phone VARCHAR(50),
+            role ENUM('customer', 'admin') DEFAULT 'customer',
+            is_active TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'users';
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS contractors (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            full_name VARCHAR(255) NOT NULL,
+            company_name VARCHAR(255) NOT NULL,
+            contractor_code VARCHAR(32) NOT NULL UNIQUE,
+            discount_percent DECIMAL(5,2) DEFAULT 35.00,
+            discount_eligible TINYINT(1) DEFAULT 1,
+            active TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'contractors';
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS supply_pricing_config (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            config_json JSON NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'supply_pricing_config';
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS supply_requests (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            request_number VARCHAR(64) NOT NULL UNIQUE,
+            contractor_id INT NOT NULL,
+            duration_days INT NOT NULL,
+            crew_size INT NOT NULL,
+            supply_types JSON NOT NULL,
+            delivery_location VARCHAR(50) NOT NULL,
+            delivery_speed VARCHAR(50) NOT NULL,
+            storage_life_months INT NULL,
+            base_price DECIMAL(14,2) NULL,
+            calculated_price DECIMAL(14,2) NOT NULL,
+            currency VARCHAR(3) DEFAULT 'USD',
+            status VARCHAR(50) DEFAULT 'awaiting_review',
+            effective_date DATE NULL,
+            notes TEXT NULL,
+            reviewed_by INT NULL,
+            reviewed_at TIMESTAMP NULL,
+            decline_reason TEXT NULL,
+            payment_instructions TEXT NULL,
+            approved_at TIMESTAMP NULL,
+            declined_at TIMESTAMP NULL,
+            payment_submitted_at TIMESTAMP NULL,
+            completed_at TIMESTAMP NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (contractor_id) REFERENCES contractors(id)
+        )");
+        $tables[] = 'supply_requests';
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS supply_request_payments (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            supply_request_id BIGINT NOT NULL,
+            contractor_id INT NOT NULL,
+            billing_name VARCHAR(255) NULL,
+            phone VARCHAR(50) NULL,
+            billing_address JSON NULL,
+            card_brand VARCHAR(50) NULL,
+            card_last4 VARCHAR(4) NULL,
+            exp_month INT NULL,
+            exp_year INT NULL,
+            encrypted_payload TEXT NOT NULL,
+            iv_b64 VARCHAR(64) NOT NULL,
+            tag_b64 VARCHAR(64) NOT NULL,
+            created_ip VARCHAR(45) NULL,
+            expires_at TIMESTAMP NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (supply_request_id) REFERENCES supply_requests(id) ON DELETE CASCADE,
+            FOREIGN KEY (contractor_id) REFERENCES contractors(id) ON DELETE CASCADE
+        )");
+        $tables[] = 'supply_request_payments';
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS settings (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            setting_key VARCHAR(100) NOT NULL UNIQUE,
+            setting_value TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'settings';
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS support_tickets (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            ticket_number VARCHAR(50) NOT NULL UNIQUE,
+            name VARCHAR(255),
+            company VARCHAR(255),
+            email VARCHAR(255),
+            phone VARCHAR(50),
+            subject VARCHAR(255),
+            message TEXT,
+            status VARCHAR(50) DEFAULT 'open',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'support_tickets';
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS email_logs (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            to_email VARCHAR(255),
+            subject VARCHAR(255),
+            status VARCHAR(50),
+            error_message TEXT,
+            sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'email_logs';
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS login_attempts (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            ip_address VARCHAR(45) NOT NULL,
+            email VARCHAR(255),
+            success TINYINT(1) DEFAULT 0,
+            attempted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_ip_time (ip_address, attempted_at)
+        )");
+        $tables[] = 'login_attempts';
+
+        echo "<p style='color:green'>✓ Created tables: " . implode(', ', $tables) . "</p>";
+
+        // Insert default data
+        $stmt = $pdo->query("SELECT COUNT(*) FROM supply_pricing_config");
+        if ($stmt->fetchColumn() == 0) {
+            $pdo->exec("INSERT INTO supply_pricing_config (config_json) VALUES (JSON_OBJECT(
+                'base_rate_per_person_day', 22.5,
+                'type_multipliers', JSON_OBJECT('water', 0.9, 'dry_food', 1.0, 'canned_food', 1.05, 'mixed_supplies', 1.1, 'toiletries', 1.05),
+                'location_multipliers', JSON_OBJECT('pickup', 0.85, 'local', 0.95, 'onshore', 1.0, 'nearshore', 1.15, 'offshore_rig', 1.35),
+                'speed_multipliers', JSON_OBJECT('standard', 1.0, 'priority', 1.2, 'emergency', 1.45)
+            ))");
+            echo "<p style='color:green'>✓ Inserted pricing config</p>";
+        }
+
+        $stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'admin'");
+        if ($stmt->fetchColumn() == 0) {
+            $adminHash = password_hash('Americana12@', PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("INSERT INTO users (email, password_hash, full_name, role) VALUES (?, ?, ?, 'admin')");
+            $stmt->execute(['gonnyzalowski@gmail.com', $adminHash, 'Administrator']);
+            echo "<p style='color:green'>✓ Created admin user</p>";
+        }
+
+        $stmt = $pdo->query("SELECT COUNT(*) FROM contractors");
+        if ($stmt->fetchColumn() == 0) {
+            $pdo->exec("INSERT INTO contractors (full_name, company_name, contractor_code, discount_percent, discount_eligible, active) VALUES ('Demo Contractor', 'GFS Registered Contractor', 'GFS-DEMO-0001', 35.00, 1, 1)");
+            echo "<p style='color:green'>✓ Created demo contractor</p>";
+        }
+
+        echo "<h2 style='color:green'>✓ Database Setup Complete!</h2>";
+        echo "<p><strong>Admin login:</strong> gonnyzalowski@gmail.com / Americana12@</p>";
+        echo "<p><a href='/'>Go to Home</a> | <a href='/supply'>Supply Portal</a> | <a href='/admin'>Admin Panel</a></p>";
+        
+    } catch (PDOException $e) {
+        echo "<p style='color:red'>✗ Error: " . htmlspecialchars($e->getMessage()) . "</p>";
+    }
     exit;
 }
 
