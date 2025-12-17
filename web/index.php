@@ -282,11 +282,9 @@ if ($requestPath === '/setup-database') {
     exit;
 }
 
-// Hide PHP errors in production
-if (isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== 'localhost' && strpos($_SERVER['HTTP_HOST'], '127.0.0.1') === false) {
-    error_reporting(0);
-    ini_set('display_errors', '0');
-}
+// Temporarily show errors for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
 
 // Serve static files directly when using PHP built-in server
 $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
