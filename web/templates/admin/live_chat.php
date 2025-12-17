@@ -52,13 +52,18 @@ $messages = $messages ?? [];
   <!-- Chat Window -->
   <div class="card" style="overflow: hidden; display: flex; flex-direction: column;">
     <?php if ($selectedContractor): ?>
-      <div class="card-header" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+      <div class="card-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
         <div>
           <h3 class="card-title" style="margin: 0;"><?= htmlspecialchars($selectedContractor['company_name']) ?></h3>
           <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">
             <?= htmlspecialchars($selectedContractor['full_name']) ?> · <?= htmlspecialchars($selectedContractor['contractor_code']) ?>
           </div>
         </div>
+        <form action="/admin/live-chat/clear" method="POST" onsubmit="return confirm('Are you sure you want to clear this contractor\'s chat history? This action cannot be undone.');">
+          <?= csrf_field() ?>
+          <input type="hidden" name="contractor_id" value="<?= (int)$selectedContractor['id'] ?>">
+          <button type="submit" class="btn btn-sm btn-outline" style="color: #f87171; border-color: #f87171;">🗑️ Clear History</button>
+        </form>
       </div>
       
       <!-- Messages -->

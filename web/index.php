@@ -2484,11 +2484,8 @@ if ($path === '/supply' && $method === 'GET') {
     }
 
     if ($contractor) {
-        $showAll = !empty($_GET['all']);
-        $sql = 'SELECT * FROM supply_requests WHERE contractor_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 2 YEAR) ORDER BY created_at DESC';
-        if (!$showAll) {
-            $sql .= ' LIMIT 5';
-        }
+        // Show all requests without limit
+        $sql = 'SELECT * FROM supply_requests WHERE contractor_id = ? ORDER BY created_at DESC';
         $stmt = $pdo->prepare($sql);
         $stmt->execute([(int)$contractor['id']]);
         $requests = $stmt->fetchAll();
@@ -4120,6 +4117,21 @@ if ($path === '/admin/live-chat/send' && $method === 'POST') {
             "INSERT INTO live_chat_messages (contractor_id, message, sender) VALUES (?, ?, 'admin')"
         );
         $stmt->execute([$contractorId, $message]);
+    }
+    
+    header('Location: /admin/live-chat?contractor_id=' . $contractorId);
+    exit;
+}
+
+// POST /admin/live-chat/clear - Clear chat history for a contractor
+if ($path === '/admin/live-chat/clear' && $method === 'POST') {
+    require_admin();
+    
+    $contractorId = (int)($_POST['contractor_id'] ?? 0);
+    
+    if ($contractorId > 0) {
+        $stmt = $pdo->prepare("DELETE FROM live_chat_messages WHERE contractor_id = ?");
+        $stmt->execute([$contractorId]);
     }
     
     header('Location: /admin/live-chat?contractor_id=' . $contractorId);

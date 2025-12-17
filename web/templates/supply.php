@@ -134,7 +134,7 @@ $maxValue = max(array_column($monthlyData, 'value')) ?: 1;
       <div class="card-header" style="display:flex; justify-content: space-between; align-items:center;">
         <h3 class="card-title">Supply History</h3>
         <div style="font-size: 0.9rem; color: #64748b;">
-          <?= $showAll ? 'Up to 2 years' : 'Last 5 requests' ?>
+          <?= count($requests) ?> request<?= count($requests) !== 1 ? 's' : '' ?>
         </div>
       </div>
       <div class="card-body" style="padding: 0;">
@@ -203,11 +203,6 @@ $maxValue = max(array_column($monthlyData, 'value')) ?: 1;
           </table>
         <?php endif; ?>
       </div>
-      <?php if (!$showAll): ?>
-      <div class="card-footer" style="display:flex; justify-content: flex-end;">
-        <a class="btn btn-sm btn-outline" href="/supply?all=1">View all (2 years)</a>
-      </div>
-      <?php endif; ?>
     </div>
   </div>
 
