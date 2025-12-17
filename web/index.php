@@ -9,6 +9,34 @@ if ($requestPath === '/health' || $requestPath === '/healthz') {
     exit;
 }
 
+// Serve files from /assets/ path - MUST be early before any requires
+if (preg_match('#^/assets/(.+)$#', $requestPath, $matches)) {
+    $assetFile = $matches[1];
+    $assetPath = __DIR__ . '/assets/' . $assetFile;
+    if (file_exists($assetPath) && is_file($assetPath)) {
+        $mimeTypes = [
+            'css' => 'text/css',
+            'js' => 'application/javascript',
+            'png' => 'image/png',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'gif' => 'image/gif',
+            'svg' => 'image/svg+xml',
+            'pdf' => 'application/pdf',
+            'webp' => 'image/webp',
+            'ico' => 'image/x-icon',
+            'woff' => 'font/woff',
+            'woff2' => 'font/woff2',
+        ];
+        $ext = strtolower(pathinfo($assetPath, PATHINFO_EXTENSION));
+        $mime = $mimeTypes[$ext] ?? 'application/octet-stream';
+        header('Content-Type: ' . $mime);
+        header('Cache-Control: public, max-age=31536000');
+        readfile($assetPath);
+        exit;
+    }
+}
+
 // Debug endpoint - before any requires
 if ($requestPath === '/debug-db') {
     header('Content-Type: application/json');
@@ -254,34 +282,6 @@ if ($requestPath === '/setup-database') {
     exit;
 }
 
-// Serve files from /assets/ path - EARLY, before any requires
-if (preg_match('#^/assets/(.+)$#', $requestPath, $matches)) {
-    $assetFile = $matches[1];
-    $assetPath = __DIR__ . '/assets/' . $assetFile;
-    if (file_exists($assetPath) && is_file($assetPath)) {
-        $mimeTypes = [
-            'css' => 'text/css',
-            'js' => 'application/javascript',
-            'png' => 'image/png',
-            'jpg' => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'gif' => 'image/gif',
-            'svg' => 'image/svg+xml',
-            'pdf' => 'application/pdf',
-            'webp' => 'image/webp',
-            'ico' => 'image/x-icon',
-            'woff' => 'font/woff',
-            'woff2' => 'font/woff2',
-        ];
-        $ext = strtolower(pathinfo($assetPath, PATHINFO_EXTENSION));
-        $mime = $mimeTypes[$ext] ?? 'application/octet-stream';
-        header('Content-Type: ' . $mime);
-        header('Cache-Control: public, max-age=31536000');
-        readfile($assetPath);
-        exit;
-    }
-}
-
 // Hide PHP errors in production
 if (isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== 'localhost' && strpos($_SERVER['HTTP_HOST'], '127.0.0.1') === false) {
     error_reporting(0);
@@ -349,30 +349,6 @@ if (preg_match('#^/images/(.+)$#', $requestPath, $matches)) {
             readfile($filePath);
             exit;
         }
-    }
-}
-
-// Serve files from /assets/ path
-if (preg_match('#^/assets/(.+)$#', $requestPath, $matches)) {
-    $assetPath = __DIR__ . '/assets/' . $matches[1];
-    if (file_exists($assetPath) && is_file($assetPath)) {
-        $mimeTypes = [
-            'css' => 'text/css',
-            'js' => 'application/javascript',
-            'png' => 'image/png',
-            'jpg' => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'gif' => 'image/gif',
-            'svg' => 'image/svg+xml',
-            'pdf' => 'application/pdf',
-            'webp' => 'image/webp',
-        ];
-        $ext = strtolower(pathinfo($assetPath, PATHINFO_EXTENSION));
-        $mime = $mimeTypes[$ext] ?? 'application/octet-stream';
-        header('Content-Type: ' . $mime);
-        header('Cache-Control: public, max-age=31536000');
-        readfile($assetPath);
-        exit;
     }
 }
 
