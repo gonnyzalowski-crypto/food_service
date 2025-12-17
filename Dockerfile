@@ -38,5 +38,5 @@ EXPOSE 8000
 COPY php.ini /usr/local/etc/php/conf.d/99-performance.ini
 
 # Use shell form to properly expand PORT variable
-# Router script path is relative to WORKDIR (/var/www/html)
-CMD ["sh", "-c", "php -S 0.0.0.0:${PORT} -t web index.php"]
+# Document root is 'web', router script is 'web/index.php' relative to WORKDIR
+CMD ["sh", "-c", "cd web && php -S 0.0.0.0:${PORT} index.php"]
