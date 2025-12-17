@@ -196,6 +196,59 @@ if ($requestPath === '/health' || $requestPath === '/healthz') {
     exit;
 }
 
+// Debug endpoint to check database connection
+if ($requestPath === '/debug-db') {
+    header('Content-Type: application/json');
+    $databaseUrl = $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL') ?? null;
+    $dbHost = $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?? 'not set';
+    $dbPort = $_ENV['DB_PORT'] ?? getenv('DB_PORT') ?? 'not set';
+    $dbName = $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?? 'not set';
+    $dbUser = $_ENV['DB_USER'] ?? getenv('DB_USER') ?? 'not set';
+    
+    $debug = [
+        'DATABASE_URL_set' => !empty($databaseUrl),
+        'DB_HOST' => $dbHost,
+        'DB_PORT' => $dbPort,
+        'DB_NAME' => $dbName,
+        'DB_USER' => $dbUser,
+        'env_keys' => array_keys($_ENV),
+    ];
+    
+    // Try to connect
+    try {
+        if ($databaseUrl) {
+            $dbParts = parse_url($databaseUrl);
+            $testHost = $dbParts['host'] ?? '127.0.0.1';
+            $testPort = $dbParts['port'] ?? '3306';
+            $testName = ltrim($dbParts['path'] ?? '/railway', '/');
+            $testUser = $dbParts['user'] ?? 'root';
+            $testPass = $dbParts['pass'] ?? '';
+        } else {
+            $testHost = $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?? '127.0.0.1';
+            $testPort = $_ENV['DB_PORT'] ?? getenv('DB_PORT') ?? '3306';
+            $testName = $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?? 'railway';
+            $testUser = $_ENV['DB_USER'] ?? getenv('DB_USER') ?? 'root';
+            $testPass = $_ENV['DB_PASS'] ?? getenv('DB_PASS') ?? '';
+        }
+        
+        $debug['parsed_host'] = $testHost;
+        $debug['parsed_port'] = $testPort;
+        $debug['parsed_name'] = $testName;
+        $debug['parsed_user'] = $testUser;
+        
+        $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $testHost, $testPort, $testName);
+        $pdo = new PDO($dsn, $testUser, $testPass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+        $debug['connection'] = 'SUCCESS';
+        $debug['server_info'] = $pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
+    } catch (PDOException $e) {
+        $debug['connection'] = 'FAILED';
+        $debug['error'] = $e->getMessage();
+    }
+    
+    echo json_encode($debug, JSON_PRETTY_PRINT);
+    exit;
+}
+
  // Disable legacy endpoints from the previous Gordon Food Service store (ecommerce/tracking/tools)
  if (in_array($requestPath, [
      '/telegram-webhook',
