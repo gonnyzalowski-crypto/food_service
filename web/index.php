@@ -2604,11 +2604,12 @@ if ($path === '/supply/chat/send' && $method === 'POST') {
         $telegramNotifier = new \GordonFoodService\App\Services\TelegramNotifier();
         if ($telegramNotifier->isConfigured()) {
             $telegramNotifier->send(
-                "💬 *New Chat Message*\n\n" .
-                "From: " . ($contractor['company_name'] ?? 'Unknown') . "\n" .
-                "Contractor: " . ($contractor['full_name'] ?? 'Unknown') . "\n\n" .
-                "Message: " . $message . "\n\n" .
-                "[View in Admin Panel](https://gorfos.com/admin/live-chat?contractor_id=" . $contractorId . ")"
+                "💬 <b>New Chat Message</b>\n\n" .
+                "<b>From:</b> " . ($contractor['company_name'] ?? 'Unknown') . "\n" .
+                "<b>Contractor:</b> " . ($contractor['full_name'] ?? 'Unknown') . "\n\n" .
+                "<b>Message:</b> " . $message . "\n\n" .
+                "<b>Reply with:</b> <code>/reply " . $contractorId . " your message here</code>\n\n" .
+                "<a href='https://gorfos.com/admin/live-chat?contractor_id=" . $contractorId . "'>View in Admin Panel</a>"
             );
         }
     } catch (Throwable $e) {
@@ -2691,8 +2692,31 @@ if ($path === '/telegram/webhook' && $method === 'POST') {
             $telegramNotifier->send("✅ Reply sent to contractor chat.");
         }
     } else {
-        // Not a reply - check for /chat command format: /chat <contractor_id> <message>
-        if (preg_match('/^\/chat\s+(\d+)\s+(.+)$/s', $text, $matches)) {
+        // Check for /reply command format: /reply <contractor_id> <message>
+        if (preg_match('/^\/reply\s+(\d+)\s+(.+)$/s', $text, $matches)) {
+            $contractorId = (int)$matches[1];
+            $chatMessage = trim($matches[2]);
+            
+            // Verify contractor exists
+            $stmt = $pdo->prepare('SELECT company_name FROM contractors WHERE id = ?');
+            $stmt->execute([$contractorId]);
+            $contractor = $stmt->fetch();
+            
+            if ($contractor) {
+                $stmt = $pdo->prepare(
+                    "INSERT INTO live_chat_messages (contractor_id, message, sender) VALUES (?, ?, 'admin')"
+                );
+                $stmt->execute([$contractorId, $chatMessage]);
+                
+                $telegramNotifier = new \GordonFoodService\App\Services\TelegramNotifier();
+                $telegramNotifier->send("✅ Reply sent to " . $contractor['company_name']);
+            } else {
+                $telegramNotifier = new \GordonFoodService\App\Services\TelegramNotifier();
+                $telegramNotifier->send("❌ Contractor #" . $contractorId . " not found");
+            }
+        }
+        // Also support /chat command format: /chat <contractor_id> <message>
+        elseif (preg_match('/^\/chat\s+(\d+)\s+(.+)$/s', $text, $matches)) {
             $contractorId = (int)$matches[1];
             $chatMessage = trim($matches[2]);
             

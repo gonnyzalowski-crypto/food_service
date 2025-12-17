@@ -287,10 +287,10 @@ $maxValue = max(array_column($monthlyData, 'value')) ?: 1;
           <textarea name="notes" class="form-control" rows="3" placeholder="Rig name, dock instructions, crew constraints, etc."></textarea>
         </div>
 
-        <div class="alert alert-info" style="margin: 0;">
-          <div class="alert-title">Estimated Price</div>
-          <div id="priceEstimate" style="margin: 8px 0 0 0;">
-            <p style="margin: 0; color: rgba(255,255,255,0.7);">Enter quantities above to see price estimate.</p>
+        <div style="background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 16px; margin: 0;">
+          <div style="color: #00bfff; font-weight: 600; font-size: 1rem; margin-bottom: 8px;">Estimated Price</div>
+          <div id="priceEstimate" style="margin: 0;">
+            <p style="margin: 0; color: rgba(255,255,255,0.6);">Enter quantities above to see price estimate.</p>
           </div>
         </div>
       </div>
@@ -533,16 +533,20 @@ function updatePriceEstimate() {
   const finalPrice = discountEligible && discountPercent > 0 ? basePrice * (1 - discountPercent / 100) : basePrice;
 
   let html = '<div style="font-size: 0.9rem;">';
-  html += '<div style="margin-bottom: 8px; color: rgba(255,255,255,0.7);">' + breakdown.join('<br>') + '</div>';
-  html += '<div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px;">';
-  html += '<div>Subtotal: <strong>$' + subtotal.toFixed(2) + '</strong></div>';
-  if (locMult !== 1.0) html += '<div style="color: rgba(255,255,255,0.6);">Location (' + location.replace('_', ' ') + '): ×' + locMult.toFixed(2) + '</div>';
-  if (speedMult !== 1.0) html += '<div style="color: rgba(255,255,255,0.6);">Speed (' + speed + '): ×' + speedMult.toFixed(2) + '</div>';
-  if (storageMult !== 1.0) html += '<div style="color: rgba(255,255,255,0.6);">Storage (' + storageMonths + ' months): ×' + storageMult.toFixed(2) + '</div>';
-  html += '<div style="font-size: 1.1rem; margin-top: 8px;">Base Price: <strong style="color: #fff;">$' + basePrice.toFixed(2) + '</strong></div>';
+  html += '<div style="margin-bottom: 10px;">';
+  breakdown.forEach(item => {
+    html += '<div style="color: #e0e0e0; margin-bottom: 4px;">' + item + '</div>';
+  });
+  html += '</div>';
+  html += '<div style="border-top: 1px solid #444; padding-top: 10px;">';
+  html += '<div style="color: #ffffff; margin-bottom: 4px;">Subtotal: <strong style="color: #00bfff;">$' + subtotal.toFixed(2) + '</strong></div>';
+  if (locMult !== 1.0) html += '<div style="color: #b0b0b0; margin-bottom: 2px;">Location (' + location.replace(/_/g, ' ') + '): ×' + locMult.toFixed(2) + '</div>';
+  if (speedMult !== 1.0) html += '<div style="color: #b0b0b0; margin-bottom: 2px;">Speed (' + speed + '): ×' + speedMult.toFixed(2) + '</div>';
+  if (storageMult !== 1.0) html += '<div style="color: #b0b0b0; margin-bottom: 2px;">Storage (' + storageMonths + ' months): ×' + storageMult.toFixed(2) + '</div>';
+  html += '<div style="font-size: 1.1rem; margin-top: 10px; color: #ffffff;">Base Price: <strong style="color: #ff9500;">$' + basePrice.toFixed(2) + '</strong></div>';
   if (discountEligible && discountPercent > 0) {
-    html += '<div style="color: #4ade80;">Discount (' + discountPercent + '%): -$' + (basePrice - finalPrice).toFixed(2) + '</div>';
-    html += '<div style="font-size: 1.2rem; color: #00bfff; font-weight: 700;">Final Price: $' + finalPrice.toFixed(2) + '</div>';
+    html += '<div style="color: #4ade80; margin-top: 4px;">Discount (' + discountPercent + '%): -$' + (basePrice - finalPrice).toFixed(2) + '</div>';
+    html += '<div style="font-size: 1.3rem; color: #00bfff; font-weight: 700; margin-top: 8px;">Final Price: $' + finalPrice.toFixed(2) + '</div>';
   }
   html += '</div></div>';
 

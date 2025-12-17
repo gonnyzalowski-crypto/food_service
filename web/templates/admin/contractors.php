@@ -57,7 +57,7 @@
             <div><?= htmlspecialchars($c['full_name'] ?? '') ?></div>
           </td>
           <td>
-            <code style="background: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-size: 0.9rem;"><?= htmlspecialchars($c['contractor_code'] ?? '') ?></code>
+            <code style="background: #2a2a2a; color: #00bfff; padding: 6px 10px; border-radius: 6px; font-size: 0.9rem; border: 1px solid #444;"><?= htmlspecialchars($c['contractor_code'] ?? '') ?></code>
           </td>
           <td>
             <?php if (!empty($c['discount_eligible'])): ?>
