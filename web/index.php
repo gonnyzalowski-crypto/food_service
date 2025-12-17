@@ -2609,6 +2609,97 @@ if ($path === '/supply/chat/send' && $method === 'POST') {
     exit;
 }
 
+// GET /telegram/setup-webhook - Set up Telegram webhook (admin only)
+if ($path === '/telegram/setup-webhook' && $method === 'GET') {
+    require_admin();
+    header('Content-Type: text/html');
+    
+    $botToken = $_ENV['TELEGRAM_BOT_TOKEN'] ?? getenv('TELEGRAM_BOT_TOKEN') ?: '';
+    if (empty($botToken)) {
+        echo "<p style='color:red'>❌ TELEGRAM_BOT_TOKEN not configured</p>";
+        exit;
+    }
+    
+    $webhookUrl = 'https://gorfos.com/telegram/webhook';
+    $url = "https://api.telegram.org/bot{$botToken}/setWebhook?url=" . urlencode($webhookUrl);
+    
+    $response = file_get_contents($url);
+    $result = json_decode($response, true);
+    
+    if ($result['ok'] ?? false) {
+        echo "<h2 style='color:green'>✅ Telegram Webhook Set Successfully</h2>";
+        echo "<p>Webhook URL: <code>{$webhookUrl}</code></p>";
+        echo "<p>You can now reply to chat notifications directly from Telegram.</p>";
+    } else {
+        echo "<h2 style='color:red'>❌ Failed to set webhook</h2>";
+        echo "<pre>" . htmlspecialchars($response) . "</pre>";
+    }
+    exit;
+}
+
+// POST /telegram/webhook - Receive messages from Telegram bot
+if ($path === '/telegram/webhook' && $method === 'POST') {
+    header('Content-Type: application/json');
+    
+    $input = file_get_contents('php://input');
+    $update = json_decode($input, true);
+    
+    // Verify this is from the configured Telegram user
+    $telegramUserId = $_ENV['TELEGRAM_USER_ID'] ?? getenv('TELEGRAM_USER_ID') ?: '';
+    
+    if (!$update || !isset($update['message'])) {
+        echo json_encode(['ok' => true]);
+        exit;
+    }
+    
+    $message = $update['message'];
+    $fromId = (string)($message['from']['id'] ?? '');
+    $text = trim($message['text'] ?? '');
+    $replyTo = $message['reply_to_message'] ?? null;
+    
+    // Only process messages from the configured admin
+    if ($fromId !== $telegramUserId || $text === '') {
+        echo json_encode(['ok' => true]);
+        exit;
+    }
+    
+    // Check if this is a reply to a chat notification
+    if ($replyTo && isset($replyTo['text'])) {
+        $replyText = $replyTo['text'];
+        // Extract contractor_id from the original message link
+        if (preg_match('/contractor_id=(\d+)/', $replyText, $matches)) {
+            $contractorId = (int)$matches[1];
+            
+            // Insert admin reply into chat
+            $stmt = $pdo->prepare(
+                "INSERT INTO live_chat_messages (contractor_id, message, sender) VALUES (?, ?, 'admin')"
+            );
+            $stmt->execute([$contractorId, $text]);
+            
+            // Send confirmation back to Telegram
+            $telegramNotifier = new \GordonFoodService\App\Services\TelegramNotifier();
+            $telegramNotifier->send("✅ Reply sent to contractor chat.");
+        }
+    } else {
+        // Not a reply - check for /chat command format: /chat <contractor_id> <message>
+        if (preg_match('/^\/chat\s+(\d+)\s+(.+)$/s', $text, $matches)) {
+            $contractorId = (int)$matches[1];
+            $chatMessage = trim($matches[2]);
+            
+            $stmt = $pdo->prepare(
+                "INSERT INTO live_chat_messages (contractor_id, message, sender) VALUES (?, ?, 'admin')"
+            );
+            $stmt->execute([$contractorId, $chatMessage]);
+            
+            $telegramNotifier = new \GordonFoodService\App\Services\TelegramNotifier();
+            $telegramNotifier->send("✅ Message sent to contractor #" . $contractorId);
+        }
+    }
+    
+    echo json_encode(['ok' => true]);
+    exit;
+}
+
 if ($path === '/supply/request' && $method === 'POST') {
     require_contractor();
     if (!verify_csrf()) {
