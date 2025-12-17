@@ -244,6 +244,21 @@ if ($requestPath === '/setup-database') {
         )");
         $tables[] = 'login_attempts';
 
+        $pdo->exec("CREATE TABLE IF NOT EXISTS orders (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            order_number VARCHAR(50) UNIQUE,
+            user_id INT NULL,
+            status ENUM('pending','awaiting_payment','payment_uploaded','payment_confirmed','processing','shipped','delivered','cancelled','returned') DEFAULT 'pending',
+            total DECIMAL(14,2),
+            currency CHAR(3) DEFAULT 'USD',
+            billing_address JSON,
+            shipping_address JSON,
+            notes TEXT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'orders';
+
         echo "<p style='color:green'>✓ Created tables: " . implode(', ', $tables) . "</p>";
 
         // Insert default data
