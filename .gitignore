@@ -55,6 +55,7 @@ random.png
 # Documentation files
 *.md
 !README.md
+web/doc.md
 
 # Deployment scripts
 start.bat

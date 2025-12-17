@@ -1259,11 +1259,25 @@ if ($requestPath === '/update-aviation-images') {
 }
 
 // Support both local and Railway MySQL environment variables
-$dbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQL_HOST'] ?? $_ENV['MYSQLHOST'] ?? '127.0.0.1';
-$dbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQL_PORT'] ?? $_ENV['MYSQLPORT'] ?? '3306';
-$dbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQL_DATABASE'] ?? $_ENV['MYSQLDATABASE'] ?? 'gordon_food_service';
-$dbUser = $_ENV['DB_USER'] ?? $_ENV['MYSQL_USER'] ?? $_ENV['MYSQLUSER'] ?? 'root';
-$dbPass = $_ENV['DB_PASS'] ?? $_ENV['MYSQL_PASSWORD'] ?? $_ENV['MYSQLPASSWORD'] ?? '';
+// Railway provides DATABASE_URL which we should parse first
+$databaseUrl = $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL') ?? null;
+
+if ($databaseUrl) {
+    // Parse DATABASE_URL (format: mysql://user:pass@host:port/dbname)
+    $dbParts = parse_url($databaseUrl);
+    $dbHost = $dbParts['host'] ?? '127.0.0.1';
+    $dbPort = $dbParts['port'] ?? '3306';
+    $dbName = ltrim($dbParts['path'] ?? '/railway', '/');
+    $dbUser = $dbParts['user'] ?? 'root';
+    $dbPass = $dbParts['pass'] ?? '';
+} else {
+    // Fallback to individual environment variables
+    $dbHost = $_ENV['DB_HOST'] ?? $_ENV['MYSQL_HOST'] ?? $_ENV['MYSQLHOST'] ?? getenv('MYSQL_HOST') ?? '127.0.0.1';
+    $dbPort = $_ENV['DB_PORT'] ?? $_ENV['MYSQL_PORT'] ?? $_ENV['MYSQLPORT'] ?? getenv('MYSQL_PORT') ?? '3306';
+    $dbName = $_ENV['DB_NAME'] ?? $_ENV['MYSQL_DATABASE'] ?? $_ENV['MYSQLDATABASE'] ?? getenv('MYSQL_DATABASE') ?? 'gordon_food_service';
+    $dbUser = $_ENV['DB_USER'] ?? $_ENV['MYSQL_USER'] ?? $_ENV['MYSQLUSER'] ?? getenv('MYSQL_USER') ?? 'root';
+    $dbPass = $_ENV['DB_PASS'] ?? $_ENV['MYSQL_PASSWORD'] ?? $_ENV['MYSQLPASSWORD'] ?? getenv('MYSQL_PASSWORD') ?? '';
+}
 
 $dsn = sprintf(
     'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
