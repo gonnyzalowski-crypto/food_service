@@ -11,9 +11,26 @@ class SupplyPricingWorker
 {
     private PDO $pdo;
 
+    // Per-kg prices for each supply type (realistic wholesale prices in USD)
+    public const PRICES_PER_KG = [
+        'water' => 0.85,           // $0.85/kg for bottled water
+        'dry_food' => 3.50,        // $3.50/kg for dry goods (rice, pasta, flour, etc.)
+        'canned_food' => 4.25,     // $4.25/kg for canned goods
+        'mixed_supplies' => 5.75,  // $5.75/kg for mixed provisions
+        'toiletries' => 8.50,      // $8.50/kg for toiletries and hygiene products
+    ];
+
     public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
+    }
+
+    /**
+     * Get per-kg prices for display in the form
+     */
+    public static function getPricesPerKg(): array
+    {
+        return self::PRICES_PER_KG;
     }
 
     /**
@@ -98,8 +115,37 @@ class SupplyPricingWorker
             $storageMultiplier = 1.05;
         }
 
-        $basePrice = $baseRate * $crewSize * $durationDays * $typeMultiplier * $locationMultiplier * $speedMultiplier * $storageMultiplier;
-        $basePrice = round($basePrice, 2);
+        // Check if per-kg quantities are provided (new pricing model)
+        $supplyQuantities = $input['supply_quantities'] ?? [];
+        $itemBreakdown = [];
+        
+        if (!empty($supplyQuantities) && is_array($supplyQuantities)) {
+            // New per-kg pricing model
+            $basePrice = 0.0;
+            foreach ($supplyQuantities as $type => $kg) {
+                $kg = (float)$kg;
+                if ($kg > 0 && isset(self::PRICES_PER_KG[$type])) {
+                    $pricePerKg = self::PRICES_PER_KG[$type];
+                    $itemTotal = $kg * $pricePerKg;
+                    $itemBreakdown[$type] = [
+                        'kg' => $kg,
+                        'price_per_kg' => $pricePerKg,
+                        'subtotal' => round($itemTotal, 2),
+                    ];
+                    $basePrice += $itemTotal;
+                }
+            }
+            if ($basePrice <= 0) {
+                throw new InvalidArgumentException('Please specify quantity for at least one supply type.');
+            }
+            // Apply location, speed, and storage multipliers to the per-kg total
+            $basePrice = $basePrice * $locationMultiplier * $speedMultiplier * $storageMultiplier;
+            $basePrice = round($basePrice, 2);
+        } else {
+            // Legacy pricing model (crew size × duration × base rate)
+            $basePrice = $baseRate * $crewSize * $durationDays * $typeMultiplier * $locationMultiplier * $speedMultiplier * $storageMultiplier;
+            $basePrice = round($basePrice, 2);
+        }
 
         $discountPercent = 0.0;
         $isActive = !empty($contractor['active']);
@@ -124,6 +170,7 @@ class SupplyPricingWorker
             'discount_percent' => $discountPercent,
             'calculated_price' => $finalPrice,
             'currency' => 'USD',
+            'item_breakdown' => $itemBreakdown,
         ];
     }
 

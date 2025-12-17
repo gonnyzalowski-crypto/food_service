@@ -101,8 +101,8 @@
         <a href="/admin/products/new" class="btn btn-block btn-outline mb-2">
           ➕ Add Product
         </a>
-        <a href="/admin/reports" class="btn btn-block btn-outline">
-          📊 View Reports
+        <a href="/admin/live-chat" class="btn btn-block btn-outline">
+          💬 Live Chat
         </a>
       </div>
     </div>

@@ -299,6 +299,19 @@ if ($requestPath === '/setup-database') {
         )");
         $tables[] = 'shipments';
 
+        $pdo->exec("CREATE TABLE IF NOT EXISTS live_chat_messages (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            contractor_id INT NOT NULL,
+            telegram_chat_id VARCHAR(100) NULL,
+            message TEXT NOT NULL,
+            sender ENUM('contractor', 'admin') NOT NULL,
+            is_read TINYINT(1) DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_contractor (contractor_id),
+            INDEX idx_created (created_at)
+        )");
+        $tables[] = 'live_chat_messages';
+
         echo "<p style='color:green'>✓ Created tables: " . implode(', ', $tables) . "</p>";
 
         // Insert default data
@@ -2511,6 +2524,73 @@ if ($path === '/supply/logout' && $method === 'GET') {
     exit;
 }
 
+// GET /supply/chat/messages - Get chat messages for contractor (AJAX)
+if ($path === '/supply/chat/messages' && $method === 'GET') {
+    require_contractor();
+    header('Content-Type: application/json');
+    
+    $contractorId = (int)$_SESSION['contractor_id'];
+    
+    // Clean up old messages (7 days)
+    $pdo->exec("DELETE FROM live_chat_messages WHERE created_at < DATE_SUB(NOW(), INTERVAL 7 DAY)");
+    
+    // Get messages
+    $stmt = $pdo->prepare(
+        "SELECT * FROM live_chat_messages WHERE contractor_id = ? ORDER BY created_at ASC"
+    );
+    $stmt->execute([$contractorId]);
+    $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Mark admin messages as read
+    $stmt = $pdo->prepare("UPDATE live_chat_messages SET is_read = 1 WHERE contractor_id = ? AND sender = 'admin'");
+    $stmt->execute([$contractorId]);
+    
+    echo json_encode(['success' => true, 'messages' => $messages]);
+    exit;
+}
+
+// POST /supply/chat/send - Send chat message from contractor
+if ($path === '/supply/chat/send' && $method === 'POST') {
+    require_contractor();
+    header('Content-Type: application/json');
+    
+    $contractorId = (int)$_SESSION['contractor_id'];
+    $message = trim((string)($_POST['message'] ?? ''));
+    
+    if ($message === '') {
+        echo json_encode(['success' => false, 'error' => 'Message cannot be empty']);
+        exit;
+    }
+    
+    $stmt = $pdo->prepare(
+        "INSERT INTO live_chat_messages (contractor_id, message, sender) VALUES (?, ?, 'contractor')"
+    );
+    $stmt->execute([$contractorId, $message]);
+    
+    // Send Telegram notification to admin
+    try {
+        $stmt = $pdo->prepare('SELECT * FROM contractors WHERE id = ?');
+        $stmt->execute([$contractorId]);
+        $contractor = $stmt->fetch();
+        
+        $telegramNotifier = new \GordonFoodService\App\Services\TelegramNotifier();
+        if ($telegramNotifier->isConfigured()) {
+            $telegramNotifier->send(
+                "💬 *New Chat Message*\n\n" .
+                "From: " . ($contractor['company_name'] ?? 'Unknown') . "\n" .
+                "Contractor: " . ($contractor['full_name'] ?? 'Unknown') . "\n\n" .
+                "Message: " . $message . "\n\n" .
+                "[View in Admin Panel](https://gorfos.com/admin/live-chat?contractor_id=" . $contractorId . ")"
+            );
+        }
+    } catch (Throwable $e) {
+        // Telegram notification failed, but don't block the message
+    }
+    
+    echo json_encode(['success' => true]);
+    exit;
+}
+
 if ($path === '/supply/request' && $method === 'POST') {
     require_contractor();
     if (!verify_csrf()) {
@@ -2531,6 +2611,7 @@ if ($path === '/supply/request' && $method === 'POST') {
         'duration_days' => (int)($_POST['duration_days'] ?? 0),
         'crew_size' => (int)($_POST['crew_size'] ?? 0),
         'supply_types' => $_POST['supply_types'] ?? [],
+        'supply_quantities' => $_POST['supply_quantities'] ?? [],
         'delivery_location' => (string)($_POST['delivery_location'] ?? ''),
         'delivery_speed' => (string)($_POST['delivery_speed'] ?? ''),
         'storage_life_months' => ($_POST['storage_life_months'] ?? null) !== null ? (int)($_POST['storage_life_months'] ?? 6) : null,
@@ -3828,53 +3909,72 @@ if ($path === '/admin/customers' && $method === 'GET') {
     ]);
 }
 
-// GET /admin/reports - Reports dashboard
-if ($path === '/admin/reports' && $method === 'GET') {
+// GET /admin/live-chat - Live Chat with contractors via Telegram
+if ($path === '/admin/live-chat' && $method === 'GET') {
     require_admin();
     
-    // Sales by month
-    $stmt = $pdo->query(
-        "SELECT 
-            DATE_FORMAT(created_at, '%Y-%m') as month,
-            COUNT(*) as order_count,
-            SUM(total_amount) as revenue
-         FROM orders 
-         WHERE status NOT IN ('cancelled')
-         GROUP BY DATE_FORMAT(created_at, '%Y-%m')
-         ORDER BY month DESC
-         LIMIT 12"
-    );
-    $salesByMonth = $stmt->fetchAll();
+    // Clean up messages older than 7 days
+    $pdo->exec("DELETE FROM live_chat_messages WHERE created_at < DATE_SUB(NOW(), INTERVAL 7 DAY)");
     
-    // Top products
+    // Get all contractors with recent chat activity
     $stmt = $pdo->query(
-        "SELECT 
-            oi.sku,
-            p.name as product_name,
-            SUM(oi.qty) as total_qty,
-            SUM(oi.total) as total_revenue
-         FROM order_items oi
-         JOIN orders o ON oi.order_id = o.id
-         LEFT JOIN products p ON oi.product_id = p.id
-         WHERE o.status NOT IN ('cancelled')
-         GROUP BY oi.sku, p.name
-         ORDER BY total_revenue DESC
-         LIMIT 10"
+        "SELECT c.*, 
+            (SELECT COUNT(*) FROM live_chat_messages m WHERE m.contractor_id = c.id AND m.is_read = 0 AND m.sender = 'contractor') as unread_count,
+            (SELECT MAX(created_at) FROM live_chat_messages m WHERE m.contractor_id = c.id) as last_message_at
+         FROM contractors c
+         WHERE c.id IN (SELECT DISTINCT contractor_id FROM live_chat_messages)
+         ORDER BY last_message_at DESC"
     );
-    $topProducts = $stmt->fetchAll();
+    $chatContractors = $stmt->fetchAll();
     
-    // Orders by status
-    $stmt = $pdo->query(
-        "SELECT status, COUNT(*) as count FROM orders GROUP BY status"
-    );
-    $ordersByStatus = $stmt->fetchAll();
+    // Get selected contractor's messages
+    $selectedContractorId = isset($_GET['contractor_id']) ? (int)$_GET['contractor_id'] : null;
+    $messages = [];
+    $selectedContractor = null;
     
-    render_admin_template('reports.php', [
-        'title' => 'Reports - Admin',
-        'salesByMonth' => $salesByMonth,
-        'topProducts' => $topProducts,
-        'ordersByStatus' => $ordersByStatus,
+    if ($selectedContractorId) {
+        $stmt = $pdo->prepare('SELECT * FROM contractors WHERE id = ?');
+        $stmt->execute([$selectedContractorId]);
+        $selectedContractor = $stmt->fetch();
+        
+        if ($selectedContractor) {
+            // Mark messages as read
+            $stmt = $pdo->prepare("UPDATE live_chat_messages SET is_read = 1 WHERE contractor_id = ? AND sender = 'contractor'");
+            $stmt->execute([$selectedContractorId]);
+            
+            // Get messages
+            $stmt = $pdo->prepare(
+                "SELECT * FROM live_chat_messages WHERE contractor_id = ? ORDER BY created_at ASC"
+            );
+            $stmt->execute([$selectedContractorId]);
+            $messages = $stmt->fetchAll();
+        }
+    }
+    
+    render_admin_template('live_chat.php', [
+        'title' => 'Live Chat - Admin',
+        'chatContractors' => $chatContractors,
+        'selectedContractor' => $selectedContractor,
+        'messages' => $messages,
     ]);
+}
+
+// POST /admin/live-chat/send - Send message to contractor
+if ($path === '/admin/live-chat/send' && $method === 'POST') {
+    require_admin();
+    
+    $contractorId = (int)($_POST['contractor_id'] ?? 0);
+    $message = trim((string)($_POST['message'] ?? ''));
+    
+    if ($contractorId > 0 && $message !== '') {
+        $stmt = $pdo->prepare(
+            "INSERT INTO live_chat_messages (contractor_id, message, sender) VALUES (?, ?, 'admin')"
+        );
+        $stmt->execute([$contractorId, $message]);
+    }
+    
+    header('Location: /admin/live-chat?contractor_id=' . $contractorId);
+    exit;
 }
 
 // GET /admin/settings - Settings page

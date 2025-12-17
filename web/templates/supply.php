@@ -231,13 +231,49 @@ $maxValue = max(array_column($monthlyData, 'value')) ?: 1;
         </div>
 
         <div class="form-group">
-          <label class="form-label">Supply Types</label>
-          <div style="display: grid; gap: 10px;">
-            <label style="display:flex; align-items:center; gap: 10px;"><input type="checkbox" name="supply_types[]" value="water" checked> Water</label>
-            <label style="display:flex; align-items:center; gap: 10px;"><input type="checkbox" name="supply_types[]" value="dry_food" checked> Dry Food</label>
-            <label style="display:flex; align-items:center; gap: 10px;"><input type="checkbox" name="supply_types[]" value="canned_food"> Canned Food</label>
-            <label style="display:flex; align-items:center; gap: 10px;"><input type="checkbox" name="supply_types[]" value="mixed_supplies"> Mixed Supplies</label>
-            <label style="display:flex; align-items:center; gap: 10px;"><input type="checkbox" name="supply_types[]" value="toiletries"> Toiletries</label>
+          <label class="form-label">Supply Types & Quantities (kg)</label>
+          <p style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin: 0 0 12px 0;">Enter quantity in kilograms for each supply type you need. Prices shown are per kg.</p>
+          <div style="display: grid; gap: 12px;">
+            <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+              <div>
+                <div style="font-weight: 600;">Water</div>
+                <div style="font-size: 0.85rem; color: #00bfff;">$0.85/kg</div>
+              </div>
+              <input type="number" name="supply_quantities[water]" class="form-control" style="width: 100px;" min="0" step="0.1" value="0" placeholder="kg" oninput="updatePriceEstimate()">
+              <input type="hidden" name="supply_types[]" value="water">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+              <div>
+                <div style="font-weight: 600;">Dry Food</div>
+                <div style="font-size: 0.85rem; color: #00bfff;">$3.50/kg</div>
+              </div>
+              <input type="number" name="supply_quantities[dry_food]" class="form-control" style="width: 100px;" min="0" step="0.1" value="0" placeholder="kg" oninput="updatePriceEstimate()">
+              <input type="hidden" name="supply_types[]" value="dry_food">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+              <div>
+                <div style="font-weight: 600;">Canned Food</div>
+                <div style="font-size: 0.85rem; color: #00bfff;">$4.25/kg</div>
+              </div>
+              <input type="number" name="supply_quantities[canned_food]" class="form-control" style="width: 100px;" min="0" step="0.1" value="0" placeholder="kg" oninput="updatePriceEstimate()">
+              <input type="hidden" name="supply_types[]" value="canned_food">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+              <div>
+                <div style="font-weight: 600;">Mixed Supplies</div>
+                <div style="font-size: 0.85rem; color: #00bfff;">$5.75/kg</div>
+              </div>
+              <input type="number" name="supply_quantities[mixed_supplies]" class="form-control" style="width: 100px;" min="0" step="0.1" value="0" placeholder="kg" oninput="updatePriceEstimate()">
+              <input type="hidden" name="supply_types[]" value="mixed_supplies">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+              <div>
+                <div style="font-weight: 600;">Toiletries</div>
+                <div style="font-size: 0.85rem; color: #00bfff;">$8.50/kg</div>
+              </div>
+              <input type="number" name="supply_quantities[toiletries]" class="form-control" style="width: 100px;" min="0" step="0.1" value="0" placeholder="kg" oninput="updatePriceEstimate()">
+              <input type="hidden" name="supply_types[]" value="toiletries">
+            </div>
           </div>
         </div>
 
@@ -277,8 +313,10 @@ $maxValue = max(array_column($monthlyData, 'value')) ?: 1;
         </div>
 
         <div class="alert alert-info" style="margin: 0;">
-          <div class="alert-title">Pricing</div>
-          <p style="margin: 4px 0 0 0;">A single flat package price will be calculated after submission. No per-item pricing is shown.</p>
+          <div class="alert-title">Estimated Price</div>
+          <div id="priceEstimate" style="margin: 8px 0 0 0;">
+            <p style="margin: 0; color: rgba(255,255,255,0.7);">Enter quantities above to see price estimate.</p>
+          </div>
         </div>
       </div>
       <div class="card-footer">
@@ -458,6 +496,94 @@ function closeThankYouModal() {
   document.getElementById('thankYouModal').style.display = 'none';
   document.body.style.overflow = '';
 }
+
+// Per-kg prices for live estimation
+const pricesPerKg = {
+  water: 0.85,
+  dry_food: 3.50,
+  canned_food: 4.25,
+  mixed_supplies: 5.75,
+  toiletries: 8.50
+};
+
+// Location multipliers
+const locationMultipliers = {
+  pickup: 0.85,
+  local: 0.95,
+  onshore: 1.0,
+  nearshore: 1.15,
+  offshore_rig: 1.35
+};
+
+// Speed multipliers
+const speedMultipliers = {
+  standard: 1.0,
+  priority: 1.2,
+  emergency: 1.45
+};
+
+function updatePriceEstimate() {
+  const quantities = {
+    water: parseFloat(document.querySelector('input[name="supply_quantities[water]"]')?.value) || 0,
+    dry_food: parseFloat(document.querySelector('input[name="supply_quantities[dry_food]"]')?.value) || 0,
+    canned_food: parseFloat(document.querySelector('input[name="supply_quantities[canned_food]"]')?.value) || 0,
+    mixed_supplies: parseFloat(document.querySelector('input[name="supply_quantities[mixed_supplies]"]')?.value) || 0,
+    toiletries: parseFloat(document.querySelector('input[name="supply_quantities[toiletries]"]')?.value) || 0
+  };
+
+  const location = document.querySelector('select[name="delivery_location"]')?.value || 'onshore';
+  const speed = document.querySelector('select[name="delivery_speed"]')?.value || 'standard';
+  const storageMonths = parseInt(document.querySelector('input[name="storage_life_months"]')?.value) || 6;
+
+  let subtotal = 0;
+  let breakdown = [];
+
+  for (const [type, kg] of Object.entries(quantities)) {
+    if (kg > 0) {
+      const price = pricesPerKg[type];
+      const itemTotal = kg * price;
+      subtotal += itemTotal;
+      breakdown.push(`${type.replace('_', ' ')}: ${kg}kg × $${price.toFixed(2)} = $${itemTotal.toFixed(2)}`);
+    }
+  }
+
+  if (subtotal <= 0) {
+    document.getElementById('priceEstimate').innerHTML = '<p style="margin: 0; color: rgba(255,255,255,0.7);">Enter quantities above to see price estimate.</p>';
+    return;
+  }
+
+  const locMult = locationMultipliers[location] || 1.0;
+  const speedMult = speedMultipliers[speed] || 1.0;
+  let storageMult = 1.0;
+  if (storageMonths >= 12) storageMult = 1.1;
+  else if (storageMonths >= 6) storageMult = 1.05;
+
+  const basePrice = subtotal * locMult * speedMult * storageMult;
+  const discountPercent = <?= json_encode((float)($contractor['discount_percent'] ?? 0)) ?>;
+  const discountEligible = <?= json_encode(!empty($contractor['discount_eligible'])) ?>;
+  const finalPrice = discountEligible && discountPercent > 0 ? basePrice * (1 - discountPercent / 100) : basePrice;
+
+  let html = '<div style="font-size: 0.9rem;">';
+  html += '<div style="margin-bottom: 8px; color: rgba(255,255,255,0.7);">' + breakdown.join('<br>') + '</div>';
+  html += '<div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px;">';
+  html += '<div>Subtotal: <strong>$' + subtotal.toFixed(2) + '</strong></div>';
+  if (locMult !== 1.0) html += '<div style="color: rgba(255,255,255,0.6);">Location (' + location.replace('_', ' ') + '): ×' + locMult.toFixed(2) + '</div>';
+  if (speedMult !== 1.0) html += '<div style="color: rgba(255,255,255,0.6);">Speed (' + speed + '): ×' + speedMult.toFixed(2) + '</div>';
+  if (storageMult !== 1.0) html += '<div style="color: rgba(255,255,255,0.6);">Storage (' + storageMonths + ' months): ×' + storageMult.toFixed(2) + '</div>';
+  html += '<div style="font-size: 1.1rem; margin-top: 8px;">Base Price: <strong style="color: #fff;">$' + basePrice.toFixed(2) + '</strong></div>';
+  if (discountEligible && discountPercent > 0) {
+    html += '<div style="color: #4ade80;">Discount (' + discountPercent + '%): -$' + (basePrice - finalPrice).toFixed(2) + '</div>';
+    html += '<div style="font-size: 1.2rem; color: #00bfff; font-weight: 700;">Final Price: $' + finalPrice.toFixed(2) + '</div>';
+  }
+  html += '</div></div>';
+
+  document.getElementById('priceEstimate').innerHTML = html;
+}
+
+// Add event listeners for location and speed changes
+document.querySelector('select[name="delivery_location"]')?.addEventListener('change', updatePriceEstimate);
+document.querySelector('select[name="delivery_speed"]')?.addEventListener('change', updatePriceEstimate);
+document.querySelector('input[name="storage_life_months"]')?.addEventListener('input', updatePriceEstimate);
 </script>
 
 <!-- Thank You Modal -->
@@ -488,4 +614,152 @@ function closeThankYouModal() {
     </div>
   </div>
 </div>
+
+<!-- Floating Live Chat Button -->
+<button id="liveChatBtn" onclick="toggleLiveChat()" style="position: fixed; bottom: 24px; right: 24px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #00bfff, #0099cc); border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(0,191,255,0.4); z-index: 1000; display: flex; align-items: center; justify-content: center; transition: transform 0.2s, box-shadow 0.2s;">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+  </svg>
+  <span id="chatUnreadBadge" style="display: none; position: absolute; top: -4px; right: -4px; background: #f43f5e; color: white; font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 10px; min-width: 18px; text-align: center;"></span>
+</button>
+
+<!-- Live Chat Modal -->
+<div id="liveChatModal" style="display: none; position: fixed; bottom: 100px; right: 24px; width: 380px; max-width: calc(100vw - 48px); height: 500px; max-height: calc(100vh - 150px); background: #1a1a1a; border: 1px solid #333; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); z-index: 1001; display: none; flex-direction: column; overflow: hidden;">
+  <div style="background: linear-gradient(135deg, #00bfff, #0099cc); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <div style="font-weight: 700; color: #fff; font-size: 1.1rem;">Live Support</div>
+      <div style="font-size: 0.8rem; color: rgba(255,255,255,0.8);">We typically reply within minutes</div>
+    </div>
+    <button onclick="toggleLiveChat()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.2rem;">&times;</button>
+  </div>
+  
+  <div id="chatMessagesContainer" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+    <div style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px; font-size: 0.9rem;">
+      Loading messages...
+    </div>
+  </div>
+  
+  <div style="border-top: 1px solid #333; padding: 12px;">
+    <form id="chatSendForm" onsubmit="sendChatMessage(event)" style="display: flex; gap: 8px;">
+      <input type="text" id="chatMessageInput" placeholder="Type a message..." style="flex: 1; background: #2a2a2a; border: 1px solid #444; border-radius: 20px; padding: 10px 16px; color: #fff; font-size: 0.9rem;" required>
+      <button type="submit" style="background: #00bfff; border: none; color: #000; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+let chatOpen = false;
+let chatPollInterval = null;
+
+function toggleLiveChat() {
+  const modal = document.getElementById('liveChatModal');
+  chatOpen = !chatOpen;
+  modal.style.display = chatOpen ? 'flex' : 'none';
+  
+  if (chatOpen) {
+    loadChatMessages();
+    chatPollInterval = setInterval(loadChatMessages, 5000);
+    document.getElementById('chatMessageInput').focus();
+  } else {
+    if (chatPollInterval) clearInterval(chatPollInterval);
+  }
+}
+
+function loadChatMessages() {
+  fetch('/supply/chat/messages')
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        renderChatMessages(data.messages);
+      }
+    })
+    .catch(err => console.error('Failed to load messages:', err));
+}
+
+function renderChatMessages(messages) {
+  const container = document.getElementById('chatMessagesContainer');
+  
+  if (!messages || messages.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; color: rgba(255,255,255,0.5); padding: 40px 20px;">
+        <div style="font-size: 2rem; margin-bottom: 12px;">👋</div>
+        <div>Welcome! How can we help you today?</div>
+        <div style="font-size: 0.8rem; margin-top: 8px;">Messages are kept for 7 days.</div>
+      </div>
+    `;
+    return;
+  }
+  
+  let html = '';
+  messages.forEach(msg => {
+    const isAdmin = msg.sender === 'admin';
+    const time = new Date(msg.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    html += `
+      <div style="display: flex; ${isAdmin ? 'justify-content: flex-start;' : 'justify-content: flex-end;'}">
+        <div style="max-width: 80%; padding: 10px 14px; border-radius: 16px; ${isAdmin ? 'background: rgba(255,255,255,0.1); color: #fff;' : 'background: #00bfff; color: #000;'}">
+          <div style="word-wrap: break-word; font-size: 0.9rem;">${escapeHtml(msg.message).replace(/\n/g, '<br>')}</div>
+          <div style="font-size: 0.7rem; margin-top: 4px; opacity: 0.7;">${time}</div>
+        </div>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+  container.scrollTop = container.scrollHeight;
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function sendChatMessage(e) {
+  e.preventDefault();
+  const input = document.getElementById('chatMessageInput');
+  const message = input.value.trim();
+  
+  if (!message) return;
+  
+  input.disabled = true;
+  
+  fetch('/supply/chat/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'message=' + encodeURIComponent(message)
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        input.value = '';
+        loadChatMessages();
+      } else {
+        alert(data.error || 'Failed to send message');
+      }
+    })
+    .catch(err => {
+      console.error('Failed to send message:', err);
+      alert('Failed to send message. Please try again.');
+    })
+    .finally(() => {
+      input.disabled = false;
+      input.focus();
+    });
+}
+
+// Hover effect for chat button
+document.getElementById('liveChatBtn').addEventListener('mouseenter', function() {
+  this.style.transform = 'scale(1.1)';
+  this.style.boxShadow = '0 6px 30px rgba(0,191,255,0.5)';
+});
+document.getElementById('liveChatBtn').addEventListener('mouseleave', function() {
+  this.style.transform = 'scale(1)';
+  this.style.boxShadow = '0 4px 20px rgba(0,191,255,0.4)';
+});
+</script>
 <?php endif; ?>
