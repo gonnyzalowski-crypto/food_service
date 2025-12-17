@@ -242,34 +242,34 @@
 
 <!-- Supply Item Modal -->
 <div id="supplyItemModal" class="modal" style="display: none;">
-  <div class="modal-backdrop" onclick="closeSupplyItemModal()"></div>
-  <div class="modal-content" style="max-width: 500px;">
-    <div class="modal-header">
-      <h3 id="supplyItemModalTitle">Add Supply Item</h3>
-      <button type="button" class="modal-close" onclick="closeSupplyItemModal()">&times;</button>
+  <div class="modal-backdrop" onclick="closeSupplyItemModal()" style="background: rgba(0,0,0,0.8);"></div>
+  <div class="modal-content" style="max-width: 500px; background: #1a1a1a; border: 1px solid #333; border-radius: 12px;">
+    <div class="modal-header" style="border-bottom: 1px solid #333; padding: 16px 20px;">
+      <h3 id="supplyItemModalTitle" style="color: #00bfff; margin: 0; font-size: 1.25rem;">Add Supply Item</h3>
+      <button type="button" class="modal-close" onclick="closeSupplyItemModal()" style="background: rgba(255,255,255,0.1); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; font-size: 1.2rem; cursor: pointer;">&times;</button>
     </div>
     <form id="supplyItemForm" action="/admin/settings/supply-item" method="POST">
       <?= csrf_field() ?>
       <input type="hidden" name="action" id="supplyItemAction" value="add">
       <input type="hidden" name="original_key" id="supplyItemOriginalKey" value="">
-      <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label">Item Name</label>
-          <input type="text" name="item_name" id="supplyItemName" class="form-control" placeholder="e.g., Water, Dry Food, Canned Food" required>
+      <div class="modal-body" style="padding: 20px; background: #1a1a1a;">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" style="display: block; color: #ffffff; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem;">Item Name</label>
+          <input type="text" name="item_name" id="supplyItemName" class="form-control" placeholder="e.g., Water, Dry Food, Canned Food" required style="width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid #444; border-radius: 8px; color: #fff; font-size: 1rem;">
         </div>
-        <div class="form-group">
-          <label class="form-label">Item Key (lowercase, underscores)</label>
-          <input type="text" name="item_key" id="supplyItemKey" class="form-control" placeholder="e.g., water, dry_food, canned_food" pattern="[a-z_]+" required>
-          <small style="color: rgba(255,255,255,0.5);">Used internally. Use lowercase letters and underscores only.</small>
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" style="display: block; color: #ffffff; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem;">Item Key (lowercase, underscores)</label>
+          <input type="text" name="item_key" id="supplyItemKey" class="form-control" placeholder="e.g., water, dry_food, canned_food" pattern="[a-z_]+" required style="width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid #444; border-radius: 8px; color: #fff; font-size: 1rem;">
+          <small style="color: rgba(255,255,255,0.5); display: block; margin-top: 6px;">Used internally. Use lowercase letters and underscores only.</small>
         </div>
-        <div class="form-group">
-          <label class="form-label">Price per kg (USD)</label>
-          <input type="number" name="item_price" id="supplyItemPrice" class="form-control" step="0.01" min="0" placeholder="e.g., 3.50" required>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" style="display: block; color: #ffffff; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem;">Price per kg (USD)</label>
+          <input type="number" name="item_price" id="supplyItemPrice" class="form-control" step="0.01" min="0" placeholder="e.g., 3.50" required style="width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid #444; border-radius: 8px; color: #fff; font-size: 1rem;">
         </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline" onclick="closeSupplyItemModal()">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save Item</button>
+      <div class="modal-footer" style="border-top: 1px solid #333; padding: 16px 20px; display: flex; justify-content: flex-end; gap: 12px; background: #1a1a1a; border-radius: 0 0 12px 12px;">
+        <button type="button" class="btn btn-outline" onclick="closeSupplyItemModal()" style="padding: 10px 20px; background: transparent; border: 1px solid #555; color: #fff; border-radius: 8px; cursor: pointer;">Cancel</button>
+        <button type="submit" class="btn btn-primary" style="padding: 10px 20px; background: #00bfff; border: none; color: #000; border-radius: 8px; font-weight: 600; cursor: pointer;">Save Item</button>
       </div>
     </form>
   </div>

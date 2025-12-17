@@ -4656,6 +4656,171 @@ if ($path === '/account' && $method === 'GET') {
     exit;
 }
 
+// GET /admin/seed-supply-requests - Seed historical supply requests (admin only)
+if ($path === '/admin/seed-supply-requests' && $method === 'GET') {
+    require_admin();
+    header('Content-Type: text/html; charset=utf-8');
+    
+    echo "<pre style='background:#1a1a1a;color:#fff;padding:20px;font-family:monospace;'>";
+    echo "=== Seeding Supply Requests ===\n\n";
+    
+    // Get contractor IDs
+    $contractors = [];
+    $stmt = $pdo->query("SELECT id, full_name, company_name, discount_percent FROM contractors WHERE active = 1");
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $name = strtolower($row['full_name']);
+        if (strpos($name, 'brian') !== false) {
+            $contractors['brian'] = $row;
+        } elseif (strpos($name, 'brokard') !== false) {
+            $contractors['brokard'] = $row;
+        } elseif (strpos($name, 'benard') !== false && strpos(strtolower($row['company_name']), 'houston') !== false) {
+            $contractors['benard'] = $row;
+        }
+    }
+    
+    foreach ($contractors as $key => $data) {
+        if (!$data) {
+            echo "ERROR: Contractor '$key' not found!\n";
+            exit;
+        }
+        echo "Found $key: {$data['full_name']} ({$data['company_name']}) - ID: {$data['id']}, Discount: {$data['discount_percent']}%\n";
+    }
+    
+    // Supply types
+    $supplyTypes = ['water', 'dry_food', 'canned_food', 'mixed_supplies', 'toiletries'];
+    
+    // Clear old seeded data
+    echo "\nClearing old supply requests (before Dec 2025)...\n";
+    $pdo->exec("DELETE FROM supply_requests WHERE created_at < '2025-12-01'");
+    
+    // Seed config
+    $seedConfig = [
+        'brian' => ['min' => 3000, 'max' => 7000, 'location' => 'onshore', 'end' => '2025-10-17'],
+        'brokard' => ['min' => 7000, 'max' => 21500, 'location' => 'offshore_rig', 'end' => '2025-10-17'],
+        'benard' => ['min' => 12000, 'max' => 45000, 'location' => 'offshore_rig', 'end' => '2025-10-17'],
+    ];
+    
+    $insertStmt = $pdo->prepare("
+        INSERT INTO supply_requests 
+        (request_number, contractor_id, duration_days, crew_size, supply_types, delivery_location, delivery_speed, storage_life_months, base_price, calculated_price, currency, status, effective_date, notes, created_at)
+        VALUES 
+        (:request_number, :contractor_id, :duration_days, :crew_size, :supply_types, :delivery_location, :delivery_speed, :storage_life_months, :base_price, :calculated_price, :currency, :status, :effective_date, :notes, :created_at)
+    ");
+    
+    $totalInserted = 0;
+    
+    foreach ($seedConfig as $key => $config) {
+        $contractor = $contractors[$key];
+        $discountPercent = (float)$contractor['discount_percent'];
+        
+        // Generate dates: 3-6 per year from Sept 2022 to Oct 2025
+        $dates = [];
+        for ($year = 2022; $year <= 2025; $year++) {
+            $startMonth = ($year == 2022) ? 9 : 1;
+            $endMonth = ($year == 2025) ? 10 : 12;
+            $requestsThisYear = mt_rand(3, 6);
+            
+            $availableMonths = range($startMonth, $endMonth);
+            shuffle($availableMonths);
+            $selectedMonths = array_slice($availableMonths, 0, min($requestsThisYear, count($availableMonths)));
+            sort($selectedMonths);
+            
+            foreach ($selectedMonths as $month) {
+                $day = mt_rand(1, 28);
+                $dates[] = sprintf('%04d-%02d-%02d', $year, $month, $day);
+            }
+        }
+        
+        echo "\n<span style='color:#00bfff;font-weight:bold;'>Seeding {$contractor['full_name']} ({$contractor['company_name']}):</span>\n";
+        echo "  Price range: \${$config['min']} - \${$config['max']} (discounted)\n";
+        echo "  Location: {$config['location']}\n";
+        echo "  Requests: " . count($dates) . "\n\n";
+        
+        foreach ($dates as $date) {
+            // Calculate prices
+            $discountedPrice = mt_rand($config['min'] * 100, $config['max'] * 100) / 100;
+            $basePrice = $discountedPrice / (1 - $discountPercent / 100);
+            
+            // Random values
+            $crewSize = mt_rand(8, 25);
+            $durationDays = mt_rand(7, 30);
+            $numTypes = mt_rand(2, 4);
+            shuffle($supplyTypes);
+            $selectedTypes = array_slice($supplyTypes, 0, $numTypes);
+            $speeds = ['standard', 'priority', 'emergency'];
+            $speed = $speeds[array_rand($speeds)];
+            $storageMonths = mt_rand(3, 12);
+            $requestNumber = 'SUP-' . date('Ymd', strtotime($date)) . '-' . strtoupper(substr(md5(uniqid() . $date), 0, 6));
+            
+            // Status based on age
+            $daysSince = (time() - strtotime($date)) / 86400;
+            if ($daysSince > 60) {
+                $status = 'completed';
+            } elseif ($daysSince > 30) {
+                $status = mt_rand(0, 1) ? 'completed' : 'shipped';
+            } else {
+                $statuses = ['completed', 'shipped', 'payment_confirmed', 'awaiting_payment'];
+                $status = $statuses[array_rand($statuses)];
+            }
+            
+            $request = [
+                'request_number' => $requestNumber,
+                'contractor_id' => $contractor['id'],
+                'duration_days' => $durationDays,
+                'crew_size' => $crewSize,
+                'supply_types' => json_encode($selectedTypes),
+                'delivery_location' => $config['location'],
+                'delivery_speed' => $speed,
+                'storage_life_months' => $storageMonths,
+                'base_price' => round($basePrice, 2),
+                'calculated_price' => round($discountedPrice, 2),
+                'currency' => 'USD',
+                'status' => $status,
+                'effective_date' => date('Y-m-d', strtotime($date . ' +' . mt_rand(3, 14) . ' days')),
+                'notes' => null,
+                'created_at' => date('Y-m-d H:i:s', strtotime($date)),
+            ];
+            
+            try {
+                $insertStmt->execute($request);
+                $totalInserted++;
+                $statusColor = $status === 'completed' ? '#4ade80' : ($status === 'shipped' ? '#fbbf24' : '#60a5fa');
+                echo "  <span style='color:#888;'>$date</span> - {$requestNumber} - <span style='color:#00bfff;'>\$" . number_format($discountedPrice, 2) . "</span> - <span style='color:$statusColor;'>$status</span>\n";
+            } catch (PDOException $e) {
+                echo "  <span style='color:red;'>ERROR: " . $e->getMessage() . "</span>\n";
+            }
+        }
+    }
+    
+    echo "\n<span style='color:#4ade80;font-weight:bold;'>========================================</span>\n";
+    echo "<span style='color:#4ade80;font-weight:bold;'>Total supply requests seeded: $totalInserted</span>\n";
+    echo "<span style='color:#4ade80;font-weight:bold;'>========================================</span>\n";
+    
+    // Verification
+    $stmt = $pdo->query("
+        SELECT c.full_name, c.company_name, COUNT(sr.id) as request_count, 
+               MIN(sr.created_at) as first_request, MAX(sr.created_at) as last_request,
+               SUM(sr.calculated_price) as total_value
+        FROM contractors c
+        LEFT JOIN supply_requests sr ON c.id = sr.contractor_id
+        WHERE c.active = 1
+        GROUP BY c.id
+        ORDER BY c.full_name
+    ");
+    
+    echo "\n<span style='color:#00bfff;font-weight:bold;'>Verification:</span>\n";
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        echo "  {$row['full_name']} ({$row['company_name']}): <span style='color:#fff;'>{$row['request_count']} requests</span>, Total: <span style='color:#4ade80;'>\$" . number_format($row['total_value'] ?? 0, 2) . "</span>\n";
+        if ($row['first_request']) {
+            echo "    First: {$row['first_request']}, Last: {$row['last_request']}\n";
+        }
+    }
+    
+    echo "\n<a href='/admin/supply-requests' style='color:#00bfff;'>View Supply Requests →</a>\n";
+    echo "</pre>";
+    exit;
+}
+
 // Fallback 404
 http_response_code(404);
 render_template('404.php', ['title' => 'Page Not Found']);
