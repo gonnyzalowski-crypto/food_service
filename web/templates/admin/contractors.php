@@ -13,6 +13,18 @@
 </div>
 <?php endif; ?>
 
+<?php if (!empty($_SESSION['flash_info'])): ?>
+<div class="alert alert-info mb-4">
+  <p style="margin: 0;"><?= htmlspecialchars($_SESSION['flash_info']) ?></p>
+</div>
+<?php unset($_SESSION['flash_info']); endif; ?>
+
+<?php if (!empty($_SESSION['flash_error'])): ?>
+<div class="alert alert-error mb-4">
+  <p style="margin: 0;"><?= htmlspecialchars($_SESSION['flash_error']) ?></p>
+</div>
+<?php unset($_SESSION['flash_error']); endif; ?>
+
 <div class="card">
   <?php if (empty($contractors)): ?>
   <div class="card-body text-center" style="padding: 64px;">
@@ -64,8 +76,13 @@
           <td style="font-size: 0.9rem; color: #64748b;">
             <?= date('M j, Y', strtotime($c['created_at'])) ?>
           </td>
-          <td>
+          <td style="display: flex; gap: 8px; align-items: center;">
             <a class="btn btn-sm btn-outline" href="/admin/contractors/<?= (int)$c['id'] ?>/edit">Edit</a>
+            <a class="btn btn-sm btn-outline" href="/admin/contractors/<?= (int)$c['id'] ?>/export-csv" title="Export supply requests to CSV">📥 CSV</a>
+            <form method="POST" action="/admin/contractors/<?= (int)$c['id'] ?>/delete" style="margin: 0;" onsubmit="return confirm('Are you sure you want to delete this contractor? This cannot be undone.');">
+              <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+              <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+            </form>
           </td>
         </tr>
         <?php endforeach; ?>

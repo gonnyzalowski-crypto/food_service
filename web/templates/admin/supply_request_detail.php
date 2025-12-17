@@ -12,8 +12,12 @@ $types = json_decode($req['supply_types'] ?? '[]', true) ?: [];
       <?= htmlspecialchars($req['request_number'] ?? '') ?>
     </p>
   </div>
-  <div style="display:flex; gap: 10px; flex-wrap: wrap;">
+  <div style="display:flex; gap: 10px; flex-wrap: wrap; align-items: center;">
     <a href="/admin/supply-requests/<?= (int)$req['id'] ?>/edit" class="btn btn-primary">Edit Request</a>
+    <form method="POST" action="/admin/supply-requests/<?= (int)$req['id'] ?>/delete" style="margin: 0;" onsubmit="return confirm('Are you sure you want to delete this supply request? This cannot be undone.');">
+      <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+      <button type="submit" class="btn btn-danger">Delete Request</button>
+    </form>
     <a href="/admin/supply-requests" class="btn btn-outline">← Back</a>
   </div>
 </div>

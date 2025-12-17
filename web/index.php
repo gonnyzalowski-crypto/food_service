@@ -337,9 +337,11 @@ if ($requestPath === '/setup-database') {
     exit;
 }
 
-// Temporarily show errors for debugging
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
+// Hide PHP errors in production
+if (isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== 'localhost' && strpos($_SERVER['HTTP_HOST'], '127.0.0.1') === false) {
+    error_reporting(0);
+    ini_set('display_errors', '0');
+}
 
 // Serve static files directly when using PHP built-in server
 $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
@@ -3256,6 +3258,25 @@ if (preg_match('#^/admin/supply-requests/(\d+)/edit$#', $path, $m) && $method ==
     exit;
 }
 
+// POST /admin/supply-requests/{id}/delete - Delete supply request
+if (preg_match('#^/admin/supply-requests/(\d+)/delete$#', $path, $m) && $method === 'POST') {
+    require_admin();
+    if (!verify_csrf()) {
+        http_response_code(403);
+        exit;
+    }
+    $id = (int)$m[1];
+    
+    // Delete related payments first
+    $pdo->prepare('DELETE FROM supply_request_payments WHERE supply_request_id = ?')->execute([$id]);
+    // Delete the supply request
+    $pdo->prepare('DELETE FROM supply_requests WHERE id = ?')->execute([$id]);
+    
+    $_SESSION['flash_info'] = 'Supply request deleted successfully.';
+    header('Location: /admin/supply-requests');
+    exit;
+}
+
 // GET /admin/orders
 if ($path === '/admin/orders' && $method === 'GET') {
     require_admin();
@@ -4008,6 +4029,109 @@ if (preg_match('#^/admin/contractors/(\d+)/edit$#', $path, $m) && $method === 'P
     $stmt->execute([$fullName, $companyName, $contractorCode, $discountPercent, $discountEligible, $active, $id]);
 
     header('Location: /admin/contractors');
+    exit;
+}
+
+// POST /admin/contractors/{id}/delete - Delete contractor
+if (preg_match('#^/admin/contractors/(\d+)/delete$#', $path, $m) && $method === 'POST') {
+    require_admin();
+    if (!verify_csrf()) {
+        http_response_code(403);
+        exit;
+    }
+    $id = (int)$m[1];
+    
+    // Check if contractor has supply requests
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM supply_requests WHERE contractor_id = ?');
+    $stmt->execute([$id]);
+    $requestCount = (int)$stmt->fetchColumn();
+    
+    if ($requestCount > 0) {
+        $_SESSION['flash_error'] = 'Cannot delete contractor with existing supply requests. Delete their supply requests first or deactivate the contractor instead.';
+        header('Location: /admin/contractors');
+        exit;
+    }
+    
+    // Delete the contractor
+    $pdo->prepare('DELETE FROM contractors WHERE id = ?')->execute([$id]);
+    
+    $_SESSION['flash_info'] = 'Contractor deleted successfully.';
+    header('Location: /admin/contractors');
+    exit;
+}
+
+// GET /admin/contractors/{id}/export-csv - Export contractor supply requests to CSV
+if (preg_match('#^/admin/contractors/(\d+)/export-csv$#', $path, $m) && $method === 'GET') {
+    require_admin();
+    $id = (int)$m[1];
+    
+    // Get contractor info
+    $stmt = $pdo->prepare('SELECT * FROM contractors WHERE id = ?');
+    $stmt->execute([$id]);
+    $contractor = $stmt->fetch();
+    
+    if (!$contractor) {
+        header('Location: /admin/contractors');
+        exit;
+    }
+    
+    // Get all supply requests for this contractor
+    $stmt = $pdo->prepare('SELECT * FROM supply_requests WHERE contractor_id = ? ORDER BY created_at DESC');
+    $stmt->execute([$id]);
+    $requests = $stmt->fetchAll();
+    
+    // Generate CSV
+    $filename = 'supply_requests_' . preg_replace('/[^a-zA-Z0-9]/', '_', $contractor['company_name']) . '_' . date('Y-m-d') . '.csv';
+    
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    
+    $output = fopen('php://output', 'w');
+    
+    // CSV Header
+    fputcsv($output, [
+        'Request Number',
+        'Status',
+        'Crew Size',
+        'Duration (Days)',
+        'Supply Types',
+        'Delivery Location',
+        'Delivery Speed',
+        'Storage Life (Months)',
+        'Base Price',
+        'Discounted Price',
+        'Currency',
+        'Effective Date',
+        'Notes',
+        'Created At',
+        'Approved At',
+        'Completed At',
+    ]);
+    
+    // CSV Data
+    foreach ($requests as $req) {
+        $supplyTypes = json_decode($req['supply_types'] ?? '[]', true) ?: [];
+        fputcsv($output, [
+            $req['request_number'],
+            $req['status'],
+            $req['crew_size'],
+            $req['duration_days'],
+            implode(', ', $supplyTypes),
+            $req['delivery_location'],
+            $req['delivery_speed'],
+            $req['storage_life_months'],
+            $req['base_price'],
+            $req['calculated_price'],
+            $req['currency'],
+            $req['effective_date'],
+            $req['notes'],
+            $req['created_at'],
+            $req['approved_at'],
+            $req['completed_at'],
+        ]);
+    }
+    
+    fclose($output);
     exit;
 }
 
