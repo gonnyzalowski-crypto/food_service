@@ -4857,7 +4857,7 @@ if ($path === '/admin/update-crew-sizes' && $method === 'GET') {
             $contractors['brian'] = $row;
         } elseif (strpos($name, 'brokard') !== false) {
             $contractors['brokard'] = $row;
-        } elseif (strpos($name, 'benard') !== false && strpos(strtolower($row['company_name']), 'houston') !== false) {
+        } elseif (strpos($name, 'benard') !== false) {
             $contractors['benard'] = $row;
         }
     }
