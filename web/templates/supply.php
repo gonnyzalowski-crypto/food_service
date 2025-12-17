@@ -64,9 +64,9 @@ $showAll = (bool)($showAll ?? false);
 <!-- Supply Metrics -->
 <?php
 $totalRequests = count($requests);
-$completedRequests = count(array_filter($requests, fn($r) => ($r['status'] ?? '') === 'transaction_completed'));
+$completedRequests = count(array_filter($requests, fn($r) => in_array($r['status'] ?? '', ['transaction_completed', 'completed', 'shipped'])));
 $pendingRequests = count(array_filter($requests, fn($r) => in_array($r['status'] ?? '', ['awaiting_review', 'approved_awaiting_payment', 'payment_submitted_processing'])));
-$totalSpent = array_sum(array_map(fn($r) => ($r['status'] ?? '') === 'transaction_completed' ? (float)($r['calculated_price'] ?? 0) : 0, $requests));
+$totalSpent = array_sum(array_map(fn($r) => in_array($r['status'] ?? '', ['transaction_completed', 'completed', 'shipped']) ? (float)($r['calculated_price'] ?? 0) : 0, $requests));
 
 // Calculate monthly spending for the chart (last 6 months)
 $monthlyData = [];
@@ -76,8 +76,8 @@ for ($i = 5; $i >= 0; $i--) {
     $monthLabel = date('M', strtotime("-$i months"));
     $monthTotal = 0;
     foreach ($requests as $r) {
-        if (($r['status'] ?? '') === 'transaction_completed' && isset($r['completed_at'])) {
-            $completedDate = date('Y-m-d', strtotime($r['completed_at']));
+        if (in_array($r['status'] ?? '', ['transaction_completed', 'completed', 'shipped'])) {
+            $completedDate = date('Y-m-d', strtotime($r['completed_at'] ?? $r['created_at']));
             if ($completedDate >= $monthStart && $completedDate <= $monthEnd) {
                 $monthTotal += (float)($r['calculated_price'] ?? 0);
             }
@@ -173,7 +173,6 @@ $maxValue = max(array_column($monthlyData, 'value')) ?: 1;
                 </td>
                 <td style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">
                   <div><?= $r['effective_date'] ? htmlspecialchars($r['effective_date']) : '—' ?></div>
-                  <div style="font-size: 0.85rem; color: rgba(255,255,255,0.5);">Created: <?= htmlspecialchars(date('Y-m-d', strtotime($r['created_at']))) ?></div>
                 </td>
                 <?php $basePrice = isset($r['base_price']) && $r['base_price'] !== null ? (float)$r['base_price'] : (float)$r['calculated_price']; ?>
                 <td style="font-weight: 700; color: rgba(255,255,255,0.9);"><?= format_price($basePrice, (string)($r['currency'] ?? 'USD')) ?></td>
@@ -190,7 +189,7 @@ $maxValue = max(array_column($monthlyData, 'value')) ?: 1;
                     <span style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">Processing</span>
                   <?php elseif (($r['status'] ?? '') === 'awaiting_review'): ?>
                     <span style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">Waiting</span>
-                  <?php elseif (($r['status'] ?? '') === 'transaction_completed'): ?>
+                  <?php elseif (in_array($r['status'] ?? '', ['transaction_completed', 'completed', 'shipped'])): ?>
                     <button type="button" onclick="openThankYouModal()" style="background: none; border: none; color: #4ade80; font-weight: 700; font-size: 0.9rem; cursor: pointer; text-decoration: underline;">Completed</button>
                   <?php elseif (($r['status'] ?? '') === 'declined'): ?>
                     <span style="color: #f87171; font-weight: 700; font-size: 0.9rem;">Declined</span>

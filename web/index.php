@@ -3205,26 +3205,32 @@ if ($path === '/logout') {
 if ($path === '/admin' && $method === 'GET') {
     require_admin();
     
-    // Get stats
+    // Get supply request stats
     $stats = [];
-    $stats['total_orders'] = $pdo->query('SELECT COUNT(*) FROM orders')->fetchColumn();
-    $stats['pending_payments'] = $pdo->query("SELECT COUNT(*) FROM orders WHERE status = 'payment_uploaded'")->fetchColumn();
-    $stats['total_revenue'] = $pdo->query("SELECT COALESCE(SUM(total), 0) FROM orders WHERE status NOT IN ('cancelled', 'awaiting_payment')")->fetchColumn();
-    $stats['total_products'] = $pdo->query('SELECT COUNT(*) FROM products WHERE is_active = 1')->fetchColumn();
+    $stats['total_requests'] = $pdo->query('SELECT COUNT(*) FROM supply_requests')->fetchColumn();
+    $stats['pending_requests'] = $pdo->query("SELECT COUNT(*) FROM supply_requests WHERE status = 'awaiting_review'")->fetchColumn();
+    $stats['total_revenue'] = $pdo->query("SELECT COALESCE(SUM(calculated_price), 0) FROM supply_requests WHERE status IN ('transaction_completed', 'completed', 'shipped')")->fetchColumn();
+    $stats['active_contractors'] = $pdo->query('SELECT COUNT(*) FROM contractors WHERE active = 1')->fetchColumn();
     
-    // Recent orders
-    $stmt = $pdo->query('SELECT * FROM orders ORDER BY created_at DESC LIMIT 10');
-    $recentOrders = $stmt->fetchAll();
+    // Status counts for summary
+    $stats['status_awaiting_review'] = $pdo->query("SELECT COUNT(*) FROM supply_requests WHERE status = 'awaiting_review'")->fetchColumn();
+    $stats['status_awaiting_payment'] = $pdo->query("SELECT COUNT(*) FROM supply_requests WHERE status = 'approved_awaiting_payment'")->fetchColumn();
+    $stats['status_processing'] = $pdo->query("SELECT COUNT(*) FROM supply_requests WHERE status = 'payment_submitted_processing'")->fetchColumn();
+    $stats['status_completed'] = $pdo->query("SELECT COUNT(*) FROM supply_requests WHERE status IN ('transaction_completed', 'completed', 'shipped')")->fetchColumn();
     
-    // Pending payment orders
-    $stmt = $pdo->query("SELECT * FROM orders WHERE status = 'payment_uploaded' ORDER BY created_at DESC LIMIT 5");
-    $pendingPayments = $stmt->fetchAll();
+    // Recent supply requests
+    $stmt = $pdo->query('SELECT sr.*, c.company_name, c.full_name, c.contractor_code FROM supply_requests sr JOIN contractors c ON c.id = sr.contractor_id ORDER BY sr.created_at DESC LIMIT 10');
+    $recentRequests = $stmt->fetchAll();
+    
+    // Pending review requests
+    $stmt = $pdo->query("SELECT sr.*, c.company_name, c.full_name FROM supply_requests sr JOIN contractors c ON c.id = sr.contractor_id WHERE sr.status = 'awaiting_review' ORDER BY sr.created_at DESC LIMIT 5");
+    $pendingRequests = $stmt->fetchAll();
     
     render_admin_template('dashboard.php', [
         'title' => 'Admin Dashboard - Gordon Food Service',
         'stats' => $stats,
-        'recentOrders' => $recentOrders,
-        'pendingPayments' => $pendingPayments,
+        'recentRequests' => $recentRequests,
+        'pendingRequests' => $pendingRequests,
     ]);
 }
 
