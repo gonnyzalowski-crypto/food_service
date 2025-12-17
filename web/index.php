@@ -259,6 +259,46 @@ if ($requestPath === '/setup-database') {
         )");
         $tables[] = 'orders';
 
+        $pdo->exec("CREATE TABLE IF NOT EXISTS categories (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            slug VARCHAR(255) UNIQUE NOT NULL,
+            description TEXT NULL,
+            parent_id INT NULL,
+            sort_order INT DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'categories';
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS products (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            sku VARCHAR(100) UNIQUE NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            slug VARCHAR(255) UNIQUE,
+            description TEXT,
+            category_id INT NULL,
+            unit_price DECIMAL(12,2),
+            stock_quantity INT DEFAULT 0,
+            is_active TINYINT(1) DEFAULT 1,
+            is_featured TINYINT(1) DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'products';
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS shipments (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            order_id BIGINT NULL,
+            supply_request_id BIGINT NULL,
+            carrier VARCHAR(100),
+            tracking_number VARCHAR(255),
+            status VARCHAR(50) DEFAULT 'pending',
+            shipped_at TIMESTAMP NULL,
+            delivered_at TIMESTAMP NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        $tables[] = 'shipments';
+
         echo "<p style='color:green'>✓ Created tables: " . implode(', ', $tables) . "</p>";
 
         // Insert default data
