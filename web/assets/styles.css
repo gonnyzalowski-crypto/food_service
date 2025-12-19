@@ -1736,6 +1736,85 @@ body.admin-nav-open .admin-overlay {
 .hidden { display: none; }
 
 /* ========== RESPONSIVE ========== */
+
+/* Tablet Portrait (600px - 900px) - Show desktop layout with adjusted spacing */
+@media (min-width: 601px) and (max-width: 900px) {
+  /* Keep desktop header visible but compact */
+  .header-main {
+    padding: 12px 20px;
+  }
+  
+  .main-nav {
+    gap: 16px;
+  }
+  
+  .main-nav a {
+    font-size: 0.85rem;
+    padding: 8px 12px;
+  }
+  
+  /* Product grid - 2 columns on tablet portrait */
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  
+  /* Catalog sidebar narrower */
+  .catalog-sidebar {
+    min-width: 180px;
+    max-width: 200px;
+  }
+  
+  /* Stats grid 2 columns */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  /* Categories grid 2 columns */
+  .categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  /* Hero adjustments */
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 1.1rem;
+  }
+  
+  /* Container padding */
+  .container,
+  .section-container {
+    padding: 0 20px;
+  }
+  
+  /* Footer grid */
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+  
+  /* Admin layout - keep sidebar but narrower */
+  .admin-layout {
+    grid-template-columns: 220px 1fr;
+  }
+  
+  .admin-sidebar-header {
+    padding: 12px 16px;
+  }
+  
+  .admin-nav a {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+  
+  .admin-content {
+    padding: 20px;
+  }
+}
+
 @media (max-width: 1024px) {
   .product-detail {
     grid-template-columns: 1fr;
@@ -1754,8 +1833,8 @@ body.admin-nav-open .admin-overlay {
   }
 }
 
-@media (max-width: 768px) {
-  /* Hide desktop elements */
+@media (max-width: 600px) {
+  /* Hide desktop elements - only on phones, not tablet portrait */
   .desktop-only,
   .header-top,
   .header-main,
@@ -2768,7 +2847,7 @@ body.admin-nav-open .admin-overlay {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
   .hero-section { 
     padding: 60px 0; 
     min-height: 70vh;
@@ -2912,7 +2991,7 @@ body.admin-nav-open .admin-overlay {
 }
 
 /* ========== ADMIN MOBILE ENHANCEMENTS ========== */
-@media (max-width: 768px) {
+@media (max-width: 600px) {
   /* Admin header mobile */
   .admin-header {
     flex-direction: column;
