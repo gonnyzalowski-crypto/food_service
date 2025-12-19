@@ -844,6 +844,15 @@ main.home-page {
   background: #15803d;
 }
 
+.btn-danger {
+  background: #dc2626;
+  color: var(--white);
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
 .btn-outline {
   background: transparent;
   border: 2px solid var(--gray-300);
@@ -1514,21 +1523,22 @@ body.admin-nav-open .admin-overlay {
 }
 
 .stat-card {
-  background: var(--white);
+  background: var(--bg-card);
   border-radius: var(--radius-lg);
   padding: 24px;
   box-shadow: var(--shadow);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .stat-value {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--gray-900);
+  color: var(--white);
 }
 
 .stat-label {
   font-size: 0.9rem;
-  color: var(--gray-500);
+  color: var(--gray-400);
   margin-top: 4px;
 }
 
@@ -1726,6 +1736,85 @@ body.admin-nav-open .admin-overlay {
 .hidden { display: none; }
 
 /* ========== RESPONSIVE ========== */
+
+/* Tablet Portrait (600px - 900px) - Show desktop layout with adjusted spacing */
+@media (min-width: 601px) and (max-width: 900px) {
+  /* Keep desktop header visible but compact */
+  .header-main {
+    padding: 12px 20px;
+  }
+  
+  .main-nav {
+    gap: 16px;
+  }
+  
+  .main-nav a {
+    font-size: 0.85rem;
+    padding: 8px 12px;
+  }
+  
+  /* Product grid - 2 columns on tablet portrait */
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  
+  /* Catalog sidebar narrower */
+  .catalog-sidebar {
+    min-width: 180px;
+    max-width: 200px;
+  }
+  
+  /* Stats grid 2 columns */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  /* Categories grid 2 columns */
+  .categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  /* Hero adjustments */
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 1.1rem;
+  }
+  
+  /* Container padding */
+  .container,
+  .section-container {
+    padding: 0 20px;
+  }
+  
+  /* Footer grid */
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+  
+  /* Admin layout - keep sidebar but narrower */
+  .admin-layout {
+    grid-template-columns: 220px 1fr;
+  }
+  
+  .admin-sidebar-header {
+    padding: 12px 16px;
+  }
+  
+  .admin-nav a {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+  
+  .admin-content {
+    padding: 20px;
+  }
+}
+
 @media (max-width: 1024px) {
   .product-detail {
     grid-template-columns: 1fr;
@@ -1744,8 +1833,8 @@ body.admin-nav-open .admin-overlay {
   }
 }
 
-@media (max-width: 768px) {
-  /* Hide desktop elements */
+@media (max-width: 600px) {
+  /* Hide desktop elements - only on phones, not tablet portrait */
   .desktop-only,
   .header-top,
   .header-main,
@@ -2758,7 +2847,7 @@ body.admin-nav-open .admin-overlay {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
   .hero-section { 
     padding: 60px 0; 
     min-height: 70vh;
@@ -2898,6 +2987,214 @@ body.admin-nav-open .admin-overlay {
   .btn-lg {
     padding: 14px 24px;
     font-size: 1rem;
+  }
+}
+
+/* ========== ADMIN MOBILE ENHANCEMENTS ========== */
+@media (max-width: 600px) {
+  /* Admin header mobile */
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  
+  .admin-header h1 {
+    font-size: 1.5rem;
+    margin: 0;
+  }
+  
+  /* Stats grid mobile - 2 columns */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .stat-card {
+    padding: 16px;
+  }
+  
+  .stat-value {
+    font-size: 1.5rem;
+  }
+  
+  .stat-label {
+    font-size: 0.8rem;
+  }
+  
+  /* Tables mobile - horizontal scroll */
+  .data-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    font-size: 0.85rem;
+  }
+  
+  .data-table th,
+  .data-table td {
+    padding: 12px 14px;
+    white-space: nowrap;
+  }
+  
+  /* Card mobile */
+  .card {
+    border-radius: 12px;
+  }
+  
+  .card-header {
+    padding: 16px;
+  }
+  
+  .card-body {
+    padding: 16px;
+  }
+  
+  /* Form grid mobile - single column */
+  .product-form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  
+  /* Form groups mobile */
+  .form-group {
+    margin-bottom: 16px;
+  }
+  
+  .form-control {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  /* Buttons mobile */
+  .btn {
+    padding: 12px 20px;
+    font-size: 0.95rem;
+    width: 100%;
+  }
+  
+  .btn-sm {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    width: auto;
+  }
+  
+  /* Admin actions row mobile */
+  .admin-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .admin-actions .btn {
+    width: 100%;
+  }
+  
+  /* Supply request detail mobile */
+  .detail-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .detail-label {
+    font-size: 0.8rem;
+  }
+  
+  .detail-value {
+    font-size: 1rem;
+  }
+  
+  /* Alert mobile */
+  .alert {
+    padding: 14px 16px;
+    font-size: 0.9rem;
+  }
+  
+  /* Badge mobile */
+  .badge {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+  }
+  
+  /* Admin topbar adjustments */
+  .admin-topbar {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+  }
+  
+  .admin-topbar a {
+    font-size: 0.75rem;
+  }
+  
+  /* Pagination mobile */
+  .pagination {
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+  
+  .pagination a,
+  .pagination span {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+  
+  /* Filter bar mobile */
+  .filter-bar {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .filter-bar select,
+  .filter-bar input {
+    width: 100%;
+  }
+  
+  /* Two column grids to single column */
+  [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Supply types checkboxes mobile */
+  .supply-types-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Two column form rows to single column on mobile */
+  .form-row-2col {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-content {
+    padding: 12px;
+  }
+  
+  .admin-topbar {
+    padding: 10px 12px;
+  }
+  
+  .card-header h3 {
+    font-size: 1rem;
+  }
+  
+  .stat-value {
+    font-size: 1.25rem;
+  }
+  
+  /* Hide less important table columns on very small screens */
+  .data-table .hide-mobile {
+    display: none;
   }
 }
 
