@@ -116,3 +116,6 @@ random.*
 docs/index.php
 docs/email_service.php
 docs/telegram_webhook.php
+
+# Project memory (Cascade AI context)
+project_memory.json
