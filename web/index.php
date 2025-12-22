@@ -4891,6 +4891,95 @@ if ($path === '/admin/update-crew-sizes' && $method === 'GET') {
     exit;
 }
 
+// GET /admin/clone-supply-requests - Clone supply requests from one contractor to another
+if ($path === '/admin/clone-supply-requests' && $method === 'GET') {
+    require_admin();
+    header('Content-Type: text/html; charset=utf-8');
+    
+    $sourceCode = 'GFS-025BB16A';
+    $targetCode = 'GFS-501BA9E5';
+    
+    echo "<pre style='background:#1a1a1a;color:#fff;padding:20px;font-family:monospace;'>";
+    echo "=== Cloning Supply Requests ===\n";
+    echo "Source: $sourceCode → Target: $targetCode\n\n";
+    
+    // Get source contractor
+    $stmt = $pdo->prepare("SELECT * FROM contractors WHERE contractor_code = ?");
+    $stmt->execute([$sourceCode]);
+    $sourceContractor = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$sourceContractor) {
+        echo "<span style='color:red;'>ERROR: Source contractor $sourceCode not found!</span>\n";
+        echo "</pre>";
+        exit;
+    }
+    
+    // Get target contractor
+    $stmt = $pdo->prepare("SELECT * FROM contractors WHERE contractor_code = ?");
+    $stmt->execute([$targetCode]);
+    $targetContractor = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$targetContractor) {
+        echo "<span style='color:red;'>ERROR: Target contractor $targetCode not found!</span>\n";
+        echo "</pre>";
+        exit;
+    }
+    
+    echo "Source: {$sourceContractor['full_name']} ({$sourceContractor['company_name']}) - ID: {$sourceContractor['id']}\n";
+    echo "Target: {$targetContractor['full_name']} ({$targetContractor['company_name']}) - ID: {$targetContractor['id']}\n\n";
+    
+    // Get all supply requests from source contractor
+    $stmt = $pdo->prepare("SELECT * FROM supply_requests WHERE contractor_id = ? ORDER BY created_at ASC");
+    $stmt->execute([$sourceContractor['id']]);
+    $sourceRequests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    echo "Found " . count($sourceRequests) . " requests to clone.\n\n";
+    
+    $cloned = 0;
+    foreach ($sourceRequests as $req) {
+        // Generate new request number
+        $dateStr = date('Ymd', strtotime($req['created_at']));
+        $randomHex = strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
+        $newRequestNumber = "SUP-{$dateStr}-{$randomHex}";
+        
+        // Insert cloned request with new contractor_id
+        $stmt = $pdo->prepare("
+            INSERT INTO supply_requests 
+            (contractor_id, request_number, duration_days, crew_size, supply_types, delivery_location, 
+             delivery_speed, storage_life_months, base_price, calculated_price, status, notes, 
+             effective_date, payment_instructions, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+        
+        $stmt->execute([
+            $targetContractor['id'],
+            $newRequestNumber,
+            $req['duration_days'],
+            $req['crew_size'],
+            $req['supply_types'],
+            $req['delivery_location'],
+            $req['delivery_speed'],
+            $req['storage_life_months'],
+            $req['base_price'],
+            $req['calculated_price'],
+            $req['status'],
+            $req['notes'],
+            $req['effective_date'],
+            $req['payment_instructions'],
+            $req['created_at'],
+            $req['updated_at']
+        ]);
+        
+        $cloned++;
+        echo "<span style='color:#4ade80;'>✓</span> Cloned {$req['request_number']} → $newRequestNumber (Date: {$req['created_at']})\n";
+    }
+    
+    echo "\n<span style='color:#4ade80;font-weight:bold;'>Done! Cloned $cloned requests.</span>\n";
+    echo "<a href='/admin/supply-requests' style='color:#00bfff;'>View Supply Requests →</a>\n";
+    echo "</pre>";
+    exit;
+}
+
 // Fallback 404
 http_response_code(404);
 render_template('404.php', ['title' => 'Page Not Found']);
